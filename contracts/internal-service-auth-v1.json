@@ -1,0 +1,176 @@
+{
+  "contractId": "insight.internal-service-auth",
+  "schemaVersion": "1.0.0",
+  "status": "accepted",
+  "serviceAuthentication": {
+    "algorithm": "HMAC-SHA256",
+    "keyIsolation": "one-secret-per-caller-destination-pair",
+    "secretSources": ["environment", "read-only-secret-mount"],
+    "clockSkewSeconds": 60,
+    "nonceRetentionSeconds": 300,
+    "timestampFormat": "Unix epoch seconds",
+    "minimumNonceEntropyBits": 128,
+    "headers": {
+      "serviceId": "X-Insight-Service-ID",
+      "keyId": "X-Insight-Key-ID",
+      "timestamp": "X-Insight-Timestamp",
+      "nonce": "X-Insight-Nonce",
+      "contentSha256": "X-Insight-Content-SHA256",
+      "signature": "X-Insight-Signature"
+    },
+    "canonicalFields": [
+      "INSIGHT-HMAC-V1",
+      "serviceId",
+      "keyId",
+      "timestamp",
+      "nonce",
+      "destinationServiceId",
+      "uppercaseMethod",
+      "rawPathAndQuery",
+      "lowercaseHexSha256OfExactBody",
+      "requestId",
+      "correlationId",
+      "causationIdOrEmpty"
+    ],
+    "canonicalEncoding": "UTF-8 fields joined by LF without trailing LF; reject CR or LF in fields",
+    "signatureEncoding": "v1=<base64url-without-padding>",
+    "verification": [
+      "known-enabled-service-and-key",
+      "constant-time-signature-compare",
+      "timestamp-within-clock-skew",
+      "unused-nonce-for-service-and-key",
+      "content-hash-matches-exact-body",
+      "destination-permitted-for-caller",
+      "method-and-path-permitted-for-caller"
+    ]
+  },
+  "userAttribution": {
+    "authority": "GET /api/auth/session",
+    "forwardedCookie": "configured Authentication session cookie only",
+    "forbiddenForwardedHeaders": [
+      "Authorization",
+      "X-CSRF-Token",
+      "X-Auth-Session",
+      "X-Auth-Session-ID",
+      "X-User-ID",
+      "X-User-Role"
+    ],
+    "authorizationSource": "current Authentication response only",
+    "cacheSessionAuthorization": false,
+    "finalization": "revalidate current psychiatrist session immediately before mutation",
+    "denialEvents": [
+      "revoked-session",
+      "disabled-account",
+      "role-change",
+      "password-reset",
+      "expired-session",
+      "pending-disclaimer"
+    ]
+  },
+  "backgroundCalls": {
+    "actorType": "service",
+    "sessionCookieAllowed": false,
+    "userIdentityAllowed": false,
+    "psychiatristOnlyActionsAllowed": false,
+    "finalizationAllowed": false
+  },
+  "csrf": {
+    "browserWrites": "validate at first receiving module",
+    "internalCalls": "not-forwarded-and-not-required-after-valid-service-authentication"
+  },
+  "trace": {
+    "requestIdHeader": "X-Request-ID",
+    "correlationIdHeader": "X-Correlation-ID",
+    "causationIdHeader": "X-Causation-ID",
+    "format": "UUID",
+    "requestIdBehavior": "new value per hop",
+    "correlationIdBehavior": "preserve root request ID",
+    "causationIdBehavior": "parent hop request ID; absent at root",
+    "phiAllowed": false
+  },
+  "ssrf": {
+    "registrySource": "deploy/runtime-policy.json",
+    "scheme": "http",
+    "match": ["scheme", "ip", "port", "path-prefix"],
+    "callerDestinationSetRequired": true,
+    "callerMethodPathCapabilitySetRequired": true,
+    "callerSuppliedUrlsAllowed": false,
+    "redirectsAllowed": false,
+    "denyBeforeNetworkAccess": true
+  },
+  "audit": {
+    "securityEvents": [
+      "service-auth-success",
+      "service-auth-failure",
+      "session-denial",
+      "privileged-access"
+    ],
+    "clinicalProvenanceEvents": [
+      "clinical-input",
+      "recommendation",
+      "plan-edit",
+      "override",
+      "finalization"
+    ],
+    "sharedFields": ["requestId", "correlationId", "causationId"],
+    "redacted": ["Cookie", "X-Insight-Signature", "service-secret", "PHI", "request-body", "response-body"]
+  },
+  "examples": [
+    {
+      "name": "browser-write",
+      "actor": "psychiatrist",
+      "sessionCookie": true,
+      "csrf": "required-at-first-module",
+      "serviceAssertion": false,
+      "result": "allowed-after-current-session-and-role-check"
+    },
+    {
+      "name": "user-attributed-server-call",
+      "actor": "psychiatrist",
+      "sessionCookie": true,
+      "csrf": "not-forwarded",
+      "serviceAssertion": true,
+      "result": "allowed-after-target-revalidates-session"
+    },
+    {
+      "name": "revoked-session",
+      "actor": "unknown",
+      "sessionCookie": true,
+      "csrf": "not-forwarded",
+      "serviceAssertion": true,
+      "result": "denied"
+    },
+    {
+      "name": "disabled-account",
+      "actor": "unknown",
+      "sessionCookie": true,
+      "csrf": "not-forwarded",
+      "serviceAssertion": true,
+      "result": "denied"
+    },
+    {
+      "name": "role-change",
+      "actor": "current-authentication-role",
+      "sessionCookie": true,
+      "csrf": "not-forwarded",
+      "serviceAssertion": true,
+      "result": "old-role-denied"
+    },
+    {
+      "name": "background-job",
+      "actor": "service",
+      "sessionCookie": false,
+      "csrf": "not-applicable",
+      "serviceAssertion": true,
+      "result": "user-only-actions-denied"
+    },
+    {
+      "name": "untrusted-destination",
+      "actor": "service",
+      "sessionCookie": false,
+      "csrf": "not-applicable",
+      "serviceAssertion": true,
+      "result": "denied-before-network-access"
+    }
+  ]
+}

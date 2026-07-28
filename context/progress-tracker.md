@@ -8,11 +8,25 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
-- INS-002: Decide gateway, process supervision, ports, and runtime matrix
-  (completed).
+- INS-003: Define internal service authentication and attribution (completed).
 
 ## Completed
 
+- INS-003 received HITL approval to select the simplest workable service-auth
+  mechanism and chose per-service HMAC-SHA256 assertions over mTLS and OAuth2
+  client credentials.
+- Added ADR-0002 and versioned `contracts/internal-service-auth-v1.json` covering
+  service identity, exact request signing, per-caller method/path capabilities,
+  cookie forwarding, CSRF boundaries, trace propagation, SSRF allowlists,
+  revocation, background-call limits, finalization revalidation, and audit
+  separation.
+- Added browser, user-attributed server, revoked-session, disabled-account,
+  role-change, background-job, and untrusted-destination contract examples.
+- Verified JSON syntax with `python3 -m json.tool
+  contracts/internal-service-auth-v1.json`; verified focused contract behavior
+  with `python3 -B -m unittest tests/test_internal_service_auth.py` (4 tests
+  passed); full architecture discovery passed with `python3 -B -m unittest
+  discover -s tests -v` (6 tests passed).
 - INS-002 received explicit HITL approval for nginx on public container port
   8080, supervisord as PID 1, Python 3.13, Node.js 22 LTS, loopback module ports
   8101-8109, all-required readiness aggregation, and a 30-second graceful stop.
@@ -39,7 +53,8 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
-- None. INS-002 decision packet is complete.
+- None. INS-003 decision packet is complete; runtime rollout is a separate work
+  packet.
 
 ## Repository Baseline
 
@@ -233,6 +248,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Next Up
 
+- Implement ADR-0002 in module-local inbound/outbound adapters: issue per-service
+  keys and capability sets, add signing/verification and nonce replay caches,
+  narrow existing full-cookie/authorization forwarding, and run provider and
+  consumer security tests.
 - Implement ADR-0001 in a separate deployment packet. Add unified image,
   gateway and supervisor configuration, module configuration adapters, missing
   liveness/readiness routes, graceful-shutdown wiring, and Docker Desktop/VPS
@@ -256,6 +275,11 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Architecture Decisions
 
+- ADR-0002 selects per-service HMAC-SHA256 request assertions, current-session
+  revalidation through Authentication for user-attributed calls, service-only
+  background identity, first-module browser CSRF enforcement, exact outbound
+  allowlists, safe UUID trace propagation, and separate security audit and
+  clinical provenance.
 - ADR-0001 selects nginx as internal gateway, supervisord as PID 1, Python 3.13,
   Node.js 22 LTS, gateway port 8080, module ports 8101-8109, all-required
   readiness, and a 30-second SIGTERM grace period. Only gateway is published;
@@ -265,6 +289,14 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-003 defines and tests the security contract only. No module runtime,
+  persistence, public clinical API, or release status changed. Existing
+  Dashboard and Add New Patient adapters still forward broader headers and must
+  be narrowed during rollout.
+- Authentication's current flat v1 session response still lacks the stable
+  session UUID expected by consumers. ADR-0002 binds authorization and
+  finalization to immediate opaque-cookie revalidation without resolving that
+  separate response-shape decision.
 - INS-002 changed decision records and static policy checks only. No module
   implementation, public API, persistence, clinical behavior, or release status
   changed.
