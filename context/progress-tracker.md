@@ -1,37 +1,248 @@
 # Progress Tracker
 
-Update this file after every meaningful implementation
-change.
+Update this file after every meaningful implementation change.
 
 ## Current Phase
 
-- [e.g. Not started / In progress / Complete]
+- In progress
 
 ## Current Goal
 
-- [What you are building right now]
+- INS-001: Establish a reproducible repository baseline.
 
 ## Completed
 
-- None yet.
+- Read all normative files under `context/`; no file under `doc/` was read.
+- Inventoried all nine functional modules, their current repository state,
+  runtimes, dependencies, start/test commands, routes, migrations, and contract
+  or schema versions.
+- Ran every module's documented full suite. Runtime and test storage used
+  temporary paths where supported; Severity ran from a temporary worktree copy
+  because its test writes to `data/assessments.json`.
+- Verified module Git status after testing. No tracked module changes were added.
+  Diagnosis-created bytecode residue was removed; the temporary Severity copy
+  was removed.
 
 ## In Progress
 
-- None yet.
+- INS-001 remains in progress while the first failing integration boundary and
+  environment/dependency test failures below remain unresolved.
+
+## Repository Baseline
+
+Recorded before tests with `git status --short` and `git rev-parse HEAD` in each
+available nested repository. Dirty files predated INS-001 and were preserved.
+
+| Module | Commit | Baseline status |
+| --- | --- | --- |
+| Authentication | unavailable | No Git repository at module root |
+| Dashboard | `9f295f2fb404fc99844cd98ef75c293fea15d801` | Dirty, 22 paths |
+| Add New Patient | `71e79eab47021ec40650ca07cceb9fe472bf2ac1` | Dirty, 5 generated `graphify-out/` paths |
+| Diagnosis | `07bc16fdad6f76afddbb526b3c557a583acd0019` | Dirty, 52 paths |
+| Severity | `bace9714a6a2c2c10186dec068688f51d440e086` | Dirty, untracked `graphify-out/` |
+| Medical History | `714e91b091efd5a5fbb1360c2d89bc58c7045abd` | Dirty, 19 paths |
+| DDI Checker | `e463c6cf579d3ca3eb54c75aa27d7853ead67999` | Dirty, 35 paths |
+| BN Manager | `998339219b83e9533651871e7e2e5f9f7952d55b` | Dirty, 15 paths; repository is one level below wrapper directory |
+| Treatment Plan | `29e1cd0fe4a82b06f5decf3ca4410ff1946b83bc` | Dirty, 99 paths |
+
+Host tools: Python command unavailable; `python3 3.12.3`; Node.js `22.23.1`;
+npm `10.9.8`; Git `2.43.0`; Docker `29.6.2`; uv `0.11.31`.
+
+## Module Inventory
+
+### Authentication
+
+- Runtime/dependencies: Python version undeclared; FastAPI `>=0.110`, Uvicorn
+  `>=0.27`, bcrypt `>=4.1`, PyJWT `>=2.8`; SQLite.
+- Start: `pip install -r requirements.txt`; `python main.py` or
+  `uvicorn modules.auth.main:app --reload`.
+- Test: `python -B -m unittest discover -s tests`.
+- Routes: `GET /`, `/healthz`, `/readyz`, `/api/auth/health`,
+  `/api/auth/ready`, `/api/auth/csrf`, `/api/auth/session`,
+  `/api/auth/disclaimer`, `/api/auth/admin/users`, `/api/auth/docs`;
+  `POST /api/auth/login`, `/api/auth/password/change`,
+  `/api/auth/disclaimer/accept`, `/api/auth/logout`, `/api/auth/register`,
+  `/api/auth/admin/users/{user_id}/disable`,
+  `/api/auth/admin/users/{user_id}/enable`,
+  `/api/auth/admin/users/{user_id}/reset-password`;
+  `PATCH /api/auth/admin/users/{user_id}/role`; static catch-all.
+- Migrations/schema: SQLite `user_version=6`; migrations 001 users, 002
+  sessions, 003 role normalization, 004 account/login state, 005 disclaimer
+  acceptances, 006 audit log. Contract final for INSIGHT v1; disclaimer version
+  `2026-07-06`; standalone schema absent.
+
+### Dashboard
+
+- Runtime/dependencies: Python and Node versions undeclared; unpinned FastAPI
+  and Uvicorn; package `0.1.0`; SQLite.
+- Start: `npm start` or
+  `python -m uvicorn dashboard_backend.main:app --host 127.0.0.1 --port 4173`.
+- Test: `npm test`, expanding to `python -m unittest && node
+  test_dashboard_frontend.mjs`.
+- Routes: `GET /`, `/dashboard/`, `/healthz`, `/readyz`,
+  `/api/auth/session`, `/internal/dashboard/workspace`,
+  `/internal/dashboard/summary`,
+  `/internal/dashboard/module-routes/{module_id}`;
+  `POST /internal/dashboard/session`,
+  `/internal/dashboard/disclaimer/accept`; `DELETE /internal/dashboard/session`.
+- Migrations/schema: startup DDL drops four legacy tables, creates
+  `dashboard_sessions` and `workspace_events`, and adds disclaimer acceptance.
+  No numbered migrations, interface version, or schema version.
+
+### Add New Patient
+
+- Runtime/dependencies: Python `3.13+`, Pydantic v2; unpinned FastAPI,
+  Uvicorn, Pydantic; SQLite.
+- Start: `uvicorn add_new_patient_backend.main:app --port 4173` or
+  `uvicorn server:app --port 4173`.
+- Test: `python -m unittest test_add_new_patient_backend.py`; optional frontend
+  suite `node --test test_frontend.mjs`.
+- Routes: `GET /api/health`, `/api/auth/session`,
+  `/api/add-new-patient/csrf`, `/api/patients`,
+  `/api/patients/{id_or_code}`, `/api/patients/{id_or_code}/intake`,
+  `/internal/dashboard/module-routes/add-new-patient`, `/`,
+  `/modules/add-new-patient`, and static catch-alls; `POST /api/patients`.
+- Migrations/schema: startup DDL creates normalized `patients` and
+  `patient_intake_records`, migrates legacy denormalized patients transactionally.
+  Identifier semantics v1; JSON schema and runtime DDL have no declared version.
+
+### Diagnosis
+
+- Runtime/dependencies: Python constraint absent; app `0.1.0`; FastAPI
+  `>=0.110`, Uvicorn `>=0.27`, Pydantic `>=2.5`, httpx2 `>=1.0`, unbounded
+  httpcore; SQLite.
+- Start: `python -m diagnosis` or `python -m diagnosis --port 8010 --reload`.
+- Test: nine documented module commands from `python -m test_unittest` through
+  `python -m test_embed`; no consolidated full-suite command.
+- Routes: `GET /`, `/health`, `/ready`, `/diagnosis/_meta`,
+  `/diagnosis/_csrf`, `/internal/dashboard/module-routes/{moduleId}`,
+  `/internal/diagnosis/audit/{code}`, `/diagnosis/{code}`;
+  `POST /diagnosis/{code}/init`; `PUT /diagnosis/{code}`.
+- Migrations/schema: startup DDL creates `sessions` and `audit`; no migration
+  files, API version, schema version, or machine-readable schema.
+
+### Severity
+
+- Runtime/dependencies: Node version undeclared; ESM; Express `^4.21.2`, locked
+  `4.22.2`; package `1.0.0`; UI `v1.0.0-alpha`.
+- Start: `npm install`; `npm start` (`node server.js`).
+- Test: `node test_api.js`; no `npm test` script.
+- Routes: `GET /api/severity/:patient_code`; `PUT
+  /api/severity/:patient_code`; CORS `OPTIONS`; static and SPA fallback `GET`.
+- Migrations/schema: none. Flat `data/assessments.json`, keyed by patient code;
+  no API/schema version or storage-path override.
+
+### Medical History
+
+- Runtime/dependencies: Node `>=18`; no dependencies; package `1.0.0`.
+- Start: `npm start` or `npm run dev`, both `node server.js`.
+- Test: `npm test` (`node --test`).
+- Routes: `GET /api/internal/medical-history/health`,
+  `/activation/{code}`, `/options`, `/submissions`, `/schema`; `POST
+  /api/internal/medical-history/activate`, `/submissions`; CORS and static
+  fallback. All medical-history routes use `/api/internal/medical-history`.
+- Migrations/schema: none. JSON-array persistence; submission model v2 and
+  dataset/schema `2.0.0`; API version absent.
+
+### DDI Checker
+
+- Runtime/dependencies: static browser module; Node version undeclared for CLI
+  and tests; package `0.1.0`; no third-party dependencies or lockfile.
+- Start: open or statically serve `index.html`; ingestion `npm run ingest`;
+  validation `npm run validate` and `npm run validate:clinical`.
+- Test: `npm test` (`node --test test/*.test.mjs`).
+- Routes: none; no HTTP service or REST contract.
+- Migrations/schema: browser storage envelope migration v2; KB schema `1.0.0`,
+  parser `2.0.0`, active KB `ikb-2026-07-12-bfeaa1ec` in
+  `draft_parsed_pending_admin_review`; no standalone schema or OpenAPI.
+
+### BN Manager
+
+- Runtime/dependencies: Python `>=3.11`; package `0.1.0`; FastAPI `>=0.100`,
+  lxml `>=5.0`, Uvicorn `>=0.20`; lock resolves FastAPI `0.139.0`, lxml
+  `6.1.1`, Uvicorn `0.50.2`.
+- Start: `python server.py`; installed script `bn-manager-backend`.
+- Test: `python -m unittest discover -s tests -v`.
+- Routes: `GET /api/health`, `/api/ready`, `/api/bn-manager/v1/contract`,
+  `/models`, `/models/schema/xml-0.3`, `/models/{stable_id}`,
+  `/internal/dashboard/module-routes/bn-manager`, `/modules/bn-manager`, and
+  assets; `POST /api/bn-manager/v1/dashboard/evaluate`,
+  `/add-new-patient/evaluate`, `/follow-up/evaluate`, `/models/validate`.
+- Migrations/schema: no DB. Contract `2.0.0`, API prefix
+  `/api/bn-manager/v1`, XML BIF/XSD `0.3`, four registry models at `1.0.0`.
+
+### Treatment Plan
+
+- Runtime/dependencies: Python package requires `>=3.11`; Node locked Vite
+  requires `^20.19.0 || >=22.12.0`; backend package `0.1.0`; React `19.2.7`,
+  Vite `8.1.4`, Vitest `4.1.10`; backend versions are locked.
+- Start: `python -m treatment_plan` via `run.ps1`; frontend `npm run dev` or
+  `npm run build`; Docker Compose supported.
+- Test: `python -m unittest discover -s tests -v`; frontend `npm test`.
+- Runtime routes: `GET /health`, `/ready`,
+  `/api/treatment-plan/v1/session`, `/plans/{plan_id}`,
+  `/plans/{plan_id}/provenance`, `/plans/{plan_id}/audit`,
+  `/observability/dashboard`, `/metrics`; `PATCH /plans/{plan_id}/draft`;
+  `POST /plans/{plan_id}/finalize`; plan paths use
+  `/api/treatment-plan/v1`. OpenAPI additionally declares contract, schema,
+  recommendation-run, and supersede routes not wired at runtime.
+- Migrations/schema: migrations 0001 through 0006, each with down migration,
+  covering runtime records, edit ledger, finalized plans, immutability,
+  supersession, and full persistence. OpenAPI/manifest/schema registry `1.0.0`;
+  runtime draft advertises `1.1.0`, absent from registry.
+
+## Test Baseline
+
+| Module | Result | Evidence |
+| --- | --- | --- |
+| Authentication | PASS | 14 tests |
+| Dashboard | PASS with runner deviation | Documented `npm test` failed because `python` command is absent; equivalent `python3 -m unittest && node test_dashboard_frontend.mjs` passed 15 tests |
+| Add New Patient | PASS | 42 backend and 3 frontend tests |
+| Diagnosis | PASS only as documented separate processes | 156 tests/checks passed. Consolidated discovery failed 18 tests and errored once because import order retained auth-enabled settings; module documents separate commands |
+| Severity | PASS | Integration script passed from isolated copied worktree |
+| Medical History | PASS | 4 tests |
+| DDI Checker | PASS | 49 tests |
+| BN Manager | FAIL | uv-created isolated environment collected 31 tests: 29 passed, 2 import errors because declared dependencies omit `httpx2`, required by Starlette `TestClient` |
+| Treatment Plan | PARTIAL | Backend passed 112 tests with PostgreSQL repository contract skipped because `TP_TEST_POSTGRES_DSN` is unset; frontend failed before collection because optional native package `@rolldown/binding-linux-x64-gnu` is absent |
+
+Commands used temporary directories under `/tmp/opencode` and explicit storage
+variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
+`DIAGNOSIS_DB_PATH`, `MEDICAL_HISTORY_DATA_DIR`, and `TP_DATABASE_PATH`.
+
+## First Failing Integration Boundary
+
+- Authentication `GET /api/auth/session` returns a flat payload with lowercase
+  role and no concrete nested session object. Dashboard and Add New Patient
+  adapters expect nested `session`/`user` objects, uppercase role values, and a
+  session ID. Their real Authentication integration therefore rejects or cannot
+  normalize the current canonical response. Resolve the Authentication session
+  contract and consumer adapters before testing later clinical boundaries.
 
 ## Next Up
 
-- [First unit to build]
+- Define and approve one versioned Authentication session response shape, then
+  align Dashboard and Add New Patient adapters and provider/consumer tests.
+- Add BN Manager's missing test dependency or test extra and rerun its suite.
+- Restore Treatment Plan frontend optional native dependency and rerun Vitest;
+  provide disposable PostgreSQL DSN to execute its skipped repository contract.
 
 ## Open Questions
 
-- [Any unresolved product or technical decisions]
+- Which Authentication session payload is authoritative: current flat v1
+  contract or nested shape consumed by Dashboard and Add New Patient?
+- Should the repository baseline require Python command compatibility, or should
+  module scripts standardize on `python3` for this Linux environment?
+- No live PostgreSQL test DSN is available; Treatment Plan's PostgreSQL contract
+  remains unverified.
 
 ## Architecture Decisions
 
-- [Decisions made that affect the system design or
-  data model — include why the decision was made]
+- None. INS-001 records current state and does not change public contracts,
+  module ownership, persistence, clinical behavior, or deployment design.
 
 ## Session Notes
 
-- [Context needed to resume work in the next session]
+- No unrelated failure was fixed, per INS-001 scope.
+- No runtime DB, fixture residue, generated bytecode, or temporary copied
+  worktree remains from this baseline run.
+- Clinical/model release remains blocked; this baseline makes no release claim.
