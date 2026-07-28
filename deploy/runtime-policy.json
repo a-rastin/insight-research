@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "1.0.0",
+  "gateway": {
+    "implementation": "nginx",
+    "host": "0.0.0.0",
+    "port": 8080,
+    "published": true,
+    "runAsUser": 10001,
+    "livenessPath": "/healthz",
+    "readinessPath": "/readyz"
+  },
+  "supervisor": {
+    "implementation": "supervisord",
+    "pid": 1,
+    "runAsUser": 10001,
+    "stopSignal": "SIGTERM",
+    "gracePeriodSeconds": 30,
+    "killSignal": "SIGKILL"
+  },
+  "runtimes": {
+    "python": "3.13",
+    "node": "22"
+  },
+  "readiness": {
+    "policy": "all-required",
+    "reportUnavailableModules": true,
+    "exposeDependencyDetails": false
+  },
+  "modules": [
+    {
+      "id": "authentication",
+      "runtime": "python",
+      "host": "127.0.0.1",
+      "port": 8101,
+      "basePath": "/api/auth",
+      "livenessPath": "/healthz",
+      "readinessPath": "/readyz",
+      "dataDir": "/var/lib/insight/authentication",
+      "runAsUser": 10001,
+      "published": false,
+      "required": true
+    },
+    {
+      "id": "dashboard",
+      "runtime": "python",
+      "host": "127.0.0.1",
+      "port": 8102,
+      "basePath": "/dashboard",
+      "livenessPath": "/healthz",
+      "readinessPath": "/readyz",
+      "dataDir": "/var/lib/insight/dashboard",
+      "runAsUser": 10001,
+      "published": false,
+      "required": true
+    },
+    {
+      "id": "add-new-patient",
+      "runtime": "python",
+      "host": "127.0.0.1",
+      "port": 8103,
+      "basePath": "/modules/add-new-patient",
+      "livenessPath": "/healthz",
+      "readinessPath": "/readyz",
+      "dataDir": "/var/lib/insight/add-new-patient",
+      "runAsUser": 10001,
+      "published": false,
+      "required": true
+    },
+    {
+      "id": "diagnosis",
+      "runtime": "python",
+      "host": "127.0.0.1",
+      "port": 8104,
+      "basePath": "/modules/diagnosis",
+      "livenessPath": "/health",
+      "readinessPath": "/ready",
+      "dataDir": "/var/lib/insight/diagnosis",
+      "runAsUser": 10001,
+      "published": false,
+      "required": true
+    },
+    {
+      "id": "severity",
+      "runtime": "node",
+      "host": "127.0.0.1",
+      "port": 8105,
+      "basePath": "/modules/severity",
+      "livenessPath": "/healthz",
+      "readinessPath": "/readyz",
+      "dataDir": "/var/lib/insight/severity",
+      "runAsUser": 10001,
+      "published": false,
+      "required": true
+    },
+    {
+      "id": "medical-history",
+      "runtime": "node",
+      "host": "127.0.0.1",
+      "port": 8106,
+      "basePath": "/modules/medical-history",
+      "livenessPath": "/healthz",
+      "readinessPath": "/readyz",
+      "dataDir": "/var/lib/insight/medical-history",
+      "runAsUser": 10001,
+      "published": false,
+      "required": true
+    },
+    {
+      "id": "ddi-checker",
+      "runtime": "node",
+      "host": "127.0.0.1",
+      "port": 8107,
+      "basePath": "/modules/ddi",
+      "livenessPath": "/healthz",
+      "readinessPath": "/readyz",
+      "dataDir": "/var/lib/insight/ddi-checker",
+      "runAsUser": 10001,
+      "published": false,
+      "required": true
+    },
+    {
+      "id": "bn-manager",
+      "runtime": "python",
+      "host": "127.0.0.1",
+      "port": 8108,
+      "basePath": "/api/bn-manager/v1",
+      "livenessPath": "/api/health",
+      "readinessPath": "/api/ready",
+      "dataDir": "/var/lib/insight/bn-manager",
+      "runAsUser": 10001,
+      "published": false,
+      "required": true
+    },
+    {
+      "id": "treatment-plan",
+      "runtime": "python-node",
+      "host": "127.0.0.1",
+      "port": 8109,
+      "basePath": "/modules/treatment-plan",
+      "livenessPath": "/health",
+      "readinessPath": "/ready",
+      "dataDir": "/var/lib/insight/treatment-plan",
+      "runAsUser": 10001,
+      "published": false,
+      "required": true
+    }
+  ]
+}
