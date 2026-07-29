@@ -50,10 +50,14 @@ service authentication protects that hop. This does not remove user-session and
 role checks from user-attributed internal operations.
 
 Outbound clients resolve destinations from configured service IDs. Unified
-loopback calls use fixed `http` plus exact IP, port, and path prefixes from
-ADR-0001. Callers cannot supply URLs, redirects are disabled, and requests
-outside both the registry and caller's least-privilege destination and
-method/path capability sets fail before network access.
+loopback calls use fixed `http` plus exact IP and port from ADR-0001. Gateway
+base paths are not internal API capability paths. A validated read-only
+deployment configuration supplies each caller's destination, exact method, and
+segment-bounded path-prefix capabilities; missing or malformed capability
+configuration denies all calls. Paths containing dot segments, backslashes, or
+percent-encoded path separators are rejected before matching. Callers cannot
+supply URLs, redirects are disabled, and requests outside both the registry and
+caller's least-privilege capability set fail before network access.
 
 Every hop creates a random UUID `X-Request-ID` and preserves the root request's
 random UUID `X-Correlation-ID`. `X-Causation-ID` is absent at root and equals

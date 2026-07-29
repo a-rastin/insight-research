@@ -91,9 +91,24 @@
   "ssrf": {
     "registrySource": "deploy/runtime-policy.json",
     "scheme": "http",
-    "match": ["scheme", "ip", "port", "path-prefix"],
+    "originMatch": ["scheme", "ip", "port"],
+    "gatewayBasePathIsCapabilityPath": false,
     "callerDestinationSetRequired": true,
     "callerMethodPathCapabilitySetRequired": true,
+    "capabilityPolicy": {
+      "configurationSource": "validated-read-only-deployment-config",
+      "requiredEntryFields": ["callerServiceId", "destinationServiceId", "methods", "pathPrefixes"],
+      "missingOrInvalidConfiguration": "deny-all",
+      "methodMatch": "exact-uppercase",
+      "pathMatch": "exact-or-prefix-followed-by-slash",
+      "queryAffectsPathAuthorization": false,
+      "rejectBeforeMatch": [
+        "dot-segments",
+        "backslashes",
+        "percent-encoded-forward-slash",
+        "percent-encoded-backslash"
+      ]
+    },
     "callerSuppliedUrlsAllowed": false,
     "redirectsAllowed": false,
     "denyBeforeNetworkAccess": true

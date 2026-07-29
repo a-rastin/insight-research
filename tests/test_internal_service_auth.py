@@ -38,6 +38,23 @@ class InternalServiceAuthContractTest(unittest.TestCase):
         self.assertFalse(ssrf["redirectsAllowed"])
         self.assertTrue(ssrf["callerMethodPathCapabilitySetRequired"])
         self.assertTrue(ssrf["denyBeforeNetworkAccess"])
+        self.assertEqual(ssrf["originMatch"], ["scheme", "ip", "port"])
+        self.assertFalse(ssrf["gatewayBasePathIsCapabilityPath"])
+        capability = ssrf["capabilityPolicy"]
+        self.assertEqual(capability["missingOrInvalidConfiguration"], "deny-all")
+        self.assertEqual(capability["methodMatch"], "exact-uppercase")
+        self.assertEqual(capability["pathMatch"], "exact-or-prefix-followed-by-slash")
+        self.assertEqual(
+            set(capability["requiredEntryFields"]),
+            {"callerServiceId", "destinationServiceId", "methods", "pathPrefixes"},
+        )
+        for unsafe_path in (
+            "dot-segments",
+            "backslashes",
+            "percent-encoded-forward-slash",
+            "percent-encoded-backslash",
+        ):
+            self.assertIn(unsafe_path, capability["rejectBeforeMatch"])
 
     def test_user_background_csrf_and_audit_boundaries(self):
         user = self.contract["userAttribution"]

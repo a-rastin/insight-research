@@ -14,6 +14,14 @@ Update this file after every meaningful implementation change.
 
 ## Completed
 
+- INS-003 capability hardening separates runtime service origins from gateway
+  base paths and defines validated, default-deny caller/destination/method/path
+  configuration with segment-boundary matching and rejection of ambiguous path
+  encodings before network access. Contract JSON passed `python3 -m json.tool`;
+  focused tests passed with `python3 -B -m unittest
+  tests/test_internal_service_auth.py -v` (4 tests); full discovery passed with
+  `python3 -B -m unittest discover -s tests -v` (45 tests); `git diff --check`
+  passed.
 - INS-005 retention hardening now explicitly protects required clinical
   provenance and security-audit records alongside immutable clinical records,
   matching ADR-0004's no-silent-deletion rule. Contract JSON passed `python3 -m
@@ -521,6 +529,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-003 audit hardening changed ADR-0002, its governance contract, focused
+  test, and this tracker only. No service keys, deployment capability entries,
+  runtime adapter, or user identity were invented. No file under `doc/` was read
+  or modified.
 - INS-005 audit hardening changed its ownership contract, focused test, and this
   tracker only. Retention periods and runtime deletion mechanisms remain blocked
   pending approved policy. No file under `doc/` was read or modified.
