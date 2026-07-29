@@ -1,0 +1,71 @@
+{
+  "contractId": "insight.clinical-ownership",
+  "schemaVersion": "1.0.0",
+  "status": "accepted",
+  "scope": "INS-004",
+  "flows": {
+    "followUp": {
+      "kind": "orchestration",
+      "standaloneOwner": false,
+      "persistsAuthoritativeRecords": false
+    }
+  },
+  "entities": [
+    {"id": "patient", "writers": ["add-new-patient"]},
+    {"id": "encounter", "writers": ["add-new-patient"]},
+    {"id": "intake-snapshot", "writers": ["add-new-patient"]},
+    {"id": "follow-up-delta", "writers": ["add-new-patient"]},
+    {"id": "diagnosis-assessment", "writers": ["diagnosis"]},
+    {"id": "panss-assessment", "writers": ["severity"]},
+    {"id": "medical-history-submission", "writers": ["medical-history"]},
+    {"id": "structured-cssrs-assessment", "writers": ["suicide-risk"]},
+    {"id": "final-treatment-plan", "writers": ["treatment-plan"]},
+    {"id": "plan-supersession", "writers": ["treatment-plan"]}
+  ],
+  "instrumentGovernance": {
+    "instrument": "C-SSRS",
+    "owner": "suicide-risk",
+    "sourceLicensingContractStatus": "unavailable",
+    "questionsDefined": false,
+    "scoringDefined": false,
+    "allowedMissingStates": ["unknown", "unavailable"],
+    "missingRiskBehavior": "block-required-risk-dependent-processing",
+    "forbiddenInferences": ["negative", "normal", "low-risk", "score-from-model-summary"]
+  },
+  "examples": [
+    {
+      "name": "initial-encounter",
+      "encounterWriter": "add-new-patient",
+      "encounterType": "initial",
+      "precedingEncounterId": null
+    },
+    {
+      "name": "follow-up-encounter",
+      "encounterWriter": "add-new-patient",
+      "deltaWriter": "add-new-patient",
+      "encounterType": "follow-up",
+      "precedingEncounterId": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "name": "unknown-risk",
+      "riskWriter": "suicide-risk",
+      "riskState": "unknown",
+      "riskScore": null,
+      "result": "blocked"
+    },
+    {
+      "name": "unavailable-assessment",
+      "riskWriter": "suicide-risk",
+      "riskState": "unavailable",
+      "riskScore": null,
+      "result": "blocked"
+    },
+    {
+      "name": "supersession",
+      "encounterWriter": "add-new-patient",
+      "planSupersessionWriter": "treatment-plan",
+      "mutatesPriorEncounter": false,
+      "mutatesPriorFinalPlan": false
+    }
+  ]
+}

@@ -8,10 +8,25 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
-- INS-003: Define internal service authentication and attribution (completed).
+- INS-004: Decide Follow-up, Encounter, and structured suicide-risk ownership
+  (completed).
 
 ## Completed
 
+- INS-004 received task-level HITL approval: Follow-up is an orchestration flow,
+  Add New Patient remains sole Encounter and Follow-up Delta writer, and a
+  dedicated Suicide Risk module owns structured C-SSRS assessments.
+- Added ADR-0003 and versioned `contracts/clinical-ownership-v1.json`; the
+  registry assigns exactly one writer to every scoped entity and preserves
+  Treatment Plan ownership of plan supersession.
+- Added initial encounter, follow-up encounter, unknown risk, unavailable
+  assessment, and supersession examples. No C-SSRS question or score was
+  inferred; missing required risk blocks risk-dependent processing.
+- Verified JSON syntax with `python3 -m json.tool
+  contracts/clinical-ownership-v1.json`; focused ownership tests passed with
+  `python3 -B -m unittest tests/test_clinical_ownership.py` (4 tests); full
+  architecture discovery passed with `python3 -B -m unittest discover -s tests
+  -v` (10 tests).
 - INS-003 received HITL approval to select the simplest workable service-auth
   mechanism and chose per-service HMAC-SHA256 assertions over mTLS and OAuth2
   client credentials.
@@ -53,8 +68,8 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
-- None. INS-003 decision packet is complete; runtime rollout is a separate work
-  packet.
+- None. INS-004 ownership decision packet is complete; runtime APIs and storage
+  are separate work packets.
 
 ## Repository Baseline
 
@@ -248,6 +263,13 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Next Up
 
+- Obtain approved C-SSRS source/licensing contract and named clinical owner
+  before defining any instrument questions, scoring, terminology, or release
+  behavior.
+- Define versioned Add New Patient Encounter and Follow-up Delta REST/schema
+  contracts before implementing follow-up persistence or orchestration.
+- Create the independently runnable Suicide Risk module/API/schema only after
+  its instrument source, licensing, and clinical governance are approved.
 - Implement ADR-0002 in module-local inbound/outbound adapters: issue per-service
   keys and capability sets, add signing/verification and nonce replay caches,
   narrow existing full-cookie/authorization forwarding, and run provider and
@@ -264,6 +286,12 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Open Questions
 
+- Named accountable product, clinical, and architecture owners for ADR-0003
+  remain unidentified; task-level approval resolves ownership selection but not
+  release governance.
+- Approved C-SSRS source/licensing contract is unavailable. Suicide Risk cannot
+  define questions or scoring, and required risk-dependent processing remains
+  fail-closed.
 - Named accountable Architecture and Operations owners remain unidentified;
   task-level HITL approval resolved INS-002 selection but not release governance.
 - Which Authentication session payload is authoritative: current flat v1
@@ -275,6 +303,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Architecture Decisions
 
+- ADR-0003 makes Follow-up an orchestration flow, keeps Encounter and Follow-up
+  Delta ownership in Add New Patient, assigns structured C-SSRS assessments to a
+  dedicated Suicide Risk module, and blocks score/question inference until an
+  approved source/licensing contract exists.
 - ADR-0002 selects per-service HMAC-SHA256 request assertions, current-session
   revalidation through Authentication for user-attributed calls, service-only
   background identity, first-module browser CSRF enforcement, exact outbound
@@ -289,6 +321,9 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-004 changes ownership contracts only. No module runtime, persistence, API,
+  UI, clinical instrument, risk score, question set, or release status changed.
+- No file under `doc/` was read or modified during INS-004.
 - INS-003 defines and tests the security contract only. No module runtime,
   persistence, public clinical API, or release status changed. Existing
   Dashboard and Add New Patient adapters still forward broader headers and must
