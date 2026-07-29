@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "insight.model-manifest-v1.schema.json",
+  "title": "INSIGHT model source manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractId",
+    "schemaVersion",
+    "scope",
+    "runtimeOwner",
+    "admissionPolicy",
+    "derivativePolicy",
+    "topics",
+    "artifacts",
+    "duplicateGroups"
+  ],
+  "properties": {
+    "contractId": {"const": "insight.model-manifest"},
+    "schemaVersion": {"const": "1.0.0"},
+    "scope": {"const": "INS-007"},
+    "runtimeOwner": {"const": "bn-manager"},
+    "admissionPolicy": {
+      "type": "object",
+      "required": ["requiredApprovalState", "allowedModelFormat", "registryRequired", "missingSourceBehavior", "missingApprovalBehavior"],
+      "additionalProperties": false,
+      "properties": {
+        "requiredApprovalState": {"const": "approved"},
+        "allowedModelFormat": {"const": "xml-bif-0.3"},
+        "registryRequired": {"const": true},
+        "missingSourceBehavior": {"const": "block-runtime-admission"},
+        "missingApprovalBehavior": {"const": "block-runtime-admission"}
+      }
+    },
+    "derivativePolicy": {"type": "object"},
+    "topics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "path", "sourceStatus", "canonicalOwner", "formats", "approvalState", "allowedRuntimeUse"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "path": {"type": "string", "pattern": "^BNs/"},
+          "sourceStatus": {"const": "model-development-source"},
+          "canonicalOwner": {"const": "clinical-model-owner"},
+          "formats": {"type": "array", "items": {"type": "string"}},
+          "approvalState": {"const": "unapproved"},
+          "allowedRuntimeUse": {"const": false}
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "path", "location", "sourceStatus", "canonicalOwner", "format", "sha256", "approvalState", "allowedRuntimeUse", "stableId"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "path": {"type": "string", "minLength": 1},
+          "location": {"enum": ["source", "module-copy", "registry"]},
+          "topicId": {"type": ["string", "null"]},
+          "sourceArtifactId": {"type": ["string", "null"]},
+          "sourceStatus": {"enum": ["model-development-source", "exact-copy", "orphaned-legacy-copy", "runtime-registry-copy", "runtime-schema"]},
+          "canonicalOwner": {"enum": ["clinical-model-owner", "bn-manager"]},
+          "format": {"enum": ["xml", "net", "xml-bif-0.3-schema"]},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "approvalState": {"enum": ["approved", "unapproved", "not-required"]},
+          "allowedRuntimeUse": {"type": "boolean"},
+          "stableId": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "duplicateGroups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sha256", "artifactIds"],
+        "properties": {
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "artifactIds": {"type": "array", "minItems": 2, "items": {"type": "string"}}
+        }
+      }
+    }
+  }
+}

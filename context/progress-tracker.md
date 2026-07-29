@@ -8,11 +8,24 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
-- INS-006: Decide AI assistant provider, data policy, and UI boundary (in
-  progress).
+- INS-007: Resolve model-source ownership and duplicate artifacts (in progress).
 
 ## Completed
 
+- INS-007 now has versioned `contracts/model-manifest-v1.json` and its JSON
+  Schema. The manifest inventories all 13 `BNs/` topics, 23 source model
+  artifacts, seven model-only module copies, four BN Manager registry models,
+  and the registry XSD without modifying protected artifacts.
+- BN Manager is the sole runtime owner. Ten exact-copy groups are hash-locked;
+  legacy module copies are designated for retirement; orphaned copies are
+  quarantined; and `.net`, non-registry XML, missing-source, and unapproved
+  models are blocked from runtime admission.
+- Both manifest files passed `python3 -m json.tool`; Draft 2020-12 schema
+  validation passed with `jsonschema`; focused manifest tests passed with
+  `python3 -B -m unittest tests/test_model_manifest.py -v` (5 tests); full
+  architecture discovery passed with `python3 -B -m unittest discover -s tests
+  -v` (25 tests); BN Manager passed with `uv run --with httpx2 python -B -m
+  unittest discover -s tests -v` (45 tests).
 - INS-006 received task-level HITL approval to reject assistant scope for v1.
   Added ADR-0005 and versioned `contracts/assistant-policy-v1.json`; no provider,
   page context, tools, conversation storage, or provider transmission is enabled.
@@ -92,6 +105,9 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-007 model-source ownership and duplicate-artifact manifest packet.
+  Technical inventory and fail-closed governance controls are implemented;
+  attributable BN-owner and clinical-model-owner approvals remain unresolved.
 - INS-006 assistant provider, data policy, and UI-boundary decision packet.
   V1 scope is rejected and fail-closed controls are implemented. Named
   accountable privacy, security, and product owners remain unresolved.
@@ -288,6 +304,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Next Up
 
+- Obtain attributable BN-owner and clinical-model-owner review before changing
+  any model approval state or allowing a registry model at runtime. Retire the
+  seven model-only module copies only through an approved migration after all
+  consumers use BN Manager REST.
 - Keep assistant provider integration, prompt controls, page context, tools, and
   conversation storage disabled. Any future enablement requires a superseding
   approved policy covering provider, retention, encryption, access, deletion,
@@ -320,6 +340,9 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Open Questions
 
+- Attributable BN owner and clinical model owner are unnamed. All four registry
+  models therefore remain unapproved in the INS-007 manifest and blocked from
+  governed runtime admission despite their current BN Manager registry label.
 - Named accountable privacy, security, and product owners for ADR-0005 remain
   unidentified. Assistant v1 remains rejected and disabled; no policy gap may
   be interpreted as approval.
@@ -373,6 +396,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-007 changed governance contracts and tests only. No clinical source,
+  model, schema, BN Manager runtime file, generated artifact, or module API was
+  modified. The pre-existing dirty BN Manager worktree, including its modified
+  Pharmacotherapy registry XML, was preserved.
 - INS-006 changes governance contracts only. No provider integration, runtime
   endpoint, conversation persistence, active chat UI, clinical API, or clinical
   workflow behavior was added.
