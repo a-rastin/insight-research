@@ -8,7 +8,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
-- INS-007: Resolve model-source ownership and duplicate artifacts (in progress).
+- INS-008: Resolve intended use, population, and diagnosis gates (in progress).
 
 ## Completed
 
@@ -105,6 +105,9 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-008 intended-use, population, and diagnosis-gate decision packet.
+  Psychiatrist/product resolutions and supporting evidence for DG-01, DG-03,
+  and DG-07 are pending; unsupported-case behavior remains undefined.
 - INS-007 model-source ownership and duplicate-artifact manifest packet.
   Technical inventory and fail-closed governance controls are implemented;
   attributable BN-owner and clinical-model-owner approvals remain unresolved.
