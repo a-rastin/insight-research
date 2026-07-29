@@ -1,0 +1,67 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "INSIGHT Common Internal REST Profile Components",
+    "version": "1.0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "ProblemDetails": {"$ref": "common-rest-profile-v1.schema.json#/$defs/problemDetails"},
+      "Health": {"$ref": "common-rest-profile-v1.schema.json#/$defs/health"},
+      "Readiness": {"$ref": "common-rest-profile-v1.schema.json#/$defs/readiness"},
+      "ContractDiscovery": {"$ref": "common-rest-profile-v1.schema.json#/$defs/contractDiscovery"}
+    },
+    "headers": {
+      "X-Schema-Version": {
+        "required": true,
+        "schema": {"$ref": "common-rest-profile-v1.schema.json#/$defs/schemaVersionHeader"}
+      },
+      "X-Request-ID": {
+        "required": true,
+        "schema": {"$ref": "common-rest-profile-v1.schema.json#/$defs/requestIdHeader"}
+      },
+      "X-Correlation-ID": {
+        "required": true,
+        "schema": {"$ref": "common-rest-profile-v1.schema.json#/$defs/correlationIdHeader"}
+      },
+      "X-Causation-ID": {
+        "required": false,
+        "schema": {"$ref": "common-rest-profile-v1.schema.json#/$defs/causationIdHeader"}
+      },
+      "ETag": {
+        "required": true,
+        "schema": {"$ref": "common-rest-profile-v1.schema.json#/$defs/entityTag"}
+      }
+    },
+    "parameters": {
+      "If-Match": {
+        "name": "If-Match",
+        "in": "header",
+        "required": true,
+        "schema": {"$ref": "common-rest-profile-v1.schema.json#/$defs/ifMatchHeader"}
+      },
+      "Idempotency-Key": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {"$ref": "common-rest-profile-v1.schema.json#/$defs/idempotencyKeyHeader"}
+      }
+    },
+    "responses": {
+      "Problem": {
+        "description": "Typed failure with no PHI or implementation details",
+        "headers": {
+          "X-Schema-Version": {"$ref": "#/components/headers/X-Schema-Version"},
+          "X-Request-ID": {"$ref": "#/components/headers/X-Request-ID"},
+          "X-Correlation-ID": {"$ref": "#/components/headers/X-Correlation-ID"}
+        },
+        "content": {
+          "application/problem+json": {
+            "schema": {"$ref": "#/components/schemas/ProblemDetails"}
+          }
+        }
+      }
+    }
+  }
+}

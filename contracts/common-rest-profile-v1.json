@@ -1,0 +1,110 @@
+{
+  "profileId": "insight.common-internal-rest",
+  "profileVersion": "1.0.0",
+  "scope": "INS-012",
+  "status": "accepted",
+  "artifacts": [
+    "common-rest-profile-v1.json",
+    "common-rest-profile-v1.schema.json",
+    "common-rest-profile-v1.openapi.json",
+    "common-rest-profile-v1.examples.json"
+  ],
+  "packaging": {
+    "copyUnchanged": true,
+    "sameDirectoryRequired": true,
+    "moduleExtensionsBelongInModuleContract": true
+  },
+  "mediaType": "application/json",
+  "routes": {
+    "liveness": "/healthz",
+    "readiness": "/readyz",
+    "contractDiscoveryTemplate": "/api/{module-id}/v1/contract"
+  },
+  "headers": {
+    "schemaVersion": "X-Schema-Version",
+    "requestId": "X-Request-ID",
+    "correlationId": "X-Correlation-ID",
+    "causationId": "X-Causation-ID",
+    "etag": "ETag",
+    "ifMatch": "If-Match",
+    "idempotencyKey": "Idempotency-Key"
+  },
+  "trace": {
+    "format": "UUID",
+    "requestIdPerHop": true,
+    "correlationIdPreservesRootRequestId": true,
+    "causationIdAbsentAtRoot": true,
+    "causationIdEqualsParentRequestId": true,
+    "phiAllowed": false
+  },
+  "schemaNegotiation": {
+    "responseHeaderRequiredForJson": true,
+    "requestHeaderRequiredForJsonBodies": true,
+    "majorIsCompatibilityBoundary": true,
+    "unsupportedRequestMajor": {
+      "status": 400,
+      "code": "COMMON_UNSUPPORTED_SCHEMA_MAJOR"
+    },
+    "unsupportedResponseMajor": {
+      "consumerAction": "reject-before-use-or-persistence",
+      "dependencyStatus": 502,
+      "code": "COMMON_DEPENDENCY_SCHEMA_UNSUPPORTED"
+    }
+  },
+  "compatibility": {
+    "minorMayAddOptionalFields": true,
+    "patchMayClarifyWithoutChangingValidInstances": true,
+    "newRequiredFieldRequiresNewMajor": true,
+    "fieldRemovalRequiresNewMajor": true,
+    "meaningChangeRequiresNewMajor": true,
+    "unknownOptionalFields": "ignore-after-schema-validation-allows-them"
+  },
+  "deprecation": {
+    "inPlaceRemovalWithinMajorAllowed": false,
+    "successorContractRequired": true,
+    "allConsumersMustPassCompatibilityTests": true,
+    "rolloutMustCompleteBeforeSunset": true,
+    "responseHeaders": ["Deprecation", "Sunset", "Link"],
+    "linkRelation": "successor-version"
+  },
+  "concurrency": {
+    "mutableResourceEtag": "strong-required",
+    "ifMatchRequiredForMutation": true,
+    "ifMatchWildcardAllowed": false,
+    "missingIfMatch": {"status": 428, "code": "COMMON_PRECONDITION_REQUIRED"},
+    "staleIfMatch": {"status": 412, "code": "COMMON_PRECONDITION_FAILED"}
+  },
+  "idempotency": {
+    "requiredFor": ["retryable-create", "durable-action"],
+    "scope": ["authenticated-principal", "operation", "key"],
+    "requestFingerprintIncludes": ["method", "canonical-path", "exact-body-sha256"],
+    "sameFingerprint": "return-original-status-headers-and-body-without-reexecution",
+    "differentFingerprint": {"status": 409, "code": "COMMON_IDEMPOTENCY_KEY_REUSED"},
+    "inProgress": {"status": 409, "code": "COMMON_IDEMPOTENCY_IN_PROGRESS"},
+    "retentionSecondsPublishedByProvider": true
+  },
+  "problemDetails": {
+    "rfc": "RFC 9457",
+    "contentType": "application/problem+json",
+    "controlledFieldsOnly": true,
+    "forbiddenFields": [
+      "instance",
+      "path",
+      "requestTarget",
+      "stack",
+      "stackTrace",
+      "exception",
+      "sql",
+      "token",
+      "secret",
+      "patientId",
+      "patientCode",
+      "patientName"
+    ],
+    "boundaryRedactionRequired": true,
+    "phiAllowed": false,
+    "credentialsAllowed": false,
+    "filesystemPathsAllowed": false,
+    "stackTracesAllowed": false
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "uuid": "018fb2b7-2cc2-7ad8-9f07-4f723e1b1a10",
+  "utcTimestamp": "2026-07-29T12:34:56Z",
+  "requestHeaders": {
+    "X-Schema-Version": "1.0.0",
+    "X-Request-ID": "018fb2b7-2cc2-7ad8-9f07-4f723e1b1a10",
+    "X-Correlation-ID": "018fb2b7-2cc2-7ad8-9f07-4f723e1b1a10",
+    "Idempotency-Key": "retry-018fb2b72cc27ad8"
+  },
+  "responseHeaders": {
+    "X-Schema-Version": "1.0.0",
+    "X-Request-ID": "018fb2b7-2cc2-7ad8-9f07-4f723e1b1a11",
+    "X-Correlation-ID": "018fb2b7-2cc2-7ad8-9f07-4f723e1b1a10",
+    "X-Causation-ID": "018fb2b7-2cc2-7ad8-9f07-4f723e1b1a10",
+    "ETag": "\"7\""
+  },
+  "health": {
+    "status": "live",
+    "service": "treatment-plan",
+    "moduleVersion": "1.0.0",
+    "time": "2026-07-29T12:34:56Z"
+  },
+  "readiness": {
+    "status": "not-ready",
+    "service": "treatment-plan",
+    "moduleVersion": "1.0.0",
+    "time": "2026-07-29T12:34:56Z",
+    "checks": [
+      {"name": "storage", "status": "ready"},
+      {"name": "authentication", "status": "not-ready", "code": "DEPENDENCY_UNAVAILABLE"}
+    ]
+  },
+  "contractDiscovery": {
+    "moduleId": "treatment-plan",
+    "moduleVersion": "1.0.0",
+    "interfaceVersion": "1.0.0",
+    "schemaVersions": ["1.0.0", "1.1.0"],
+    "profileVersion": "1.0.0",
+    "openapiPath": "/api/treatment-plan/v1/openapi.json",
+    "idempotencyKeyRetentionSeconds": 86400,
+    "deprecated": false,
+    "time": "2026-07-29T12:34:56Z"
+  },
+  "problemDetails": {
+    "type": "urn:insight:problem:unsupported-schema-major",
+    "title": "Unsupported schema major version",
+    "status": 400,
+    "code": "COMMON_UNSUPPORTED_SCHEMA_MAJOR",
+    "detail": "Requested schema major version is not supported.",
+    "requestId": "018fb2b7-2cc2-7ad8-9f07-4f723e1b1a10",
+    "errors": [
+      {"code": "UNSUPPORTED_VALUE", "field": "X-Schema-Version", "message": "Use a version listed by contract discovery."}
+    ]
+  }
+}

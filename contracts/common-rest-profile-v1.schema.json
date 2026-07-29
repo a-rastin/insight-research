@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "common-rest-profile-v1.schema.json",
+  "title": "INSIGHT common internal REST profile schemas",
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$"
+    },
+    "semanticVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
+    "schemaVersionHeader": {"$ref": "#/$defs/semanticVersion"},
+    "requestIdHeader": {"$ref": "#/$defs/uuid"},
+    "correlationIdHeader": {"$ref": "#/$defs/uuid"},
+    "causationIdHeader": {"$ref": "#/$defs/uuid"},
+    "entityTag": {
+      "type": "string",
+      "pattern": "^\"[!#-~]+\"$",
+      "not": {"pattern": "^W/"}
+    },
+    "ifMatchHeader": {"$ref": "#/$defs/entityTag"},
+    "idempotencyKeyHeader": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9._~-]+$"
+    },
+    "problemError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{2,63}$"},
+        "field": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"},
+        "message": {"type": "string", "minLength": 1, "maxLength": 500}
+      }
+    },
+    "problemDetails": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "title", "status", "code", "requestId"],
+      "properties": {
+        "type": {"type": "string", "pattern": "^urn:insight:problem:[a-z0-9-]+$"},
+        "title": {"type": "string", "minLength": 1, "maxLength": 120},
+        "status": {"type": "integer", "minimum": 400, "maximum": 599},
+        "code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{2,63}$"},
+        "detail": {"type": "string", "minLength": 1, "maxLength": 500},
+        "requestId": {"$ref": "#/$defs/uuid"},
+        "errors": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {"$ref": "#/$defs/problemError"}
+        }
+      }
+    },
+    "health": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "service", "moduleVersion", "time"],
+      "properties": {
+        "status": {"const": "live"},
+        "service": {"type": "string", "pattern": "^[a-z][a-z0-9-]{1,63}$"},
+        "moduleVersion": {"$ref": "#/$defs/semanticVersion"},
+        "time": {"$ref": "#/$defs/utcTimestamp"}
+      }
+    },
+    "readinessCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "status"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9-]{1,63}$"},
+        "status": {"enum": ["ready", "not-ready"]},
+        "code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{2,63}$"}
+      }
+    },
+    "readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "service", "moduleVersion", "time", "checks"],
+      "properties": {
+        "status": {"enum": ["ready", "not-ready"]},
+        "service": {"type": "string", "pattern": "^[a-z][a-z0-9-]{1,63}$"},
+        "moduleVersion": {"$ref": "#/$defs/semanticVersion"},
+        "time": {"$ref": "#/$defs/utcTimestamp"},
+        "checks": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {"$ref": "#/$defs/readinessCheck"}
+        }
+      }
+    },
+    "contractDiscovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["moduleId", "moduleVersion", "interfaceVersion", "schemaVersions", "profileVersion", "openapiPath", "idempotencyKeyRetentionSeconds", "time"],
+      "properties": {
+        "moduleId": {"type": "string", "pattern": "^[a-z][a-z0-9-]{1,63}$"},
+        "moduleVersion": {"$ref": "#/$defs/semanticVersion"},
+        "interfaceVersion": {"$ref": "#/$defs/semanticVersion"},
+        "schemaVersions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/semanticVersion"}
+        },
+        "profileVersion": {"const": "1.0.0"},
+        "openapiPath": {"type": "string", "pattern": "^/[^?#]*$"},
+        "idempotencyKeyRetentionSeconds": {"type": "integer", "minimum": 1},
+        "deprecated": {"type": "boolean"},
+        "successorContractPath": {"type": "string", "pattern": "^/[^?#]*$"},
+        "time": {"$ref": "#/$defs/utcTimestamp"}
+      }
+    },
+    "requestHeaders": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["X-Schema-Version", "X-Request-ID", "X-Correlation-ID"],
+      "properties": {
+        "X-Schema-Version": {"$ref": "#/$defs/schemaVersionHeader"},
+        "X-Request-ID": {"$ref": "#/$defs/requestIdHeader"},
+        "X-Correlation-ID": {"$ref": "#/$defs/correlationIdHeader"},
+        "X-Causation-ID": {"$ref": "#/$defs/causationIdHeader"},
+        "If-Match": {"$ref": "#/$defs/ifMatchHeader"},
+        "Idempotency-Key": {"$ref": "#/$defs/idempotencyKeyHeader"}
+      }
+    },
+    "responseHeaders": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["X-Schema-Version", "X-Request-ID", "X-Correlation-ID"],
+      "properties": {
+        "X-Schema-Version": {"$ref": "#/$defs/schemaVersionHeader"},
+        "X-Request-ID": {"$ref": "#/$defs/requestIdHeader"},
+        "X-Correlation-ID": {"$ref": "#/$defs/correlationIdHeader"},
+        "X-Causation-ID": {"$ref": "#/$defs/causationIdHeader"},
+        "ETag": {"$ref": "#/$defs/entityTag"}
+      }
+    }
+  }
+}

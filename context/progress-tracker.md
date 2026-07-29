@@ -8,12 +8,24 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-012: Publish the common internal REST profile (In progress).
 - INS-010: Resolve plan breadth, scheduling, emergency, and override gates (In
   progress).
 - INS-009: Resolve knowledge authority and terminology gates (In progress).
 
 ## Completed
 
+- INS-012 publishes accepted ADR-0009 and a copy-unchanged common internal REST
+  package: normative profile, Draft 2020-12 schemas, OpenAPI 3.1 components, and
+  examples. It standardizes safe RFC 9457 problem details, liveness, readiness,
+  contract discovery, UUID and UTC formats, schema and trace headers, strong
+  ETags/`If-Match`, idempotency behavior, unsupported-major failure, and
+  compatibility/deprecation rules. All five JSON files passed `python3 -m
+  json.tool`; focused tests passed with `python3 -B -m unittest
+  tests/test_common_rest_profile.py -v` (8 tests); `git diff --check` passed.
+  Full discovery ran 59 tests with 58 passing and one unrelated existing
+  capability-matrix failure because `INS-011` and `INS-067` through `INS-082`
+  are referenced but absent from current feature-spec issue headings.
 - INS-066 freezes versioned `contracts/capability-matrix-v1.json` and its Draft
   2020-12 schema. The matrix hash-locks `context/project-overview.md` and maps
   all 88 goals, core-flow steps, top-level and nested features, in-scope
@@ -203,6 +215,10 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-012 common internal REST profile packet. Canonical schemas, examples,
+  compatibility/deprecation rules, and provider/consumer checks are complete.
+  Per-module packaging and runtime conformance remain pending separate rollout
+  packets.
 - INS-010 plan breadth, scheduling, emergency, and override-gate decision packet.
   Governance controls and scenarios are implemented. Accountable psychiatrist
   and product approvals, scheduling ownership contracts, approved plan content,
@@ -415,6 +431,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Next Up
 
+- Package the unchanged INS-012 artifacts in each module, reference the common
+  OpenAPI components from module-owned contracts, then implement and test
+  module-local health, readiness, discovery, error, concurrency, and idempotency
+  adapters. Do not claim conformance before provider/consumer runtime tests pass.
 - Complete INS-011 release-mode evidence and accountable sign-off contract,
   then execute INS-067 through INS-082 in dependency order. Use
   `contracts/capability-matrix-v1.json` as completion source of truth and keep
@@ -504,6 +524,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Architecture Decisions
 
+- ADR-0009 adopts common internal REST profile `1.0.0`, copy-unchanged JSON
+  Schema/OpenAPI artifacts, major-version fail-closed behavior, safe typed
+  errors, UUID tracing, UTC timestamps, strong ETag preconditions, deterministic
+  idempotent replay, and compatibility-gated deprecation.
 - ADR-0008 limits generated plan sections to source-backed treatment setting,
   pharmacotherapy, and follow-up; leaves scheduling and non-pharmacological
   generation unavailable; makes emergency and required safety/data gates hard
@@ -545,6 +569,9 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-012 changes architecture contracts, examples, tests, and this tracker
+  only. No module runtime, API route, persistence, UI, clinical source, model,
+  or release state changed. No file under `doc/` was read or modified.
 - INS-066 changes governance contracts, feature work packets, tests, and this
   tracker only. No module runtime, API, persistence, UI, clinical source, model,
   generated artifact, or release authorization changed.

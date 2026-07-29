@@ -1,0 +1,40 @@
+{
+  "uuid": [
+    "not-a-uuid",
+    "018FB2B7-2CC2-7AD8-9F07-4F723E1B1A10",
+    "018fb2b7-2cc2-0ad8-9f07-4f723e1b1a10"
+  ],
+  "utcTimestamp": [
+    "2026-07-29T12:34:56+01:00",
+    "2026-07-29 12:34:56Z",
+    "2026-07-29T12:34:56"
+  ],
+  "schemaVersionHeader": ["v1", "1", "01.0.0", "1.0"],
+  "entityTag": ["7", "W/\"7\"", "*"],
+  "idempotencyKeyHeader": ["short", "contains space 123", "contains/slash/1234"],
+  "problemDetails": [
+    {
+      "type": "urn:insight:problem:internal-error",
+      "title": "Internal error",
+      "status": 500,
+      "code": "COMMON_INTERNAL_ERROR",
+      "requestId": "018fb2b7-2cc2-7ad8-9f07-4f723e1b1a10",
+      "stackTrace": "trace"
+    },
+    {
+      "type": "urn:insight:problem:not-found",
+      "title": "Not found",
+      "status": 404,
+      "code": "COMMON_NOT_FOUND",
+      "requestId": "018fb2b7-2cc2-7ad8-9f07-4f723e1b1a10",
+      "path": "/secret/runtime/file.db"
+    },
+    {
+      "type": "https://service.local/errors/404",
+      "title": "Not found",
+      "status": 404,
+      "code": "COMMON_NOT_FOUND",
+      "requestId": "018fb2b7-2cc2-7ad8-9f07-4f723e1b1a10"
+    }
+  ]
+}
