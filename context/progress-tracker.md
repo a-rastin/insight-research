@@ -4,26 +4,12 @@ Update this file after every meaningful implementation change.
 
 ## Current Phase
 
-- **In progress — mixed system phase.** The Treatment Plan documentation places that module after TP-19 and at the start of clinical-validation/deployment-readiness work, while several upstream modules still require dependency hardening and contract unification.
-- **Not production-ready or clinically released.** The Treatment Plan release gate is explicitly blocked; the supplied Bayesian Networks are research/qualitative artifacts with placeholder, neutral, or otherwise uncalibrated probability tables; and Severity, Medical History, and DDI retain prototype persistence or security constraints.
-- **Evidence boundary:** this archive contains documentation, handoffs, schemas, guideline extracts, diagrams, and BN model artifacts, but not the implementation source trees referenced by the module handoffs. Therefore, implementation milestones below are marked as **documented as implemented** rather than independently source-verified in this archive.
 
 ## Current Goal
-
-- Integrate the independently runnable INSIGHT modules through versioned internal REST APIs into an explainable, psychiatrist-controlled Treatment Plan workflow.
-- Preserve canonical Patient and Encounter identity, central Authentication trust, immutable clinical snapshots/final plans, deterministic safety gates, complete provenance, and strict module data ownership.
-- **Immediate goal:** connect the Treatment Plan React review workspace to its authenticated backend APIs and wire the remaining recommendation-run and supersession workflow routes.
 
 ## Completed
 
 ### Directly present and verified in this archive
-
-- System-level product requirements, modular architecture constraints, domain terminology, Treatment Plan context definitions, context ownership rules, UI design guidance, and a dependency-ordered unification plan are documented.
-- Thirteen BN model XML files and the supplied BIF 0.3 XSD are present. All thirteen model XML files are well-formed and validate against the supplied XSD.
-- Seventeen Hugin-style `.net` files are present, representing eleven unique files after duplicate copies are removed. Their brace and parenthesis structures are balanced.
-- BN documentation/model packages cover pharmacotherapy, treatment setting, involuntary treatment, clozapine for suicide risk, clozapine for treatment resistance, clozapine for aggression, long-acting injectables, maintenance treatment, continuing the same antipsychotic, acute dystonia, parkinsonism, akathisia, and VMAT2 treatment for tardive dyskinesia.
-- Mermaid diagrams, guideline source extracts, BN specifications, rationale labels, contraindication gates, and implementation cautions are documented for the available model packages.
-- The BN Manager contract identifies four canonical XML registry models: Pharmacotherapy, Treatment Setting, Involuntary Treatment Considerations, and Clozapine in Suicide Risk.
 
 ### Documented as implemented, but not independently source-verified in this archive
 
@@ -38,18 +24,6 @@ Update this file after every meaningful implementation change.
 - **Treatment Plan TP-01 through TP-19:** governance, contracts, FastAPI/React scaffold, Authentication integration, clinical-context assembly, eligibility policy, BN orchestration, deterministic safety policy, primary-plan synthesis, DDI checking, psychiatrist review UI, append-only edits, finalization, follow-up supersession, SQLite/PostgreSQL persistence, backup/restore, and approval-gated retention are documented as implemented.
 
 ## In Progress
-
-- Connect the Treatment Plan React workspace, which currently uses synthetic data, to authenticated plan-read, edit-ledger, DDI recheck, and finalization APIs.
-- Wire the remaining Treatment Plan workflow endpoints, including recommendation-run creation/status and the public supersession route.
-- Reconcile module-specific Authentication response assumptions into one versioned session contract.
-- Standardize health, readiness, contract discovery, schemas/OpenAPI, error envelopes, UUIDs, timestamps, request correlation, ETags, and idempotency across modules.
-- Migrate all clinical records to canonical Patient UUID and Encounter UUID ownership while retaining patient codes only as aliases/compatibility inputs.
-- Replace prototype JSON/localStorage clinical persistence and browser-owned administrative state in Severity, Medical History, and DDI with authenticated, auditable, concurrency-safe server persistence.
-- Add a standalone DDI server REST boundary and make a single tested interaction engine authoritative for browser, ingestion, and server use.
-- Complete BN evidence schemas, evaluation provenance, model version/hash reporting, CPT calibration, expert review, and signed model governance.
-- Build clinician-authored validation cases, failure-injection cases, override workflows, hazard traceability, human-factors testing, and the independent clinical safety case.
-- Package and verify the modules independently and within the unified non-root Docker image for Windows Docker Desktop and Ubuntu/nginx/systemd deployment.
-- Commit and push the documented Dashboard FastAPI rewrite so repository history matches the handoff documentation.
 
 ## Next Up
 
@@ -92,7 +66,6 @@ Update this file after every meaningful implementation change.
 
 ## Session Notes
 
-- The archive was successfully extracted and all **97 files** were inventoried and analyzed: 53 Markdown, 17 `.net`, 14 XML, 8 Mermaid, 4 text, and 1 PNG file.
 - Duplicate analysis found **16 duplicate-content groups covering 33 files**. Most duplicates intentionally mirror BN artifacts between the central `BNs/` area and module-specific folders; the same design document is also copied at root and into two modules.
 - All textual files decoded as UTF-8 without replacement-character corruption. All XML files are well-formed; all 13 BN model XML files validate against the supplied XSD.
 - Structural checks found no unbalanced braces or parentheses in any `.net` file.
