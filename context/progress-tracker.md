@@ -256,7 +256,10 @@ Update this file after every meaningful implementation change.
   missing issue headings and a stale project-overview hash. Authentication,
   authorization/CSRF, consumer/UI migration, concurrency-safe production
   database persistence, audit, encryption, and retention remain pending, so
-  clinical deployment remains blocked and the packet stays in progress.
+  clinical deployment remains blocked and the packet stays in progress. Every
+  file changed by the owning module's INS-017 commit is mirrored under
+  `Modules/Medical-History-1.0.0/` in this repository and byte-for-byte checked
+  against module commits `e5c28d9` and `5f8fc37`.
 - INS-016 PANSS Severity assessment v2 contract packet. Interface/schema
   `2.0.0`, all 30 score inputs, server-derived subscales/total, explicit
   in-progress/completed/skipped semantics, canonical UUIDs, strong ETags,
