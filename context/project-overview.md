@@ -2,7 +2,7 @@
 
 ## Overview
 
-INSIGHT is a clinical decision support system for psychiatrists managing patients with schizophrenia. It is intended to combine structured patient and encounter records, clinician-confirmed schizophrenia diagnostic assessment, PANSS severity assessment, risk and medical-history data, deterministic safety rules, drug-drug interaction checking, and versioned Bayesian-network evaluations to produce an **explainable Primary Treatment Plan** for psychiatrist review. The system is designed to address fragmented clinical information, inconsistent provenance, and opaque recommendation logic by preserving the exact source data, policy versions, model versions, evidence, safety findings, and psychiatrist decisions used in each recommendation. INSIGHT does not diagnose, prescribe, or issue clinical orders autonomously; the psychiatrist remains the final clinical authority.
+INSIGHT is a clinical decision support system for psychiatrists managing patients with schizophrenia. It is intended to combine structured patient and encounter records, clinician-confirmed schizophrenia diagnostic assessment, PANSS severity assessment, risk and medical-history data, deterministic safety rules, drug-drug interaction checking, and versioned Bayesian-network evaluations to produce an **explainable Primary Treatment Plan** for psychiatrist review. The system is designed to address fragmented clinical information, inconsistent provenance, and opaque recommendation logic by preserving the exact source data, policy versions, model versions, evidence, safety findings, and psychiatrist decisions used in each recommendation.
 
 > **Current project boundary:** The Treatment Plan backend contains substantial lifecycle functionality, but its review UI still uses synthetic data and is not fully connected to the backend routes.
 
@@ -101,7 +101,7 @@ INSIGHT is a clinical decision support system for psychiatrists managing patient
 - A psychiatrist-facing CDSS for structured schizophrenia assessment, treatment-planning support, safety review, and follow-up planning.
 - Administrator and psychiatrist authentication and authorization workflows.
 - Patient and encounter identity, records, assessments, and longitudinal plan history.
-- Clinician-confirmed diagnosis support, PANSS severity assessment, risk and medical-history inputs, medication normalization, DDI checking, and deterministic safety evaluation.
+- Clinician-confirmed diagnosis support, PANSS severity assessment, risk and medical-history inputs, medication normalization, DDI checking.
 - Versioned BN Manager support for XML BIF 0.3 models and the candidate Bayesian-network or influence-diagram pathways supplied in the archive, subject to clinical validation before activation.
 - Explainable Primary Treatment Plans, psychiatrist edits and rationale, safety revalidation, immutable Final Treatment Plans, and follow-up supersession.
 - REST-only module integration, versioned schemas, separate module persistence, provenance, security audit, PHI controls, accessibility, deployment, testing, backup, and operational readiness work.

@@ -25,5 +25,5 @@ Issue types:
 
 - **Type / owner:** psychiatrist, product
 - **Blocked by:** INS-001
-- **Build:** Resolve TP scope gates DG-01, DG-03, and DG-07 with evidence references: research and clinical status, supported diagnosis pathway, supported population, exclusions, and observable unsupported-case behavior.
+- **Build:** Resolve TP scope gates DG-01, DG-03, and DG-07: research and clinical status, supported diagnosis pathway, supported population, exclusions, and observable unsupported-case behavior.
 - **Tests:** `scope-matrix.schema.json`; negative fixtures for excluded/unknown diagnosis and population.

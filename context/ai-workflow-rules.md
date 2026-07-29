@@ -40,8 +40,6 @@ Before changing code:
 - Never use “cleanup” as justification for changing clinical behavior, model semantics, identifiers, persistence ownership, or public contracts.
 
 Each work unit must state:
-
-- owning module;
 - user-visible outcome;
 - affected API/schema versions;
 - affected persisted entities;
@@ -57,11 +55,10 @@ Split an implementation step when it combines any of the following:
 - UI behavior and an unrelated backend/domain change;
 - a new endpoint and an unrelated migration;
 - authentication changes and clinical decision logic;
-- deterministic safety policy and Bayesian-model calibration;
+- Bayesian-model calibration;
 - model structure changes and probability/utility elicitation;
 - more than one clinical decision point;
 - a legacy compatibility adapter and removal of the legacy contract;
-- behavior not defined in available context or contract files;
 - production hardening and unrelated feature work;
 - clinical validation and routine software refactoring.
 
@@ -149,15 +146,13 @@ Additional rules:
 ## PHI, Security, and AI Assistant Rules
 
 - Do not place PHI or patient aliases in URLs, query strings, browser history, filenames, localStorage, sessionStorage, caches, analytics, telemetry, error traces, or unprotected exports.
-- Redact logs and audit payloads. Store stable identifiers only where required and authorized.
+- Redact logs and audit payloads.
 - Encrypt transport. Define and test production encryption-at-rest and key-management policy.
 - Supply secrets through environment variables or mounted secret files; never hard-code them or commit them.
 - Separate clinical provenance from access/security audit logs.
 - The AI assistant is advisory and page-aware but cannot create, update, delete, finalize, or approve clinical data.
 - Scrub AI-bound content server-side before it reaches any model provider.
 - Patient names, codes, MRNs, dates, contact details, and other direct identifiers must not be sent to the AI provider.
-- Do not rely only on regex scrubbing when structured fields are available; omit identifiers structurally first, then apply scrubbing as defense in depth.
-- Store AI conversations only under an approved retention, access, encryption, deletion, backup, and provider policy. The archive does not define that policy fully.
 
 ## Bayesian Network and Clinical Model Governance
 

@@ -12,7 +12,6 @@
 - The unification plan governs migration toward the target architecture.
 - READMEs and handoff documents describe current behavior and known gaps; they do not override stricter security, privacy, clinical-safety, or ownership rules.
 - Generated diagrams and derivative artifacts are explanatory outputs, not independent sources of truth.
-- Referenced canonical contracts that are absent from the supplied archive MUST be obtained before implementing or changing the affected interface. Their contents MUST NOT be inferred.
 
 ## General
 

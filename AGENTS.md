@@ -34,10 +34,6 @@ Use this precedence order:
 6. Historical prompts, prototypes, generated diagrams, migration notes, and
    duplicated model packages
 
-If authoritative sources conflict, required information is absent, or a change
-would alter clinical intent, module ownership, a public contract, or a safety
-boundary, stop and ask the user. Never resolve such ambiguity by guessing.
-
 ## Non-Negotiable Product and Clinical Rules
 
 - INSIGHT is a psychiatrist-facing clinical decision support system for
