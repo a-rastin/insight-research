@@ -78,6 +78,8 @@
     "moduleArtifactPolicyEnforcer": "source-module",
     "aggregateMetadataPolicyEnforcer": "deployment-operations",
     "immutableClinicalRecordsProtected": true,
+    "requiredClinicalProvenanceProtected": true,
+    "securityAuditRecordsProtected": true,
     "approvedPolicyRequired": true
   },
   "examples": [

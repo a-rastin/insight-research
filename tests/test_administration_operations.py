@@ -84,6 +84,13 @@ class AdministrationOperationsContractTest(unittest.TestCase):
         self.assertNotEqual(example["sourceModuleId"], example["targetModuleId"])
         self.assertEqual(example["result"], "denied-before-write")
 
+    def test_retention_protects_required_records(self):
+        retention = self.contract["retention"]
+        self.assertTrue(retention["approvedPolicyRequired"])
+        self.assertTrue(retention["immutableClinicalRecordsProtected"])
+        self.assertTrue(retention["requiredClinicalProvenanceProtected"])
+        self.assertTrue(retention["securityAuditRecordsProtected"])
+
 
 if __name__ == "__main__":
     unittest.main()

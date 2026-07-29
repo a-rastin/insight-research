@@ -14,6 +14,13 @@ Update this file after every meaningful implementation change.
 
 ## Completed
 
+- INS-005 retention hardening now explicitly protects required clinical
+  provenance and security-audit records alongside immutable clinical records,
+  matching ADR-0004's no-silent-deletion rule. Contract JSON passed `python3 -m
+  json.tool`; focused tests passed with `python3 -B -m unittest
+  tests/test_administration_operations.py -v` (6 tests); full discovery passed
+  with `python3 -B -m unittest discover -s tests -v` (45 tests); `git diff
+  --check` passed.
 - INS-002 policy verification now requires the complete nine-module ID set and
   rejects duplicate module IDs and gateway base paths, closing the prior empty
   or incomplete-list vacuous pass. Runtime selections remain unchanged. Focused
@@ -514,6 +521,9 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-005 audit hardening changed its ownership contract, focused test, and this
+  tracker only. Retention periods and runtime deletion mechanisms remain blocked
+  pending approved policy. No file under `doc/` was read or modified.
 - INS-002 audit hardening changed its static policy test and this tracker only.
   Per-service UID isolation remains an unresolved security-hardening decision;
   accepted ADR-0001 runtime values were not silently changed. No file under
