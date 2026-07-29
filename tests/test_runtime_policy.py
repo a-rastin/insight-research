@@ -7,6 +7,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ADR = ROOT / "context/architecture-decisions/0001-runtime-matrix.md"
 POLICY = ROOT / "deploy/runtime-policy.json"
+EXPECTED_MODULE_IDS = {
+    "authentication",
+    "dashboard",
+    "add-new-patient",
+    "diagnosis",
+    "severity",
+    "medical-history",
+    "ddi-checker",
+    "bn-manager",
+    "treatment-plan",
+}
 
 
 class RuntimePolicyTest(unittest.TestCase):
@@ -41,6 +52,8 @@ class RuntimePolicyTest(unittest.TestCase):
 
         ports = [gateway["port"]]
         data_dirs = []
+        module_ids = []
+        base_paths = []
         for module in modules:
             self.assertFalse(module["published"], module["id"])
             self.assertEqual(module["host"], "127.0.0.1", module["id"])
@@ -51,9 +64,14 @@ class RuntimePolicyTest(unittest.TestCase):
             self.assertNotRegex(module["basePath"], r"://|localhost")
             ports.append(module["port"])
             data_dirs.append(module["dataDir"])
+            module_ids.append(module["id"])
+            base_paths.append(module["basePath"])
 
+        self.assertEqual(set(module_ids), EXPECTED_MODULE_IDS)
+        self.assertEqual(len(module_ids), len(set(module_ids)), "duplicate module ids")
         self.assertEqual(len(ports), len(set(ports)), "duplicate ports")
         self.assertEqual(len(data_dirs), len(set(data_dirs)), "duplicate data dirs")
+        self.assertEqual(len(base_paths), len(set(base_paths)), "duplicate base paths")
         self.assertEqual(policy["readiness"]["policy"], "all-required")
         self.assertTrue(all(module["required"] for module in modules))
 

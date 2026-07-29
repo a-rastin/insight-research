@@ -14,6 +14,12 @@ Update this file after every meaningful implementation change.
 
 ## Completed
 
+- INS-002 policy verification now requires the complete nine-module ID set and
+  rejects duplicate module IDs and gateway base paths, closing the prior empty
+  or incomplete-list vacuous pass. Runtime selections remain unchanged. Focused
+  tests passed with `python3 -B -m unittest tests/test_runtime_policy.py -v` (2
+  tests); full discovery passed with `python3 -B -m unittest discover -s tests
+  -v` (44 tests); `git diff --check` passed.
 - INS-009 schema hardening now requires exactly one source entry for each of the
   six authority domains; duplicate domain entries can no longer replace a
   required authority while preserving array length. Concrete source provenance
@@ -508,6 +514,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-002 audit hardening changed its static policy test and this tracker only.
+  Per-service UID isolation remains an unresolved security-hardening decision;
+  accepted ADR-0001 runtime values were not silently changed. No file under
+  `doc/` was read or modified.
 - INS-009 audit hardening changed its governance schema, test, and this tracker
   only. No source bytes, hashes, retrieval metadata, runtime, API, or release
   state were invented or changed. No file under `doc/` was read or modified.
