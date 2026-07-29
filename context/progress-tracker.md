@@ -8,6 +8,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-015: Publish Diagnosis assessment v2 contract (In progress).
 - INS-014: Publish Patient and Encounter v2 contracts (In progress).
 - INS-012: Publish the common internal REST profile (In progress).
 - INS-010: Resolve plan breadth, scheduling, emergency, and override gates (In
@@ -239,6 +240,7 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-015 Diagnosis assessment v2 contract packet (In progress).
 - INS-014 Patient and Encounter v2 contract packet. Contract, migration,
   runtime, and provider verification are complete in the owning Add
   New Patient repository. Consumer rollout from v1 patient-code/intake routes to
