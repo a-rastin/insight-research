@@ -79,12 +79,44 @@
       "requiredAction": "Obtain the required source data and rerun validation."
     },
     {
+      "id": "unknown-required-data",
+      "classification": "hard-blocker",
+      "outcome": "blocked",
+      "code": "TP_REQUIRED_DATA_UNKNOWN",
+      "overrideAllowed": false,
+      "requiredAction": "Establish the required source value and rerun validation."
+    },
+    {
+      "id": "unavailable-required-data",
+      "classification": "hard-blocker",
+      "outcome": "blocked",
+      "code": "TP_REQUIRED_DATA_UNAVAILABLE",
+      "overrideAllowed": false,
+      "requiredAction": "Restore access to the required source data and rerun validation."
+    },
+    {
+      "id": "stale-required-data",
+      "classification": "hard-blocker",
+      "outcome": "blocked",
+      "code": "TP_REQUIRED_DATA_STALE",
+      "overrideAllowed": false,
+      "requiredAction": "Obtain current source data and create a new validated snapshot."
+    },
+    {
       "id": "conflicting-required-data",
       "classification": "hard-blocker",
       "outcome": "blocked",
       "code": "TP_REQUIRED_DATA_CONFLICTING",
       "overrideAllowed": false,
       "requiredAction": "Resolve the conflicting source data and create a new validated snapshot."
+    },
+    {
+      "id": "invalid-required-data",
+      "classification": "hard-blocker",
+      "outcome": "blocked",
+      "code": "TP_REQUIRED_DATA_INVALID",
+      "overrideAllowed": false,
+      "requiredAction": "Correct the invalid source data and create a new validated snapshot."
     },
     {
       "id": "proposed-medication-allergy",

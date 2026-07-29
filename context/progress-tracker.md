@@ -14,6 +14,14 @@ Update this file after every meaningful implementation change.
 
 ## Completed
 
+- INS-010 safety-policy hardening binds the sole overridable gate to
+  `high-severity-ddi`, schema-enforces the 20-2000 rationale bounds, and gives
+  all six required-input uncertainty states distinct decision-table codes and
+  resolution actions. Both JSON files passed `python3 -m json.tool`; focused
+  tests passed with `python3 -B -m unittest
+  tests/test_treatment_plan_safety_policy.py -v` (7 tests); full discovery passed
+  with `python3 -B -m unittest discover -s tests -v` (43 tests); `git diff
+  --check` passed.
 - INS-010 now has ADR-0008, versioned
   `contracts/treatment-plan-safety-policy-v1.json`, its Draft 2020-12 JSON
   Schema, and policy decision-table tests covering DG-04, DG-05, and DG-06.
@@ -492,6 +500,9 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-010 audit hardening changed governance contract, schema, tests, and this
+  tracker only. No runtime, API, persistence, UI, clinical source, model, or
+  release status changed. No file under `doc/` was read or modified.
 - INS-010 changes governance contracts and tests only. No module runtime, API,
   persistence, UI, clinical source, model artifact, or release status changed.
   No file under `doc/` was read or modified.

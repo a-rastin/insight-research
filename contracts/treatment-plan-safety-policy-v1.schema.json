@@ -114,7 +114,7 @@
     },
     "gateDecisionTable": {
       "type": "array",
-      "minItems": 9,
+      "minItems": 13,
       "uniqueItems": true,
       "items": {"$ref": "#/$defs/gate"}
     },
@@ -125,8 +125,8 @@
       "properties": {
         "allowedRole": {"const": "psychiatrist"},
         "rationaleRequired": {"const": true},
-        "rationaleMinLength": {"type": "integer", "minimum": 1},
-        "rationaleMaxLength": {"type": "integer", "minimum": 1},
+        "rationaleMinLength": {"const": 20},
+        "rationaleMaxLength": {"const": 2000},
         "actorUserIdRequired": {"const": true},
         "actorUserIdFormat": {"const": "uuid"},
         "recordedAtRequired": {"const": true},
@@ -160,12 +160,24 @@
       "required": ["id", "classification", "outcome", "code", "overrideAllowed", "requiredAction"],
       "allOf": [
         {
-          "if": {"properties": {"classification": {"const": "hard-blocker"}}},
-          "then": {"properties": {"overrideAllowed": {"const": false}}}
+          "if": {"properties": {"id": {"const": "high-severity-ddi"}}, "required": ["id"]},
+          "then": {
+            "properties": {
+              "classification": {"const": "overridable-blocker"},
+              "outcome": {"const": "override-required"},
+              "overrideAllowed": {"const": true}
+            }
+          },
+          "else": {
+            "properties": {
+              "classification": {"const": "hard-blocker"},
+              "overrideAllowed": {"const": false}
+            }
+          }
         },
         {
           "if": {"properties": {"classification": {"const": "overridable-blocker"}}},
-          "then": {"properties": {"overrideAllowed": {"const": true}}}
+          "then": {"properties": {"id": {"const": "high-severity-ddi"}}}
         }
       ],
       "properties": {

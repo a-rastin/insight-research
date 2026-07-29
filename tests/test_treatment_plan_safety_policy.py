@@ -67,10 +67,14 @@ class TreatmentPlanSafetyPolicyTest(unittest.TestCase):
         self.assertFalse(integration["implemented"])
         self.assertTrue(integration["mustNotImplyDispatchContactOrBooking"])
 
-    def test_missing_conflicting_allergy_and_suicide_scenarios(self):
+    def test_uncertainty_allergy_and_suicide_scenarios(self):
         expected = {
             "missing-required-data": ("hard-blocker", "blocked", False),
+            "unknown-required-data": ("hard-blocker", "blocked", False),
+            "unavailable-required-data": ("hard-blocker", "blocked", False),
+            "stale-required-data": ("hard-blocker", "blocked", False),
             "conflicting-required-data": ("hard-blocker", "blocked", False),
+            "invalid-required-data": ("hard-blocker", "blocked", False),
             "proposed-medication-allergy": ("hard-blocker", "proposed-item-blocked", False),
             "absolute-contraindication": ("hard-blocker", "proposed-item-blocked", False),
             "suicide-risk-substantial-or-imminent": ("hard-blocker", "emergency-blocked", False),
@@ -95,8 +99,8 @@ class TreatmentPlanSafetyPolicyTest(unittest.TestCase):
         override = self.policy["highSeverityDdiOverride"]
         self.assertEqual(override["allowedRole"], "psychiatrist")
         self.assertTrue(override["rationaleRequired"])
-        self.assertGreaterEqual(override["rationaleMinLength"], 1)
-        self.assertGreater(override["rationaleMaxLength"], override["rationaleMinLength"])
+        self.assertEqual(override["rationaleMinLength"], 20)
+        self.assertEqual(override["rationaleMaxLength"], 2000)
         for field in (
             "actorUserIdRequired",
             "recordedAtRequired",
@@ -115,6 +119,18 @@ class TreatmentPlanSafetyPolicyTest(unittest.TestCase):
 
         changed = copy.deepcopy(self.policy)
         changed["gateDecisionTable"][0]["overrideAllowed"] = True
+        self.assertTrue(list(self.validator.iter_errors(changed)))
+
+        changed = copy.deepcopy(self.policy)
+        changed["gateDecisionTable"][0].update(
+            classification="overridable-blocker",
+            outcome="override-required",
+            overrideAllowed=True,
+        )
+        self.assertTrue(list(self.validator.iter_errors(changed)))
+
+        changed = copy.deepcopy(self.policy)
+        changed["highSeverityDdiOverride"]["rationaleMinLength"] = 1
         self.assertTrue(list(self.validator.iter_errors(changed)))
 
 
