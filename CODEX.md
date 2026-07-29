@@ -50,13 +50,9 @@ boundary, stop and ask the user. Never resolve such ambiguity by guessing.
 - Never silently convert missing, unknown, stale, conflicting, or invalid data
   into a negative or favorable clinical finding. Surface the uncertainty and
   fail closed where safety or eligibility requires it.
-- Do not present research, qualitative, seed, uniform, placeholder, or
-  uncalibrated Bayesian-network probabilities as clinically validated values.
-  Model use requires versioning, schema validation, evidence mapping,
+- Model use requires versioning, schema validation, evidence mapping,
   reproducibility, provenance, clinical review, and the applicable release
   approvals.
-- Do not invent stakeholder names, clinical validation results, regulatory
-  status, privacy approvals, safety sign-off, or production-readiness claims.
 
 ## Architecture and Data Boundaries
 
@@ -86,10 +82,9 @@ boundary, stop and ask the user. Never resolve such ambiguity by guessing.
 
 ## Security, Privacy, and Audit Rules
 
-- Treat patient and clinical data as sensitive. Do not place PHI/PII,
-  credentials, API keys, tokens, signatures, or protected evidence in source
-  control, URLs, browser storage, logs, generated fixtures, screenshots, or
-  unprotected exports.
+- Do not place PHI/PII, credentials, API keys, tokens, signatures, or protected
+  evidence in source control, URLs, browser storage, logs, generated fixtures, 
+  screenshots, or unprotected exports.
 - Other modules must verify identity through the central Authentication REST
   contract. They must not decode JWTs as authorization, read the Authentication
   database, trust request-body identity, or persist browser tokens in
@@ -101,9 +96,8 @@ boundary, stop and ask the user. Never resolve such ambiguity by guessing.
 - Keep security audit history separate from clinical provenance. Both must be
   attributable, append-only where required, and free of unnecessary plaintext
   patient data.
-- Any AI assistant remains advisory and read-only. Scrub patient identifiers
-  before an LLM call, and never send patient names or allow the assistant to
-  modify clinical records directly.
+- Scrub patient identifiers before an LLM call, and never send patient names 
+or allow the assistant to modify clinical records directly.
 
 ## Implementation and Verification Rules
 
@@ -131,28 +125,24 @@ boundary, stop and ask the user. Never resolve such ambiguity by guessing.
 
 ## Documentation and Progress
 
-Update `context/progress-tracker.md` after every meaningful implementation
-change, including verification performed, unresolved risks, blockers, and the
-next concrete step.
+- Update `context/progress-tracker.md` after every meaningful implementation
+  change, including verification performed, unresolved risks, blockers, and the
+  next concrete step.
+- If implementation changes architecture, scope, ownership, a public interface,
+  clinical behavior, security policy, UI conventions, or coding standards, update
+  the relevant context or contract document before continuing.
+- Do not fabricate missing data or silently reinterpret requirements. Record
+  uncertainty explicitly and ask for clarification when it affects correctness,
+  clinical safety, privacy, or system boundaries.
 
-If implementation changes architecture, scope, ownership, a public interface,
-clinical behavior, security policy, UI conventions, or coding standards, update
-the relevant context or contract document before continuing.
+## Sessions preamble
 
-Do not fabricate missing data or silently reinterpret requirements. Record
-uncertainty explicitly and ask for clarification when it affects correctness,
-clinical safety, privacy, or system boundaries.
-
-
-
-Use these 3 skills:\debug & \caveman & \ponytail
-Every work packet is a separate commit and must follow this exact loop:
-1. Run git status --short in the affected nested repository and record pre-existing changes.
-2. Read only the named module interface, its adapter, and relevant tests.
-3. Add or change tests first so the intended interface is explicit.
-4. Implement only the packet; do not opportunistically refactor adjacent code.
-5. Run the focused tests, the module’s full suite, and applicable common-contract checks.
-6. Run git diff --check and inspect git diff --stat.
-8. Stop on unresolved schema conflicts, migration ambiguity. Never fabricate identifiers, clinical thresholds, or evidence.
-9. Commit only after all automated acceptance checks for the packet pass.
-10. Do not begin a dependent packet until its prerequisite packet has passed.
+- Use these 2 skills in every session: 
+  \caveman & 
+  \ponytail
+- Every work packet is a separate commit and must follow this exact loop:
+  1. Run git status --short in the affected nested repository and record pre-existing changes.
+  2. Read only the named module interface, its adapter, and relevant tests.
+  3. Implement only the packet; do not opportunistically refactor adjacent code.
+  4. Run the focused tests, the module’s full suite, and applicable common-contract checks.
+  5. Git commit changes with informative comments.
