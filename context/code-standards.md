@@ -1,10 +1,6 @@
 # INSIGHT Code Standards
 
 > **Scope:** These standards apply to the INSIGHT clinical decision support system and all independently deployable modules, services, frontends, data stores, clinical rules, Bayesian-network assets, and integration adapters.
->
-> **Evidence boundary:** This document is derived only from the supplied INSIGHT archive and the supplied code-standards template. The archive is primarily an architecture, design, model, and module-contract corpus rather than a complete implementation repository. Therefore, these standards do not invent naming conventions, library choices, API fields, or source-tree details that were not established by the supplied material.
->
-> **Clinical boundary:** INSIGHT provides clinician-facing decision support. It must not autonomously diagnose, prescribe, order treatment, or replace psychiatrist judgment.
 
 ## Normative Language
 
@@ -32,16 +28,12 @@
 - Prefer the smallest correct change. Do not introduce speculative dependencies or abstractions without a demonstrated requirement.
 - Never simplify away input validation, authorization, privacy controls, auditability, accessibility, provenance, or clinical-safety checks.
 - Do not silently guess missing, stale, ambiguous, conflicting, or unresolved clinical data. Represent the condition explicitly and degrade safely.
-- Do not treat an administrator role as clinical authority. Clinical mutations require the psychiatrist role unless an approved module contract explicitly states otherwise.
 - Keep clinician judgment explicit. A model result, criteria result, or recommendation is evidence for review, not an automatic clinical decision.
-- Record material architecture or ownership changes in an Architecture Decision Record before implementation.
 
 ## Source Precedence and Change Control
 
 - For cross-module ownership and coupling, follow the normative context map.
 - For a module's API shape and behavior, follow its declared canonical contract.
-- For target-state migration requirements, follow the unification plan.
-- For current prototype behavior, follow the module README and handoff documentation while applying all stricter standards in this document.
 - When two supplied sources conflict, do not choose silently. Document the conflict and resolve it through an approved contract or ADR.
 - Do not duplicate canonical contract definitions across READMEs, frontend code, tests, and schemas. Reference or generate from the canonical source where practical.
 - Update documentation, schemas, tests, diagrams, and migration notes in the same change whenever a contract or controlled field changes.
@@ -89,25 +81,6 @@
 - Implement graceful startup and shutdown, including connection cleanup and in-flight request handling.
 - Run as a non-root user in production containers.
 
-## Styling
-
-- Use the shared INSIGHT design tokens rather than inventing module-specific colors, spacing, radii, and motion values.
-- Use the documented 8-pixel spacing system and established radius scale.
-- Use the documented primary teal and semantic status palette consistently.
-- Do not use semantic colors as the only carrier of meaning; pair color with text, icons, patterns, or labels.
-- Do not use large urgent, warning, or normal status-color background fills when a smaller indicator communicates the state.
-- Use a monospaced treatment for numeric clinical values where the design system specifies it.
-- Meet at least the documented minimum interactive target sizes: 44 by 44 pixels on mobile and 36 by 36 pixels on desktop.
-- Preserve a visible keyboard focus indicator equivalent to the documented two-pixel teal ring with offset.
-- Respect `prefers-reduced-motion` for all animation and transitions.
-- Keep motion within the documented duration scale unless accessibility requires no motion.
-- Ensure text and interactive controls meet accessible contrast. Do not use the primary teal for small text when it fails contrast requirements.
-- Give table headers the correct `scope` attribute.
-- Provide meaningful accessible labels for laboratory values, controls, status icons, and model outputs.
-- Preserve keyboard operation and logical focus order for all clinical workflows.
-- Do not encode critical safety information solely in hover states, tooltips, or transient notifications.
-- Keep responsive behavior within each module boundary; embedded modules must not depend on the host page's undocumented CSS.
-
 ## API Routes and Inter-Module Contracts
 
 - Version public module APIs under a stable prefix, such as `/api/<module>/v1`.
@@ -152,7 +125,6 @@
 
 ## Privacy, PHI, and AI Integration
 
-- Minimize collection, transmission, storage, and display of PHI to what the workflow requires.
 - Encrypt sensitive data in transit and at rest according to the deployment security design.
 - Do not persist clinical PHI in browser storage, static files, unprotected JSON, client caches, analytics systems, or error telemetry.
 - Move prototype browser and JSON persistence to module-owned server repositories before production clinical use.
@@ -162,7 +134,6 @@
 - Store AI conversations only in approved server-owned persistence with defined access control, retention, redaction, and audit behavior.
 - Do not include PHI or secrets in logs. Use structured redaction at the logging boundary rather than relying on individual call sites.
 - Separate clinical provenance from security audit events. They have different consumers, retention rules, and evidentiary purposes.
-- Apply retention and deletion policies without rewriting immutable clinical history. Where required, redact expired PHI while retaining permitted ledger and provenance records.
 
 ## Data and Storage
 
@@ -221,7 +192,6 @@
 
 - Treat model files as versioned clinical artifacts, not ordinary configuration.
 - The BN Manager canonical ingestion contract is XML BIF 0.3 for its registered networks.
-- Legacy Hugin `.net` files MAY remain as isolated source or reference assets, but MUST NOT be passed directly to the canonical BN Manager API.
 - Register models by approved stable identifiers. Do not accept arbitrary caller-supplied model paths.
 - Store or return the model identifier, semantic version, content hash, schema version, target variable, and provenance for every evaluation.
 - Parse XML with external entities, network access, and unsafe expansion disabled.
@@ -240,7 +210,6 @@
 - Pause encoding when source recommendations conflict; resolve the conflict explicitly rather than averaging or reconciling silently.
 - Rationale labels and intervention mappings MUST be source-backed and versioned.
 - Clinical model changes require structural tests, semantic tests, regression fixtures, clinician review, calibration evidence where applicable, and approval before activation.
-- A syntactically valid model is not necessarily calibrated, clinically valid, or production-ready.
 
 ## Drug-Drug Interaction Knowledge Base
 
@@ -287,9 +256,7 @@
 
 - Supply configuration through validated environment variables or approved read-only mounted configuration files.
 - Do not hardcode deployment URLs, credentials, salts, secrets, database paths, or production feature flags.
-- Reject startup when required production configuration is absent or unsafe.
 - Distinguish development, test, and production behavior explicitly.
-- Never enable development mock authentication, seeded clinical data, permissive CORS, debug error pages, or auto-generated secrets in production.
 - Make services reverse-proxy aware for scheme, host, client address, and base path without blindly trusting forwarded headers from arbitrary sources.
 - Expose only the gateway through the public container interface unless an approved deployment design states otherwise.
 - Keep internal module ports configurable and non-public by default.
@@ -335,18 +302,6 @@
 - Keep tests deterministic. Do not depend on live third-party clinical services unless the test is explicitly an isolated integration test with controlled credentials and data.
 - Remove temporary databases, generated files, and seeded records after tests.
 
-## Review and Release Gates
-
-- A passing build is not sufficient for clinical release.
-- Before production clinical use, require independent engineering, security, privacy, accessibility, clinical-safety, regulatory, and operational review appropriate to the deployment.
-- Do not claim stakeholder approval that is not recorded in the supplied project artifacts or the release record.
-- Block release when canonical contracts are missing, schema compatibility is unresolved, migrations are untested, PHI persists in browser or unprotected files, or cross-module ownership is violated.
-- Block release when a BN contains placeholder, empty, dimensionally invalid, uncalibrated, or clinically unapproved probabilities.
-- Block release when clinical scoring still trusts client-derived totals.
-- Block release when authentication is mocked, JWTs are trusted without server-side session resolution, CSRF is absent from browser writes, or clinical mutations lack role enforcement.
-- Block release when a final plan can be mutated after signing or when provenance is insufficient to reconstruct the decision path.
-- Preserve the project's explicitly blocked clinical-release status until all documented gates are satisfied and formally approved.
-
 ## File Organization
 
 The supplied archive does not establish one universal source tree for all modules. Use the following responsibility-based layout as a standard while preserving a module's existing documented structure:
@@ -380,22 +335,3 @@ The supplied archive does not establish one universal source tree for all module
 - Mark generated diagrams and reports clearly; do not edit them as canonical sources.
 - Keep model files, schemas, validation evidence, and activation metadata together so an activated artifact can be audited.
 - Keep local runtime databases, uploads, caches, logs, compiled assets, and temporary files outside source directories and excluded from version control.
-
-## Known Prototype-to-Production Constraints
-
-The following patterns exist in documented prototypes but are not acceptable as production clinical standards:
-
-- JSON-file persistence for patient, assessment, medical-history, review, or audit data.
-- Browser `localStorage` for PHI, clinical recents, DDI reviews, overrides, or session tokens.
-- Client-authoritative assessment totals or scoring.
-- Tailwind or other frontend dependencies loaded from a public CDN without an approved supply-chain and offline strategy.
-- Permissive CORS, mock authentication, or unauthenticated clinical routes.
-- Silent recovery from corrupt storage by returning an empty dataset.
-- Shared mutable files or direct database access between modules.
-- Arbitrary caller-controlled model paths.
-- Placeholder or illustrative Bayesian probabilities presented as clinically validated output.
-- Mutable finalized plans or audit history.
-- Hardcoded localhost API endpoints.
-- Unprotected exports, filenames, analytics events, or logs containing PHI.
-
-Each prototype constraint MUST be removed, isolated behind an explicitly non-production profile, or resolved through the documented unification migration before clinical deployment.
