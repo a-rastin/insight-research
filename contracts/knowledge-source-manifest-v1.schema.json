@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "insight.knowledge-source-manifest-v1.schema.json",
+  "title": "INSIGHT knowledge source manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractId",
+    "schemaVersion",
+    "scope",
+    "status",
+    "authorityPolicy",
+    "sources",
+    "updateCadence",
+    "observableBlockedCase",
+    "releaseGate"
+  ],
+  "properties": {
+    "contractId": {"const": "insight.knowledge-source-manifest"},
+    "schemaVersion": {"const": "1.0.0"},
+    "scope": {"const": "INS-009"},
+    "status": {"const": "accepted"},
+    "authorityPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requiredAuthorityStatus", "missingMetadataBehavior", "expiredReviewBehavior", "sourceChangeBehavior", "inferenceAllowed"],
+      "properties": {
+        "requiredAuthorityStatus": {"const": "approved"},
+        "missingMetadataBehavior": {"const": "block-affected-clinical-use"},
+        "expiredReviewBehavior": {"const": "block-affected-clinical-use"},
+        "sourceChangeBehavior": {"const": "suspend-pending-review"},
+        "inferenceAllowed": {"const": false}
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/source"}
+    },
+    "updateCadence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reviewIntervalDays", "lastReviewedAt", "nextReviewDueAt", "eventTriggers", "allowedClinicalUse"],
+      "properties": {
+        "status": {"enum": ["unresolved", "approved"]},
+        "reviewIntervalDays": {"type": ["integer", "null"], "minimum": 1},
+        "lastReviewedAt": {"type": ["string", "null"], "format": "date-time"},
+        "nextReviewDueAt": {"type": ["string", "null"], "format": "date-time"},
+        "eventTriggers": {
+          "type": "array",
+          "minItems": 4,
+          "uniqueItems": true,
+          "items": {"enum": ["source-withdrawal", "safety-notice", "license-change", "version-retirement"]}
+        },
+        "allowedClinicalUse": {"type": "boolean"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "approved"}}},
+          "then": {
+            "properties": {
+              "reviewIntervalDays": {"type": "integer"},
+              "lastReviewedAt": {"type": "string"},
+              "nextReviewDueAt": {"type": "string"},
+              "allowedClinicalUse": {"const": true}
+            }
+          },
+          "else": {
+            "properties": {
+              "reviewIntervalDays": {"const": null},
+              "lastReviewedAt": {"const": null},
+              "nextReviewDueAt": {"const": null},
+              "allowedClinicalUse": {"const": false}
+            }
+          }
+        }
+      ]
+    },
+    "observableBlockedCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "code", "includeFailedDomains", "includeResolutionActions", "preserveOriginalClinicianValues", "displayUncertainty", "authoritativeClinicalClaimAllowed"],
+      "properties": {
+        "state": {"const": "knowledge-authority-blocked"},
+        "code": {"const": "KNOWLEDGE_AUTHORITY_UNRESOLVED"},
+        "includeFailedDomains": {"const": true},
+        "includeResolutionActions": {"const": true},
+        "preserveOriginalClinicianValues": {"const": true},
+        "displayUncertainty": {"const": true},
+        "authoritativeClinicalClaimAllowed": {"const": false}
+      }
+    },
+    "releaseGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "blockedBy"],
+      "properties": {
+        "state": {"const": "blocked"},
+        "blockedBy": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["domain", "authorityStatus", "authorityName", "sourceVersion", "terminologyVersion", "jurisdiction", "licenseStatus", "accountableOwner", "clinicalApprover", "allowedClinicalUse"],
+      "properties": {
+        "domain": {"enum": ["formulary", "medication-dosing", "medication-contraindications", "medication-monitoring", "diagnosis-terminology", "medication-terminology"]},
+        "authorityStatus": {"enum": ["unresolved", "approved"]},
+        "authorityName": {"type": ["string", "null"], "minLength": 1},
+        "sourceVersion": {"type": ["string", "null"], "minLength": 1},
+        "terminologyVersion": {"type": ["string", "null"], "minLength": 1},
+        "jurisdiction": {"type": ["string", "null"], "minLength": 1},
+        "licenseStatus": {"enum": ["unresolved", "approved"]},
+        "accountableOwner": {"type": ["string", "null"], "minLength": 1},
+        "clinicalApprover": {"type": ["string", "null"], "minLength": 1},
+        "allowedClinicalUse": {"type": "boolean"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"authorityStatus": {"const": "approved"}}},
+          "then": {
+            "properties": {
+              "authorityName": {"type": "string"},
+              "sourceVersion": {"type": "string"},
+              "jurisdiction": {"type": "string"},
+              "licenseStatus": {"const": "approved"},
+              "accountableOwner": {"type": "string"},
+              "clinicalApprover": {"type": "string"},
+              "allowedClinicalUse": {"const": true}
+            }
+          },
+          "else": {
+            "properties": {
+              "authorityName": {"const": null},
+              "sourceVersion": {"const": null},
+              "terminologyVersion": {"const": null},
+              "jurisdiction": {"const": null},
+              "licenseStatus": {"const": "unresolved"},
+              "accountableOwner": {"const": null},
+              "clinicalApprover": {"const": null},
+              "allowedClinicalUse": {"const": false}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"domain": {"enum": ["diagnosis-terminology", "medication-terminology"]}}},
+          "then": {
+            "if": {"properties": {"authorityStatus": {"const": "approved"}}},
+            "then": {"properties": {"terminologyVersion": {"type": "string"}}}
+          }
+        }
+      ]
+    }
+  }
+}

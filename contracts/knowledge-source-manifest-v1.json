@@ -1,0 +1,122 @@
+{
+  "contractId": "insight.knowledge-source-manifest",
+  "schemaVersion": "1.0.0",
+  "scope": "INS-009",
+  "status": "accepted",
+  "authorityPolicy": {
+    "requiredAuthorityStatus": "approved",
+    "missingMetadataBehavior": "block-affected-clinical-use",
+    "expiredReviewBehavior": "block-affected-clinical-use",
+    "sourceChangeBehavior": "suspend-pending-review",
+    "inferenceAllowed": false
+  },
+  "sources": [
+    {
+      "domain": "formulary",
+      "authorityStatus": "unresolved",
+      "authorityName": null,
+      "sourceVersion": null,
+      "terminologyVersion": null,
+      "jurisdiction": null,
+      "licenseStatus": "unresolved",
+      "accountableOwner": null,
+      "clinicalApprover": null,
+      "allowedClinicalUse": false
+    },
+    {
+      "domain": "medication-dosing",
+      "authorityStatus": "unresolved",
+      "authorityName": null,
+      "sourceVersion": null,
+      "terminologyVersion": null,
+      "jurisdiction": null,
+      "licenseStatus": "unresolved",
+      "accountableOwner": null,
+      "clinicalApprover": null,
+      "allowedClinicalUse": false
+    },
+    {
+      "domain": "medication-contraindications",
+      "authorityStatus": "unresolved",
+      "authorityName": null,
+      "sourceVersion": null,
+      "terminologyVersion": null,
+      "jurisdiction": null,
+      "licenseStatus": "unresolved",
+      "accountableOwner": null,
+      "clinicalApprover": null,
+      "allowedClinicalUse": false
+    },
+    {
+      "domain": "medication-monitoring",
+      "authorityStatus": "unresolved",
+      "authorityName": null,
+      "sourceVersion": null,
+      "terminologyVersion": null,
+      "jurisdiction": null,
+      "licenseStatus": "unresolved",
+      "accountableOwner": null,
+      "clinicalApprover": null,
+      "allowedClinicalUse": false
+    },
+    {
+      "domain": "diagnosis-terminology",
+      "authorityStatus": "unresolved",
+      "authorityName": null,
+      "sourceVersion": null,
+      "terminologyVersion": null,
+      "jurisdiction": null,
+      "licenseStatus": "unresolved",
+      "accountableOwner": null,
+      "clinicalApprover": null,
+      "allowedClinicalUse": false
+    },
+    {
+      "domain": "medication-terminology",
+      "authorityStatus": "unresolved",
+      "authorityName": null,
+      "sourceVersion": null,
+      "terminologyVersion": null,
+      "jurisdiction": null,
+      "licenseStatus": "unresolved",
+      "accountableOwner": null,
+      "clinicalApprover": null,
+      "allowedClinicalUse": false
+    }
+  ],
+  "updateCadence": {
+    "status": "unresolved",
+    "reviewIntervalDays": null,
+    "lastReviewedAt": null,
+    "nextReviewDueAt": null,
+    "eventTriggers": [
+      "source-withdrawal",
+      "safety-notice",
+      "license-change",
+      "version-retirement"
+    ],
+    "allowedClinicalUse": false
+  },
+  "observableBlockedCase": {
+    "state": "knowledge-authority-blocked",
+    "code": "KNOWLEDGE_AUTHORITY_UNRESOLVED",
+    "includeFailedDomains": true,
+    "includeResolutionActions": true,
+    "preserveOriginalClinicianValues": true,
+    "displayUncertainty": true,
+    "authoritativeClinicalClaimAllowed": false
+  },
+  "releaseGate": {
+    "state": "blocked",
+    "blockedBy": [
+      "formulary-authority-unresolved",
+      "medication-dosing-authority-unresolved",
+      "medication-contraindications-authority-unresolved",
+      "medication-monitoring-authority-unresolved",
+      "diagnosis-terminology-authority-unresolved",
+      "medication-terminology-authority-unresolved",
+      "update-cadence-unresolved",
+      "accountable-owners-unresolved"
+    ]
+  }
+}

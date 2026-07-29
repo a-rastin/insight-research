@@ -8,10 +8,23 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
-- INS-008: Resolve intended use, population, and diagnosis gates (In progress).
+- INS-009: Resolve knowledge authority and terminology gates (In progress).
 
 ## Completed
 
+- INS-009 now has ADR-0007, versioned
+  `contracts/knowledge-source-manifest-v1.json`, its Draft 2020-12 JSON Schema,
+  and focused fail-closed contract tests covering DG-02 and DG-08.
+- Formularies, medication dosing, contraindication, monitoring, diagnosis
+  terminology, medication terminology, and update cadence remain explicitly
+  unresolved. Missing source, version, jurisdiction, license, owner, approval,
+  or cadence metadata blocks affected clinical use without suppressing original
+  clinician-entered values or uncertainty.
+- Both JSON files passed `python3 -m json.tool`; Draft 2020-12 instance and
+  negative approval validation passed in `python3 -B -m unittest
+  tests/test_knowledge_source_manifest.py -v` (5 tests); full architecture
+  discovery passed with `python3 -B -m unittest discover -s tests -v` (35
+  tests); `git diff --check` passed.
 - INS-008 now has ADR-0006, versioned `contracts/scope-matrix-v1.json`, Draft
   2020-12 `contracts/scope-matrix.schema.json`, and negative fixtures for
   excluded or unknown diagnosis and population states.
@@ -118,6 +131,10 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-009 knowledge-authority and terminology-gate decision packet. Formularies,
+  dose/contraindication/monitoring sources, diagnosis terminology, medication
+  terminology, and update cadence are under review; no authority or cadence is
+  approved yet, so affected clinical use remains blocked.
 - INS-008 intended-use, population, and diagnosis-gate decision packet.
   Research-only status, supported diagnosis pathway, and observable fail-closed
   behavior are implemented. Supported-population evidence and attributable
@@ -322,6 +339,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Next Up
 
+- Obtain attributable clinical, pharmacy, terminology, and product ownership;
+  select licensed, jurisdiction-specific authorities and exact versions for all
+  six INS-009 domains; approve review cadence and stale-source handling; then
+  supersede ADR-0007 and the source manifest before affected clinical use.
 - Obtain attributable psychiatrist/product approval and supporting evidence for
   a supported patient population and explicit exclusions. Supersede ADR-0006 and
   the scope matrix before allowing Treatment Plan generation for any population.
@@ -361,6 +382,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Open Questions
 
+- Which licensed, jurisdiction-specific formulary, dose, contraindication,
+  monitoring, diagnosis terminology, and medication terminology sources and
+  versions should govern INSIGHT? What review cadence and named accountable
+  owners approve them?
 - What evidence-backed patient population and exclusions should replace the
   empty INS-008 population allowlist? Accountable psychiatrist and product owners
   remain unnamed.
@@ -393,6 +418,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Architecture Decisions
 
+- ADR-0007 leaves all six knowledge-authority domains and update cadence
+  unresolved, requires attributable source/version/license/jurisdiction/owner
+  metadata before activation, and blocks affected clinical use with explicit
+  uncertainty rather than inferring authority from repository artifacts.
 - ADR-0006 keeps INSIGHT research-only, requires psychiatrist-confirmed
   schizophrenia for Treatment Plan scope, leaves the unsupported population
   allowlist empty, and returns explicit diagnosis/population reason codes without
@@ -424,6 +453,9 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-009 changes governance contracts and tests only. No module runtime, API,
+  persistence, UI, clinical source, terminology asset, model artifact, or
+  release status changed. No file under `doc/` was read or modified.
 - INS-008 changes governance contracts and tests only. No Treatment Plan runtime,
   module API, persistence, UI, clinical source, or model artifact changed. No
   demographic or population eligibility rule was inferred without evidence.
