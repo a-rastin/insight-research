@@ -8,10 +8,23 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
-- INS-008: Resolve intended use, population, and diagnosis gates (in progress).
+- INS-008: Resolve intended use, population, and diagnosis gates (In progress).
 
 ## Completed
 
+- INS-008 now has ADR-0006, versioned `contracts/scope-matrix-v1.json`, Draft
+  2020-12 `contracts/scope-matrix.schema.json`, and negative fixtures for
+  excluded or unknown diagnosis and population states.
+- Scope policy is research-only and advisory. Treatment Plan requires an
+  explicit psychiatrist-confirmed schizophrenia decision; no patient population
+  is approved, no population eligibility may be inferred, and every unsupported
+  or unknown case produces `scope-blocked` / `TP_SCOPE_UNSUPPORTED` without a
+  recommendation run or Primary Treatment Plan.
+- All three JSON files passed `python3 -m json.tool`; Draft 2020-12 schema and
+  instance validation passed with `jsonschema`; focused scope tests passed with
+  `python3 -B -m unittest tests/test_scope_matrix.py -v` (5 tests); full
+  architecture discovery passed with `python3 -B -m unittest discover -s tests
+  -v` (30 tests); `git diff --check` passed.
 - INS-007 now has versioned `contracts/model-manifest-v1.json` and its JSON
   Schema. The manifest inventories all 13 `BNs/` topics, 23 source model
   artifacts, seven model-only module copies, four BN Manager registry models,
@@ -106,8 +119,10 @@ Update this file after every meaningful implementation change.
 ## In Progress
 
 - INS-008 intended-use, population, and diagnosis-gate decision packet.
-  Psychiatrist/product resolutions and supporting evidence for DG-01, DG-03,
-  and DG-07 are pending; unsupported-case behavior remains undefined.
+  Research-only status, supported diagnosis pathway, and observable fail-closed
+  behavior are implemented. Supported-population evidence and attributable
+  psychiatrist/product approvals remain unresolved, so plan generation and
+  clinical release remain blocked.
 - INS-007 model-source ownership and duplicate-artifact manifest packet.
   Technical inventory and fail-closed governance controls are implemented;
   attributable BN-owner and clinical-model-owner approvals remain unresolved.
@@ -307,6 +322,9 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Next Up
 
+- Obtain attributable psychiatrist/product approval and supporting evidence for
+  a supported patient population and explicit exclusions. Supersede ADR-0006 and
+  the scope matrix before allowing Treatment Plan generation for any population.
 - Obtain attributable BN-owner and clinical-model-owner review before changing
   any model approval state or allowing a registry model at runtime. Retire the
   seven model-only module copies only through an approved migration after all
@@ -343,6 +361,9 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Open Questions
 
+- What evidence-backed patient population and exclusions should replace the
+  empty INS-008 population allowlist? Accountable psychiatrist and product owners
+  remain unnamed.
 - Attributable BN owner and clinical model owner are unnamed. All four registry
   models therefore remain unapproved in the INS-007 manifest and blocked from
   governed runtime admission despite their current BN Manager registry label.
@@ -372,6 +393,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Architecture Decisions
 
+- ADR-0006 keeps INSIGHT research-only, requires psychiatrist-confirmed
+  schizophrenia for Treatment Plan scope, leaves the unsupported population
+  allowlist empty, and returns explicit diagnosis/population reason codes without
+  creating a recommendation run or Primary Treatment Plan.
 - ADR-0005 rejects assistant scope for v1: no provider, transmission, retained
   conversation, page context, or tools. Unsupported policy resolves to disabled,
   forbidden identifiers require structural omission plus scrubbing, and
@@ -399,6 +424,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-008 changes governance contracts and tests only. No Treatment Plan runtime,
+  module API, persistence, UI, clinical source, or model artifact changed. No
+  demographic or population eligibility rule was inferred without evidence.
+- No file under `doc/` was modified during INS-008.
 - INS-007 changed governance contracts and tests only. No clinical source,
   model, schema, BN Manager runtime file, generated artifact, or module API was
   modified. The pre-existing dirty BN Manager worktree, including its modified

@@ -1,0 +1,40 @@
+[
+  {
+    "id": "excluded-diagnosis",
+    "diagnosisState": "excluded-diagnosis",
+    "populationState": "unknown-population",
+    "expectedState": "scope-blocked",
+    "expectedReasonCodes": [
+      "TP_SCOPE_DIAGNOSIS_EXCLUDED",
+      "TP_SCOPE_POPULATION_UNKNOWN"
+    ]
+  },
+  {
+    "id": "unknown-diagnosis",
+    "diagnosisState": "unknown-diagnosis",
+    "populationState": "unknown-population",
+    "expectedState": "scope-blocked",
+    "expectedReasonCodes": [
+      "TP_SCOPE_DIAGNOSIS_UNKNOWN",
+      "TP_SCOPE_POPULATION_UNKNOWN"
+    ]
+  },
+  {
+    "id": "excluded-population",
+    "diagnosisState": "confirmed-schizophrenia",
+    "populationState": "excluded-population",
+    "expectedState": "scope-blocked",
+    "expectedReasonCodes": [
+      "TP_SCOPE_POPULATION_EXCLUDED"
+    ]
+  },
+  {
+    "id": "unknown-population",
+    "diagnosisState": "confirmed-schizophrenia",
+    "populationState": "unknown-population",
+    "expectedState": "scope-blocked",
+    "expectedReasonCodes": [
+      "TP_SCOPE_POPULATION_UNKNOWN"
+    ]
+  }
+]

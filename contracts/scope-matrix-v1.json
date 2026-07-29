@@ -1,0 +1,61 @@
+{
+  "contractId": "insight.scope-matrix",
+  "schemaVersion": "1.0.0",
+  "scope": "INS-008",
+  "status": "accepted",
+  "intendedUse": {
+    "releaseStatus": "research-only",
+    "clinicalDeploymentAllowed": false,
+    "advisoryOnly": true,
+    "psychiatristFinalAuthorityRequired": true,
+    "autonomousDiagnosisAllowed": false,
+    "prescribingOrOrderingAllowed": false
+  },
+  "diagnosisGate": {
+    "supportedPathway": "psychiatrist-confirmed-schizophrenia",
+    "requiredState": "confirmed-schizophrenia",
+    "excludedStates": [
+      "excluded-diagnosis",
+      "other-diagnosis"
+    ],
+    "unknownState": "unknown-diagnosis",
+    "failureBehavior": "scope-blocked"
+  },
+  "populationGate": {
+    "approvalStatus": "unresolved",
+    "supportedPopulations": [],
+    "excludedState": "excluded-population",
+    "unknownState": "unknown-population",
+    "inferenceAllowed": false,
+    "failureBehavior": "scope-blocked"
+  },
+  "observableUnsupportedCase": {
+    "state": "scope-blocked",
+    "code": "TP_SCOPE_UNSUPPORTED",
+    "message": "Treatment Plan generation is unavailable because required scope criteria are not satisfied.",
+    "includeFailedGates": true,
+    "includeReasonCodes": true,
+    "includeResolutionActions": true,
+    "recommendationRunCreated": false,
+    "primaryTreatmentPlanCreated": false
+  },
+  "reasonCodes": {
+    "excluded-diagnosis": "TP_SCOPE_DIAGNOSIS_EXCLUDED",
+    "other-diagnosis": "TP_SCOPE_DIAGNOSIS_UNSUPPORTED",
+    "unknown-diagnosis": "TP_SCOPE_DIAGNOSIS_UNKNOWN",
+    "excluded-population": "TP_SCOPE_POPULATION_EXCLUDED",
+    "unknown-population": "TP_SCOPE_POPULATION_UNKNOWN"
+  },
+  "resolutionActions": {
+    "diagnosis": "Record an explicit psychiatrist diagnosis decision through the supported schizophrenia pathway.",
+    "population": "Obtain approved population evidence and record population eligibility without inference."
+  },
+  "releaseGate": {
+    "state": "blocked",
+    "blockedBy": [
+      "supported-population-unresolved",
+      "accountable-psychiatrist-owner-unresolved",
+      "accountable-product-owner-unresolved"
+    ]
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "insight.scope-matrix.schema.json",
+  "title": "INSIGHT Treatment Plan scope matrix",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractId",
+    "schemaVersion",
+    "scope",
+    "status",
+    "intendedUse",
+    "diagnosisGate",
+    "populationGate",
+    "observableUnsupportedCase",
+    "reasonCodes",
+    "resolutionActions",
+    "releaseGate"
+  ],
+  "properties": {
+    "contractId": {"const": "insight.scope-matrix"},
+    "schemaVersion": {"const": "1.0.0"},
+    "scope": {"const": "INS-008"},
+    "status": {"const": "accepted"},
+    "intendedUse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["releaseStatus", "clinicalDeploymentAllowed", "advisoryOnly", "psychiatristFinalAuthorityRequired", "autonomousDiagnosisAllowed", "prescribingOrOrderingAllowed"],
+      "properties": {
+        "releaseStatus": {"const": "research-only"},
+        "clinicalDeploymentAllowed": {"const": false},
+        "advisoryOnly": {"const": true},
+        "psychiatristFinalAuthorityRequired": {"const": true},
+        "autonomousDiagnosisAllowed": {"const": false},
+        "prescribingOrOrderingAllowed": {"const": false}
+      }
+    },
+    "diagnosisGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supportedPathway", "requiredState", "excludedStates", "unknownState", "failureBehavior"],
+      "properties": {
+        "supportedPathway": {"const": "psychiatrist-confirmed-schizophrenia"},
+        "requiredState": {"const": "confirmed-schizophrenia"},
+        "excludedStates": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"enum": ["excluded-diagnosis", "other-diagnosis"]}
+        },
+        "unknownState": {"const": "unknown-diagnosis"},
+        "failureBehavior": {"const": "scope-blocked"}
+      }
+    },
+    "populationGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["approvalStatus", "supportedPopulations", "excludedState", "unknownState", "inferenceAllowed", "failureBehavior"],
+      "properties": {
+        "approvalStatus": {"const": "unresolved"},
+        "supportedPopulations": {"type": "array", "maxItems": 0},
+        "excludedState": {"const": "excluded-population"},
+        "unknownState": {"const": "unknown-population"},
+        "inferenceAllowed": {"const": false},
+        "failureBehavior": {"const": "scope-blocked"}
+      }
+    },
+    "observableUnsupportedCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "code", "message", "includeFailedGates", "includeReasonCodes", "includeResolutionActions", "recommendationRunCreated", "primaryTreatmentPlanCreated"],
+      "properties": {
+        "state": {"const": "scope-blocked"},
+        "code": {"const": "TP_SCOPE_UNSUPPORTED"},
+        "message": {"type": "string", "minLength": 1},
+        "includeFailedGates": {"const": true},
+        "includeReasonCodes": {"const": true},
+        "includeResolutionActions": {"const": true},
+        "recommendationRunCreated": {"const": false},
+        "primaryTreatmentPlanCreated": {"const": false}
+      }
+    },
+    "reasonCodes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["excluded-diagnosis", "other-diagnosis", "unknown-diagnosis", "excluded-population", "unknown-population"],
+      "properties": {
+        "excluded-diagnosis": {"const": "TP_SCOPE_DIAGNOSIS_EXCLUDED"},
+        "other-diagnosis": {"const": "TP_SCOPE_DIAGNOSIS_UNSUPPORTED"},
+        "unknown-diagnosis": {"const": "TP_SCOPE_DIAGNOSIS_UNKNOWN"},
+        "excluded-population": {"const": "TP_SCOPE_POPULATION_EXCLUDED"},
+        "unknown-population": {"const": "TP_SCOPE_POPULATION_UNKNOWN"}
+      }
+    },
+    "resolutionActions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["diagnosis", "population"],
+      "properties": {
+        "diagnosis": {"type": "string", "minLength": 1},
+        "population": {"type": "string", "minLength": 1}
+      }
+    },
+    "releaseGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "blockedBy"],
+      "properties": {
+        "state": {"const": "blocked"},
+        "blockedBy": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}
