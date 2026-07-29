@@ -8,6 +8,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-017: Publish Medical History assessment v2 contract (In progress).
 - INS-016: Publish PANSS Severity assessment v2 contract (In progress).
 - INS-015: Publish Diagnosis assessment v2 contract (In progress).
 - INS-014: Publish Patient and Encounter v2 contracts (In progress).
@@ -241,6 +242,21 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-017 Medical History assessment v2 contract packet. Interface/schema
+  `2.0.0`, versioned controlled options, canonical Patient/Encounter/Assessment
+  and psychiatrist Actor UUIDs, created/updated timestamps, resource versions,
+  original medication text, explicit medication-normalization states, explicit
+  `unknown`/`not-assessed` clinical values, strong ETags, and idempotent creates
+  are implemented. The legacy activation-code interface remains unchanged.
+  Focused `node test_v2_api.js` and full `npm test` passed; all three contract
+  JSON files passed `python3 -m json.tool`; the Draft 2020-12 schema passed
+  `Draft202012Validator.check_schema`; common REST profile tests passed 8/8;
+  focused changed-file `git diff --check` passed. Root discovery ran 59 tests
+  with 57 passing and two unrelated existing capability-matrix failures for
+  missing issue headings and a stale project-overview hash. Authentication,
+  authorization/CSRF, consumer/UI migration, concurrency-safe production
+  database persistence, audit, encryption, and retention remain pending, so
+  clinical deployment remains blocked and the packet stays in progress.
 - INS-016 PANSS Severity assessment v2 contract packet. Interface/schema
   `2.0.0`, all 30 score inputs, server-derived subscales/total, explicit
   in-progress/completed/skipped semantics, canonical UUIDs, strong ETags,
