@@ -37,7 +37,15 @@
       "minItems": 6,
       "maxItems": 6,
       "uniqueItems": true,
-      "items": {"$ref": "#/$defs/source"}
+      "items": {"$ref": "#/$defs/source"},
+      "allOf": [
+        {"contains": {"properties": {"domain": {"const": "formulary"}}, "required": ["domain"]}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"domain": {"const": "medication-dosing"}}, "required": ["domain"]}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"domain": {"const": "medication-contraindications"}}, "required": ["domain"]}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"domain": {"const": "medication-monitoring"}}, "required": ["domain"]}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"domain": {"const": "diagnosis-terminology"}}, "required": ["domain"]}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"domain": {"const": "medication-terminology"}}, "required": ["domain"]}, "minContains": 1, "maxContains": 1}
+      ]
     },
     "requiredProvenance": {
       "type": "array",

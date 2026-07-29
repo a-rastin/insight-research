@@ -14,6 +14,14 @@ Update this file after every meaningful implementation change.
 
 ## Completed
 
+- INS-009 schema hardening now requires exactly one source entry for each of the
+  six authority domains; duplicate domain entries can no longer replace a
+  required authority while preserving array length. Concrete source provenance
+  remains unavailable and fail-closed under `source-ingestion-not-implemented`.
+  Schema JSON passed `python3 -m json.tool`; focused tests passed with `python3
+  -B -m unittest tests/test_knowledge_source_manifest.py -v` (7 tests); full
+  discovery passed with `python3 -B -m unittest discover -s tests -v` (44
+  tests); `git diff --check` passed.
 - INS-010 safety-policy hardening binds the sole overridable gate to
   `high-severity-ddi`, schema-enforces the 20-2000 rationale bounds, and gives
   all six required-input uncertainty states distinct decision-table codes and
@@ -500,6 +508,9 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-009 audit hardening changed its governance schema, test, and this tracker
+  only. No source bytes, hashes, retrieval metadata, runtime, API, or release
+  state were invented or changed. No file under `doc/` was read or modified.
 - INS-010 audit hardening changed governance contract, schema, tests, and this
   tracker only. No runtime, API, persistence, UI, clinical source, model, or
   release status changed. No file under `doc/` was read or modified.

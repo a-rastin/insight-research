@@ -72,6 +72,11 @@ class KnowledgeSourceManifestTest(unittest.TestCase):
         changed["sources"][1]["pinnedVersion"] = None
         self.assertTrue(list(self.validator.iter_errors(changed)))
 
+    def test_duplicate_domain_cannot_replace_required_authority(self):
+        changed = copy.deepcopy(self.manifest)
+        changed["sources"][1]["domain"] = "formulary"
+        self.assertTrue(list(self.validator.iter_errors(changed)))
+
     def test_formulary_claim_cannot_be_enabled(self):
         changed = copy.deepcopy(self.manifest)
         changed["sources"][0]["allowedResearchUse"] = True
