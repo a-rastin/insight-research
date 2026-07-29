@@ -8,6 +8,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-014: Publish Patient and Encounter v2 contracts (In progress).
 - INS-012: Publish the common internal REST profile (In progress).
 - INS-010: Resolve plan breadth, scheduling, emergency, and override gates (In
   progress).
@@ -238,6 +239,10 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-014 Patient and Encounter v2 contract packet. Contract, migration,
+  runtime, and provider verification are complete in the owning Add
+  New Patient repository. Consumer rollout from v1 patient-code/intake routes to
+  UUID-only v2 resources remains pending.
 - INS-012 common internal REST profile packet. Canonical schemas, examples,
   compatibility/deprecation rules, and provider/consumer checks are complete.
   Per-module packaging and runtime conformance remain pending separate rollout
@@ -488,8 +493,9 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 - Obtain approved C-SSRS source/licensing contract and named clinical owner
   before defining any instrument questions, scoring, terminology, or release
   behavior.
-- Define versioned Add New Patient Encounter and Follow-up Delta REST/schema
-  contracts before implementing follow-up persistence or orchestration.
+- Migrate Add New Patient consumers to the UUID-only Patient and Encounter v2
+  resources and add consumer-driven HTTP checks. Define the separate Follow-up
+  Delta REST/schema contract before follow-up persistence or orchestration.
 - Create the independently runnable Suicide Risk module/API/schema only after
   its instrument source, licensing, and clinical governance are approved.
 - Implement ADR-0002 in module-local inbound/outbound adapters: issue per-service
@@ -593,6 +599,24 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-014 publishes Add New Patient interface/schema version `2.0.0` with Draft
+  2020-12 JSON Schema, OpenAPI 3.1, runtime contract discovery, UUID-only Patient
+  and Encounter paths, body-based exact patient-code alias resolution/search,
+  opaque pagination, resource versions, provenance, strong ETags, and atomic
+  idempotent Patient plus first-Encounter creation. Changed idempotency payloads,
+  stale ETags, invalid UUIDs/UTC values, and alias collisions fail closed.
+  Additive startup migration maps each existing UUID `intakeId` row one-to-one
+  to a distinct Encounter UUID through explicit `legacyIntakeId`; dates are not
+  used to infer or group encounters. Focused tests passed with `python3 -B -m
+  unittest test_encounter_v2_contracts.py -v` (7 tests); full backend discovery
+  passed with `python3 -B -m unittest discover -v` (49 tests); frontend tests
+  passed with `node --test test_frontend.mjs` (3 tests); common REST profile
+  checks passed with `python3 -B -m unittest tests/test_common_rest_profile.py
+  -v` (8 tests); both v2 JSON files passed `python3 -m json.tool`; intended-file
+  and root `git diff --check` passed. Existing v1 code-or-UUID routes remain as
+  compatibility behavior; no consumer was silently migrated. Pre-existing
+  protected `graphify-out/` changes were preserved. No file under
+  `insight-research/doc/` was read or modified.
 - INS-013 changes Authentication contracts, additive migration 007, session
   runtime behavior, focused tests, README, and this tracker. Existing integer
   keys remain compatibility-only mappings; no applied migration, runtime
