@@ -8,6 +8,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-016: Publish PANSS Severity assessment v2 contract (In progress).
 - INS-015: Publish Diagnosis assessment v2 contract (In progress).
 - INS-014: Publish Patient and Encounter v2 contracts (In progress).
 - INS-012: Publish the common internal REST profile (In progress).
@@ -240,6 +241,7 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-016 PANSS Severity assessment v2 contract packet (In progress).
 - INS-015 Diagnosis assessment v2 contract packet (In progress).
 - INS-014 Patient and Encounter v2 contract packet. Contract, migration,
   runtime, and provider verification are complete in the owning Add
@@ -461,6 +463,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Next Up
 
+- Migrate Severity UI and REST consumers from patient-code v1 routes to UUID-only
+  PANSS v2 resources. Add Authentication session verification, psychiatrist-role
+  authorization, CSRF protection, and module-owned database migrations before
+  production use; do not infer UUID links from legacy patient codes.
 - Package the unchanged INS-012 artifacts in each module, reference the common
   OpenAPI components from module-owned contracts, then implement and test
   module-local health, readiness, discovery, error, concurrency, and idempotency
@@ -601,6 +607,13 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-016 adds PANSS v2 contract/schema/OpenAPI artifacts, one deterministic
+  server scorer, UUID assessment routes, idempotent create behavior, strong-ETag
+  updates, provenance, isolated tests, and module documentation. Legacy v1 API
+  behavior remains available without becoming authoritative for v2. Existing
+  untracked `graphify-out/` was preserved. No protected runtime data or generated
+  artifact was edited, and no file under `insight-research/doc/` was read or
+  modified.
 - INS-014 publishes Add New Patient interface/schema version `2.0.0` with Draft
   2020-12 JSON Schema, OpenAPI 3.1, runtime contract discovery, UUID-only Patient
   and Encounter paths, body-based exact patient-code alias resolution/search,
