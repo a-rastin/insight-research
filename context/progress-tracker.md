@@ -241,7 +241,17 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
-- INS-016 PANSS Severity assessment v2 contract packet (In progress).
+- INS-016 PANSS Severity assessment v2 contract packet. Interface/schema
+  `2.0.0`, all 30 score inputs, server-derived subscales/total, explicit
+  in-progress/completed/skipped semantics, canonical UUIDs, strong ETags,
+  idempotent creates, and provenance are implemented and verified. Focused
+  `node test_v2_api.js` and full `npm test` passed; contract JSON and Draft
+  2020-12 schema checks passed; common REST profile tests passed 8/8; both
+  repository `git diff --check` commands passed. Root discovery ran 59 tests
+  with 57 passing and two unrelated existing capability-matrix failures for
+  missing issue headings and a stale project-overview hash. Authentication,
+  CSRF, consumer/UI migration, and production database persistence remain
+  pending, so packet and clinical deployment remain in progress.
 - INS-015 Diagnosis assessment v2 contract packet (In progress).
 - INS-014 Patient and Encounter v2 contract packet. Contract, migration,
   runtime, and provider verification are complete in the owning Add
@@ -369,11 +379,16 @@ npm `10.9.8`; Git `2.43.0`; Docker `29.6.2`; uv `0.11.31`.
 - Runtime/dependencies: Node version undeclared; ESM; Express `^4.21.2`, locked
   `4.22.2`; package `1.0.0`; UI `v1.0.0-alpha`.
 - Start: `npm install`; `npm start` (`node server.js`).
-- Test: `node test_api.js`; no `npm test` script.
+- Test: `npm test`, running focused PANSS v2 and legacy v1 API checks.
 - Routes: `GET /api/severity/:patient_code`; `PUT
-  /api/severity/:patient_code`; CORS `OPTIONS`; static and SPA fallback `GET`.
-- Migrations/schema: none. Flat `data/assessments.json`, keyed by patient code;
-  no API/schema version or storage-path override.
+  /api/severity/:patient_code`; `GET /api/severity/v2/contract` and its document,
+  schema, and OpenAPI resources; `POST /api/severity/v2/assessments`; `GET` and
+  `PUT /api/severity/v2/assessments/{assessmentId}`; CORS `OPTIONS`; static and
+  SPA fallback `GET`.
+- Migrations/schema: no database migration. V2 interface/schema `2.0.0` uses a
+  separate module-owned JSON store with configurable test paths; v1 remains flat
+  `data/assessments.json`, keyed by patient code. Production persistence rollout
+  remains pending.
 
 ### Medical History
 
@@ -442,7 +457,7 @@ npm `10.9.8`; Git `2.43.0`; Docker `29.6.2`; uv `0.11.31`.
 | Dashboard | PASS with runner deviation | Documented `npm test` failed because `python` command is absent; equivalent `python3 -m unittest && node test_dashboard_frontend.mjs` passed 15 tests |
 | Add New Patient | PASS | 42 backend and 3 frontend tests |
 | Diagnosis | PASS only as documented separate processes | 156 tests/checks passed. Consolidated discovery failed 18 tests and errored once because import order retained auth-enabled settings; module documents separate commands |
-| Severity | PASS | Integration script passed from isolated copied worktree |
+| Severity | PASS | Focused PANSS v2 checks and full v1/v2 `npm test` passed using isolated temporary persistence |
 | Medical History | PASS | 4 tests |
 | DDI Checker | PASS | 49 tests |
 | BN Manager | FAIL | uv-created isolated environment collected 31 tests: 29 passed, 2 import errors because declared dependencies omit `httpx2`, required by Starlette `TestClient` |
