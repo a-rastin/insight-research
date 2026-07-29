@@ -1,0 +1,75 @@
+{
+  "contractId": "insight.assistant-policy",
+  "schemaVersion": "1.0.0",
+  "status": "accepted",
+  "scope": "INS-006",
+  "assistant": {
+    "v1Scope": "rejected",
+    "enabled": false,
+    "provider": null,
+    "unsupportedOrIncompletePolicyResult": "disabled"
+  },
+  "providerBoundary": {
+    "transmissionAllowed": false,
+    "structuralIdentifierOmissionRequiredBeforeScrubbing": true,
+    "defenseInDepthScrubbingRequired": true,
+    "forbiddenIdentifierClasses": [
+      "patient-name",
+      "patient-code",
+      "medical-record-number",
+      "phone-number",
+      "email-address",
+      "postal-address",
+      "date"
+    ]
+  },
+  "pageContext": {
+    "allowlist": [],
+    "default": "deny"
+  },
+  "tools": {
+    "allowlist": [],
+    "default": "deny",
+    "forbiddenCapabilities": [
+      "create",
+      "update",
+      "delete",
+      "submit",
+      "sign",
+      "approve",
+      "finalize"
+    ]
+  },
+  "conversation": {
+    "persistenceEnabled": false,
+    "retention": "none-no-storage",
+    "authorizedRoles": [],
+    "deletion": "not-applicable-no-storage",
+    "includedInBackup": false
+  },
+  "providerUsePolicy": {
+    "approved": false,
+    "promptsOrOutputsMayBeRetainedByProvider": false,
+    "promptsOrOutputsMayBeUsedForTraining": false
+  },
+  "ui": {
+    "state": "disabled-provider",
+    "message": "Assistant unavailable. Clinical workflows remain available.",
+    "promptControlVisible": false,
+    "mutationControlsVisible": false
+  },
+  "failurePolicy": {
+    "clinicalWorkflowBlocking": false,
+    "clinicalWorkflowMutationAllowed": false,
+    "fallback": "disabled-provider-ui-state"
+  },
+  "syntheticRedactionCorpus": [
+    {"class": "patient-name", "input": "Test Patient", "expected": "[REDACTED]"},
+    {"class": "patient-code", "input": "PT-000001", "expected": "[REDACTED]"},
+    {"class": "medical-record-number", "input": "MRN-000001", "expected": "[REDACTED]"},
+    {"class": "phone-number", "input": "+1-202-555-0100", "expected": "[REDACTED]"},
+    {"class": "email-address", "input": "patient@example.invalid", "expected": "[REDACTED]"},
+    {"class": "postal-address", "input": "1 Example Street", "expected": "[REDACTED]"},
+    {"class": "date", "input": "2000-01-01", "expected": "[REDACTED]"}
+  ]
+}

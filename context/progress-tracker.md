@@ -8,11 +8,23 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
-- INS-005: Decide administration, logs, backup, and restore ownership
-  (completed).
+- INS-006: Decide AI assistant provider, data policy, and UI boundary (in
+  progress).
 
 ## Completed
 
+- INS-006 received task-level HITL approval to reject assistant scope for v1.
+  Added ADR-0005 and versioned `contracts/assistant-policy-v1.json`; no provider,
+  page context, tools, conversation storage, or provider transmission is enabled.
+- The assistant policy requires structural identifier omission before
+  defense-in-depth scrubbing, forbids names, codes, MRNs, contact details, and
+  dates, exposes only a disabled-provider UI state, and cannot block or mutate
+  clinical workflows.
+- Verified JSON syntax with `python3 -m json.tool
+  contracts/assistant-policy-v1.json`; focused policy tests passed with
+  `python3 -B -m unittest tests/test_assistant_policy.py` (5 tests); full
+  architecture discovery passed with `python3 -B -m unittest discover -s tests
+  -v` (20 tests).
 - INS-005 received task-level HITL approval: Dashboard owns navigation only;
   Authentication owns account administration and security audit; clinical
   modules retain provenance; emitting modules retain operational logs; and
@@ -80,8 +92,9 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
-- None. INS-005 ownership decision packet is complete; runtime APIs, backup
-  tooling, restore execution, and Dashboard UI wiring are separate work packets.
+- INS-006 assistant provider, data policy, and UI-boundary decision packet.
+  V1 scope is rejected and fail-closed controls are implemented. Named
+  accountable privacy, security, and product owners remain unresolved.
 
 ## Repository Baseline
 
@@ -275,6 +288,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Next Up
 
+- Keep assistant provider integration, prompt controls, page context, tools, and
+  conversation storage disabled. Any future enablement requires a superseding
+  approved policy covering provider, retention, encryption, access, deletion,
+  backup, provider use, page allowlist, and read-only tools, plus runtime tests.
 - Define approved retention periods, encryption/key-management controls,
   protected artifact storage, recovery objectives, and named accountable owners
   before implementing production backup or restore.
@@ -303,6 +320,9 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Open Questions
 
+- Named accountable privacy, security, and product owners for ADR-0005 remain
+  unidentified. Assistant v1 remains rejected and disabled; no policy gap may
+  be interpreted as approval.
 - Named accountable architecture, security, and operations owners for ADR-0004
   remain unidentified. Task-level approval resolves ownership selection but not
   release governance.
@@ -326,6 +346,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Architecture Decisions
 
+- ADR-0005 rejects assistant scope for v1: no provider, transmission, retained
+  conversation, page context, or tools. Unsupported policy resolves to disabled,
+  forbidden identifiers require structural omission plus scrubbing, and
+  assistant failure cannot affect clinical workflows.
 - ADR-0004 keeps Dashboard navigation-only, assigns account and security-audit
   data to Authentication, clinical provenance to its clinical owner, operational
   logs to each emitter, module backup/restore to each module, and metadata-only
@@ -349,6 +373,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-006 changes governance contracts only. No provider integration, runtime
+  endpoint, conversation persistence, active chat UI, clinical API, or clinical
+  workflow behavior was added.
+- No file under `doc/` was read or modified during INS-006.
 - INS-005 defines and tests ownership and permissions only. No runtime API, UI,
   backup artifact, restore, retention deletion, database, or deployment behavior
   changed.
