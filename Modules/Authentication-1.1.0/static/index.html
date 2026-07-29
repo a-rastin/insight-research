@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>INSIGHT - Sign in</title>
+  <meta name="description" content="Sign in to INSIGHT, a research-prototype decision-support tool for schizophrenia care." />
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['ui-sans-serif', 'system-ui', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+          },
+          colors: {
+            ink: {
+              50:  '#f7f7f8',
+              100: '#eeeef1',
+              200: '#d8d8df',
+              300: '#b4b4c2',
+              400: '#8a8a9c',
+              500: '#5f5f73',
+              600: '#3e3e51',
+              700: '#2a2a3a',
+              800: '#1c1c28',
+              900: '#131320',
+              950: '#0a0a15',
+            },
+            accent: {
+              DEFAULT: '#0A9E8F',
+              hover: '#088A7D',
+              light: '#E6F6F5',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <script>
+    // Honor OS preference unless the user toggled manually. Runs before paint
+    // to avoid a flash of the wrong theme. ponytail: no toggle UI here — too
+    // much friction for a login page; system preference is the truth.
+    (function () {
+      try {
+        var saved = localStorage.getItem('theme');
+        var dark = saved === 'dark'
+          || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (dark) document.documentElement.classList.add('dark');
+      } catch (_) {}
+    })();
+  </script>
+  <style>
+    /* skeleton shimmer — motion honors prefers-reduced-motion */
+    @keyframes skel {
+      0%   { background-position: -200px 0; }
+      100% { background-position: 200px 0; }
+    }
+    .skeleton-bar {
+      background-image: linear-gradient(90deg, rgba(0,0,0,0.06) 0px, rgba(0,0,0,0.12) 40px, rgba(0,0,0,0.06) 80px);
+      background-size: 200px 100%;
+      animation: skel 1.3s linear infinite;
+    }
+    @media (prefers-color-scheme: dark) {
+      .skeleton-bar {
+        background-image: linear-gradient(90deg, rgba(255,255,255,0.04) 0px, rgba(255,255,255,0.08) 40px, rgba(255,255,255,0.04) 80px);
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .skeleton-bar { animation: none; }
+    }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+  </style>
+</head>
+<body class="min-h-[100dvh] bg-ink-50 dark:bg-ink-950 text-ink-900 dark:text-ink-100 font-sans antialiased">
+  <main class="min-h-[100dvh] grid md:grid-cols-[1fr_auto_1fr]">
+    <!-- left margin gutter — parity rhythm. On mobile collapses. -->
+    <div class="hidden md:block"></div>
+
+    <!-- center card column -->
+    <section
+      class="w-full md:w-[440px] mx-auto px-6 py-12 md:py-16 flex flex-col justify-center"
+      aria-live="polite"
+    >
+
+      <!-- Brand row -->
+      <header class="mb-8 flex items-center gap-3 select-none">
+        <img
+          src="/static/logo.png"
+          alt="INSIGHT"
+          width="48"
+          height="48"
+          class="h-12 w-12 rounded-md object-contain"
+        />
+        <div>
+          <span class="block text-xl font-semibold tracking-tight">INSIGHT</span>
+          <span class="block text-xs font-medium uppercase tracking-[0.14em] text-ink-500 dark:text-ink-400">Authentication</span>
+        </div>
+      </header>
+
+      <!-- VIEW: LOGIN ===================================================== -->
+      <div id="view-login">
+        <h1 class="text-2xl md:text-3xl tracking-tight font-semibold leading-tight">
+          Sign in
+        </h1>
+        <p class="mt-2 text-ink-500 dark:text-ink-400 text-sm max-w-[60ch]">
+          Academic research-prototype access. Use your admin-assigned credentials.
+        </p>
+
+        <form id="login-form" autocomplete="on" novalidate class="mt-8 space-y-6">
+          <div>
+            <label for="role" class="block text-sm font-medium mb-2">Role</label>
+            <div class="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Role">
+              <label class="flex items-center gap-3 px-3 py-2.5 border rounded-lg cursor-pointer
+                             border-ink-300 dark:border-ink-700
+                             has-[:checked]:border-accent has-[:checked]:ring-2 has-[:checked]:ring-accent/30
+                             has-[:checked]:bg-accent/5">
+                <input type="radio" id="role-admin" name="role" value="admin"
+                       class="text-accent focus:ring-accent"
+                       checked />
+                <span class="text-sm font-medium">Admin</span>
+              </label>
+              <label class="flex items-center gap-3 px-3 py-2.5 border rounded-lg cursor-pointer
+                             border-ink-300 dark:border-ink-700
+                             has-[:checked]:border-accent has-[:checked]:ring-2 has-[:checked]:ring-accent/30
+                             has-[:checked]:bg-accent/5">
+                <input type="radio" id="role-psychiatrist" name="role" value="psychiatrist"
+                       class="text-accent focus:ring-accent" />
+                <span class="text-sm font-medium">Psychiatrist</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label for="username" class="block text-sm font-medium mb-2">Username</label>
+            <input
+              id="username" name="username" type="text" required
+              autocomplete="username" autocapitalize="off" autocorrect="off"
+              spellcheck="false"
+              placeholder="Username"
+              class="w-full rounded-lg border border-ink-300 dark:border-ink-700
+                     bg-white dark:bg-ink-900
+                     px-3 py-2.5 text-base
+                     placeholder:text-ink-400
+                     focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+            />
+          </div>
+
+          <div>
+            <label for="password" class="block text-sm font-medium mb-2">Password</label>
+            <div class="relative">
+              <input
+                id="password" name="password" type="password" required
+                autocomplete="current-password"
+                placeholder="Password"
+                class="w-full rounded-lg border border-ink-300 dark:border-ink-700
+                       bg-white dark:bg-ink-900
+                       px-3 py-2.5 pr-10 text-base
+                       placeholder:text-ink-400
+                       focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+              />
+              <button
+                type="button"
+                id="toggle-pw"
+                aria-label="Show password"
+                class="absolute inset-y-0 right-0 px-3 text-ink-400 hover:text-ink-700 dark:hover:text-ink-200"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="1.5" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- inline status line, role=status -->
+          <p id="form-status" role="status" aria-live="polite"
+             class="text-sm min-h-[1.25rem]"></p>
+
+          <button
+            id="login-btn"
+            type="submit"
+            class="w-full rounded-lg bg-accent text-white font-medium
+                   px-4 py-2.5 text-base
+                   hover:bg-accent-hover active:translate-y-[1px]
+                   disabled:opacity-60 disabled:cursor-not-allowed
+                   focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2
+                   dark:focus:ring-offset-ink-950
+                   transition-colors"
+          >
+            Sign in
+          </button>
+
+          <p class="text-sm text-ink-500 dark:text-ink-400 text-center">
+            Need access?
+            <span class="font-medium text-ink-700 dark:text-ink-200">Ask your admin to register you.</span>
+          </p>
+        </form>
+      </div>
+
+      <!-- VIEW: SKELETON (submitting) =================================== -->
+      <div id="view-skeleton" class="hidden" aria-hidden="true">
+        <div class="h-7 w-32 skeleton-bar rounded mb-6"></div>
+        <div class="space-y-4">
+          <div class="h-10 skeleton-bar rounded"></div>
+          <div class="h-10 skeleton-bar rounded"></div>
+          <div class="h-10 skeleton-bar rounded"></div>
+          <div class="h-11 skeleton-bar rounded mt-6"></div>
+        </div>
+      </div>
+
+      <!-- VIEW: FORCED PASSWORD CHANGE ================================== -->
+      <div id="view-password-change" class="hidden" aria-hidden="true">
+        <h1 class="text-2xl md:text-3xl tracking-tight font-semibold leading-tight">
+          Change password
+        </h1>
+        <p class="mt-2 text-ink-500 dark:text-ink-400 text-sm max-w-[60ch]">
+          This account is using a temporary password. Set a new password before continuing.
+        </p>
+
+        <form id="password-change-form" autocomplete="on" novalidate class="mt-8 space-y-6">
+          <div>
+            <label for="current-password" class="block text-sm font-medium mb-2">Temporary password</label>
+            <input
+              id="current-password" name="current-password" type="password" required
+              autocomplete="current-password"
+              class="w-full rounded-lg border border-ink-300 dark:border-ink-700
+                     bg-white dark:bg-ink-900
+                     px-3 py-2.5 text-base
+                     placeholder:text-ink-400
+                     focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+            />
+          </div>
+
+          <div>
+            <label for="new-password" class="block text-sm font-medium mb-2">New password</label>
+            <input
+              id="new-password" name="new-password" type="password" required
+              autocomplete="new-password" minlength="8"
+              class="w-full rounded-lg border border-ink-300 dark:border-ink-700
+                     bg-white dark:bg-ink-900
+                     px-3 py-2.5 text-base
+                     placeholder:text-ink-400
+                     focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+            />
+          </div>
+
+          <div>
+            <label for="confirm-password" class="block text-sm font-medium mb-2">Confirm new password</label>
+            <input
+              id="confirm-password" name="confirm-password" type="password" required
+              autocomplete="new-password" minlength="8"
+              class="w-full rounded-lg border border-ink-300 dark:border-ink-700
+                     bg-white dark:bg-ink-900
+                     px-3 py-2.5 text-base
+                     placeholder:text-ink-400
+                     focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+            />
+          </div>
+
+          <p id="password-change-status" role="status" aria-live="polite"
+             class="text-sm min-h-[1.25rem]"></p>
+
+          <button
+            id="password-change-btn"
+            type="submit"
+            class="w-full rounded-lg bg-accent text-white font-medium
+                   px-4 py-2.5 text-base
+                   hover:bg-accent-hover active:translate-y-[1px]
+                   disabled:opacity-60 disabled:cursor-not-allowed
+                   focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2
+                   dark:focus:ring-offset-ink-950
+                   transition-colors"
+          >
+            Save new password
+          </button>
+        </form>
+      </div>
+
+      <!-- VIEW: ERROR ===================================================== -->
+      <div id="view-error" class="hidden" aria-hidden="true">
+        <h1 class="text-2xl md:text-3xl tracking-tight font-semibold leading-tight">
+          Authentication error
+        </h1>
+        <div class="mt-6 rounded-lg border border-rose-200 dark:border-rose-900
+                    bg-rose-50 dark:bg-rose-950/30 px-5 py-4">
+          <p id="error-message" class="text-sm text-rose-700 dark:text-rose-300">
+            Something went wrong. Please sign in again.
+          </p>
+        </div>
+        <button
+          id="error-back"
+          type="button"
+          class="mt-6 w-full rounded-lg bg-accent text-white font-medium
+                 px-4 py-2.5 text-base hover:bg-accent-hover
+                 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2
+                 dark:focus:ring-offset-ink-950"
+        >
+          Back to sign in
+        </button>
+      </div>
+
+      <!-- VIEW: DISCLAIMER ============================================== -->
+      <div id="view-disclaimer" class="hidden" aria-hidden="false">
+        <h1 class="text-2xl md:text-3xl tracking-tight font-semibold leading-tight">
+          Research Prototype Disclaimer
+        </h1>
+        <p class="mt-2 text-sm text-ink-500 dark:text-ink-400">
+          Please read and confirm this note before using INSIGHT.
+        </p>
+
+        <article id="disclaimer-body"
+                 class="mt-6 max-h-[42vh] overflow-y-auto rounded-lg border
+                        border-ink-200 dark:border-ink-800
+                        bg-white dark:bg-ink-900 px-5 py-4 text-sm leading-relaxed
+                        text-ink-700 dark:text-ink-200 prose-sm">
+          <!-- filled by JS from /api/auth/disclaimer -->
+        </article>
+
+        <form id="disclaimer-form" class="mt-6 space-y-4">
+          <label class="flex items-start gap-3 cursor-pointer">
+            <input type="checkbox" id="disclaimer-agree" required
+                   class="mt-1 text-accent focus:ring-accent rounded" />
+            <span id="disclaimer-acknowledgement" class="text-sm">
+              I have read and understand the disclaimer. I will use INSIGHT only
+              as decision support and accept responsibility for all clinical
+              judgments and actions taken while using the app.
+            </span>
+          </label>
+          <div id="disclaimer-status" role="status" aria-live="polite"
+               class="text-sm min-h-[1.25rem]"></div>
+          <button
+            id="disclaimer-accept"
+            type="submit"
+            class="w-full rounded-lg bg-accent text-white font-medium
+                   px-4 py-2.5 text-base
+                   hover:bg-accent-hover active:translate-y-[1px]
+                   disabled:opacity-60 disabled:cursor-not-allowed
+                   focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2
+                   dark:focus:ring-offset-ink-950"
+          >
+            I agree - Continue to dashboard
+          </button>
+        </form>
+      </div>
+
+    </section>
+
+    <div class="hidden md:block"></div>
+  </main>
+
+  <script>
+    // ---------- ponytail frontend: one function per concern, no libs --------
+    const $ = (id) => document.getElementById(id);
+    const views = ['login', 'skeleton', 'password-change', 'disclaimer', 'error'];
+    function show(view) {
+      views.forEach(v => {
+        const el = $('view-' + v);
+        el.classList.toggle('hidden', v !== view);
+        el.setAttribute('aria-hidden', v !== view ? 'true' : 'false');
+      });
+    }
+
+    async function renderDisclaimer() {
+      const res = await fetch('/api/auth/disclaimer', { credentials: 'same-origin' });
+      if (!res.ok) throw new Error('disclaimer');
+      const data = await res.json();
+      $('view-disclaimer').querySelector('h1').textContent = data.title || 'Research Prototype Disclaimer';
+      $('disclaimer-body').innerHTML = data.content_html || '';
+      $('disclaimer-acknowledgement').textContent = data.acknowledgement || '';
+    }
+
+    function setStatus(el, text, tone) {
+      // tone: 'error' | 'success' | ''
+      el.textContent = text || '';
+      el.className = 'text-sm min-h-[1.25rem] ' +
+        (tone === 'error'   ? 'text-rose-600 dark:text-rose-400'
+       : tone === 'success' ? 'text-emerald-600 dark:text-emerald-400'
+       : '');
+    }
+
+    function showError(message) {
+      $('error-message').textContent = message || 'Something went wrong. Please sign in again.';
+      show('error');
+      $('error-back').focus();
+    }
+
+    async function handlePostAuth(data) {
+      if (data.password_change_required) {
+        $('current-password').value = $('password').value;
+        $('new-password').value = '';
+        $('confirm-password').value = '';
+        setStatus($('password-change-status'), '', '');
+        show('password-change');
+        $('new-password').focus();
+        return;
+      }
+      if (data.disclaimer_required) {
+        try {
+          await renderDisclaimer();
+        } catch (err) {
+          showError('Could not load the current disclaimer. Please sign in again.');
+          return;
+        }
+        show('disclaimer');
+        $('disclaimer-agree').focus();
+        return;
+      }
+      const target = data.next || '/dashboard/admin';
+      window.location.assign(target);
+    }
+
+    let csrfToken = null;
+    async function ensureCsrfToken() {
+      if (csrfToken) return csrfToken;
+      const res = await fetch('/api/auth/csrf', { credentials: 'same-origin' });
+      if (!res.ok) throw new Error('csrf');
+      const data = await res.json();
+      csrfToken = data.csrf_token;
+      return csrfToken;
+    }
+
+    // ---------- form handlers ---------------------------------------------
+    const loginForm = $('login-form');
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = $('form-status');
+      const btn = $('login-btn');
+      btn.disabled = true;
+      setStatus(status, '', '');
+      show('skeleton');
+
+      const body = {
+        username: $('username').value.trim(),
+        password: $('password').value,
+        role: document.querySelector('input[name="role"]:checked').value,
+      };
+
+      try {
+        const token = await ensureCsrfToken();
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': token,
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify(body),
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          show('login');
+          // ponytail: same generic string the server returns, per spec privacy rule.
+          setStatus(status, 'Wrong username or password.', 'error');
+          $('password').focus();
+          btn.disabled = false;
+          return;
+        }
+        if (!res.ok) {
+          show('login');
+          const data = await res.json().catch(() => ({}));
+          setStatus(status, data.detail || 'Sign-in failed. Try again.', 'error');
+          btn.disabled = false;
+          return;
+        }
+
+        const data = await res.json();
+        // success path
+        setStatus(status, 'Signed in.', 'success');
+        btn.disabled = false;
+        await handlePostAuth(data);
+      } catch (err) {
+        // network error: keep on login view, restore button so user can retry
+        show('login');
+        setStatus(status, 'Network error. Check connection and try again.', 'error');
+        btn.disabled = false;
+      }
+    });
+
+    // forced password rotation submit
+    $('password-change-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = $('password-change-status');
+      const btn = $('password-change-btn');
+      const currentPassword = $('current-password').value;
+      const newPassword = $('new-password').value;
+      const confirmPassword = $('confirm-password').value;
+
+      if (newPassword.length < 8) {
+        setStatus(status, 'New password must be at least 8 characters.', 'error');
+        $('new-password').focus();
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        setStatus(status, 'New passwords do not match.', 'error');
+        $('confirm-password').focus();
+        return;
+      }
+      if (currentPassword === newPassword) {
+        setStatus(status, 'New password must be different from the temporary password.', 'error');
+        $('new-password').focus();
+        return;
+      }
+
+      btn.disabled = true;
+      setStatus(status, '', '');
+
+      try {
+        const token = await ensureCsrfToken();
+        const res = await fetch('/api/auth/password/change', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': token,
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify({
+            current_password: currentPassword,
+            new_password: newPassword,
+          }),
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          setStatus(status, 'Temporary password was not accepted. Please sign in again.', 'error');
+          btn.disabled = false;
+          return;
+        }
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setStatus(status, data.detail || 'Could not change password. Try again.', 'error');
+          btn.disabled = false;
+          return;
+        }
+
+        const data = await res.json();
+        btn.disabled = false;
+        await handlePostAuth(data);
+      } catch (err) {
+        setStatus(status, 'Network error. Try again.', 'error');
+        btn.disabled = false;
+      }
+    });
+
+    // disclaimer submit
+    $('disclaimer-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = $('disclaimer-status');
+      const btn = $('disclaimer-accept');
+      if (!$('disclaimer-agree').checked) {
+        setStatus(status, 'Please confirm you have read the disclaimer.', 'error');
+        return;
+      }
+      btn.disabled = true;
+      setStatus(status, '', '');
+
+      try {
+        const token = await ensureCsrfToken();
+        const res = await fetch('/api/auth/disclaimer/accept', {
+          method: 'POST',
+          headers: { 'X-CSRF-Token': token },
+          credentials: 'same-origin',
+        });
+        if (!res.ok) {
+          setStatus(status, 'Could not record acceptance. Please sign in again.', 'error');
+          btn.disabled = false;
+          return;
+        }
+        const data = await res.json();
+        window.location.assign(data.next || '/dashboard/user');
+      } catch (err) {
+        setStatus(status, 'Network error. Try again.', 'error');
+        btn.disabled = false;
+      }
+    });
+
+    // show/hide password toggle — pure local state, no fetch
+    $('toggle-pw').addEventListener('click', () => {
+      const input = $('password');
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      $('toggle-pw').setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    });
+
+    $('error-back').addEventListener('click', () => {
+      setStatus($('form-status'), '', '');
+      show('login');
+      $('username').focus();
+    });
+
+    function maybeApplyDevAutofill() {
+      const localHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+      const optedIn = new URLSearchParams(window.location.search).get('dev_autofill') === '1';
+      if (!localHost || !optedIn) return;
+      $('role-admin').checked = true;
+      $('username').value = 'Admin';
+      $('password').value = 'Admin';
+    }
+    maybeApplyDevAutofill();
+
+    // auto-redirect when session is valid but user navigates back to /
+    // ponytail: single-purpose — guarantees root is always the entry. Real
+    // session intercept for protected routes happens in other modules calling
+    // /api/auth/session.
+    (async () => {
+      try {
+        const r = await fetch('/api/auth/session', { credentials: 'same-origin' });
+        if (r.ok) {
+          const d = await r.json();
+          const role = d.role || d.message;
+          if (role === 'admin') window.location.replace('/dashboard/admin');
+          else if (role === 'psychiatrist' || d.message === 'user') window.location.replace('/dashboard/user');
+        }
+      } catch (_) { /* ignore — stay on login */ }
+    })();
+  </script>
+</body>
+</html>

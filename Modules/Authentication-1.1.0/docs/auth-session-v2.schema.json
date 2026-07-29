@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://insight.local/schemas/auth-session-v2.schema.json",
+  "title": "INSIGHT Authentication Session v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["authenticated", "authorized", "interfaceVersion", "session", "user", "gates", "compatibility"],
+  "properties": {
+    "authenticated": {"const": true},
+    "authorized": {"type": "boolean"},
+    "interfaceVersion": {"const": "2.0.0"},
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "active", "expiresAt"],
+      "properties": {
+        "id": {"type": "string", "format": "uuid"},
+        "active": {"const": true},
+        "expiresAt": {"type": "string", "format": "date-time"}
+      }
+    },
+    "user": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "username", "role"],
+      "properties": {
+        "id": {"type": "string", "format": "uuid"},
+        "username": {"type": "string", "minLength": 1, "maxLength": 64},
+        "role": {"enum": ["admin", "psychiatrist"]}
+      }
+    },
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passwordChangeRequired", "disclaimerRequired", "disclaimerVersion"],
+      "properties": {
+        "passwordChangeRequired": {"type": "boolean"},
+        "disclaimerRequired": {"type": "boolean"},
+        "disclaimerVersion": {"type": "string", "minLength": 1}
+      }
+    },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["legacyUserId", "legacyRole"],
+      "properties": {
+        "legacyUserId": {"type": "integer", "minimum": 1},
+        "legacyRole": {"type": ["string", "null"], "enum": ["user", null]}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"authorized": {"const": true}}},
+      "then": {
+        "properties": {
+          "gates": {
+            "properties": {
+              "passwordChangeRequired": {"const": false},
+              "disclaimerRequired": {"const": false}
+            }
+          }
+        }
+      }
+    }
+  ]
+}

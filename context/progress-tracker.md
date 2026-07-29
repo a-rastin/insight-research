@@ -17,10 +17,12 @@ Update this file after every meaningful implementation change.
 
 - INS-013 upgrades Authentication to schema version 7 and publishes
   `GET /api/auth/v2/session` plus its Draft 2020-12 response schema and current
-  contract. Stable user and session UUIDs are assigned without replacing legacy
-  integer user keys; v2 returns canonical lowercase roles, RFC 3339 UTC expiry,
-  explicit password/disclaimer gates, interface/schema version `2.0.0`, and an
-  explicit legacy-ID/role mapping without a human authorization message.
+  contract. The standalone app, tests, static UI, configuration, and
+  documentation are tracked under `Modules/Authentication-1.1.0/`. Stable user
+  and session UUIDs are assigned without replacing legacy integer user keys; v2
+  returns canonical lowercase roles, RFC 3339 UTC expiry, explicit
+  password/disclaimer gates, interface/schema version `2.0.0`, and an explicit
+  legacy-ID/role mapping without a human authorization message.
   Disablement, revocation, expiry, reset, role, password, and disclaimer checks
   continue through one live server-side resolver. The unchanged flat
   `/api/auth/session` shape remains a deprecated v1 adapter with successor
@@ -595,8 +597,9 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
   runtime behavior, focused tests, README, and this tracker. Existing integer
   keys remain compatibility-only mappings; no applied migration, runtime
   database, consumer module, clinical behavior, or protected artifact changed.
-  Authentication has no Git repository at its module root, so its required
-  nested-repository commit is unavailable. No file under `insight-research/doc/`
+  Required standalone runtime, static UI, tests, configuration, and module
+  documentation are copied into and tracked by the root repository; generated
+  and runtime artifacts remain excluded. No file under `insight-research/doc/`
   was read or modified.
 - INS-012 changes architecture contracts, examples, tests, and this tracker
   only. No module runtime, API route, persistence, UI, clinical source, model,
