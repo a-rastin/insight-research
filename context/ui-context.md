@@ -1,10 +1,28 @@
 # UI Context
 
+## Product Identity and Branding
+
+The product name is **INSIGHT**.
+
+Use `INSIGHT` for the principal product wordmark. Product-logo treatments should use the uppercase form.
+
+## Current Design Character
+
+INSIGHT is a desktop-first clinical decision-support workspace for psychiatrists. Its dominant visual language is:
+
+- bright and predominantly light;
+- white or near-white clinical surfaces;
+- dark neutral text;
+- restrained teal for primary actions and selection;
+- explicit semantic colors for urgent, warning, normal, follow-up, and informational states;
+- compact, information-dense clinical workspaces;
+- wider spacing on authentication and initial-entry states;
+- clear clinician review, provenance, and safety messaging;
+- minimal decorative imagery.
+
+The visual tone should be organized, calm, serious, and modern. Avoid playful illustration, decorative gradients, glassmorphism, excessive blur, neon colors, oversized marketing typography inside clinical workspaces, or consumer-wellness styling.
+
 ## Theme
-
-INSIGHT uses a **light, bright clinical workspace** designed for psychiatrists working with dense, safety-sensitive information. The primary canvas is white, surfaces are layered with very light neutral grays, and Carbon Teal (`--accent-primary`) is the only persistent accent in application chrome. The intended atmosphere is organized, modern, trustworthy, calm, and warm—not playful, decorative, or visually noisy.
-
-The product brand shown to users is **INSIGHT**. The `Carbon Health` name present in the supplied design reference is treated only as the name of that reference design language and must not replace INSIGHT branding, copy, or logo.
 
 Use color sparingly:
 
@@ -22,94 +40,115 @@ The supplied product prompt requests a dark/light mode toggle, but the archive d
 - Do not expose a functional dark-mode toggle until an approved dark palette and accessibility review are supplied.
 - Treat dark mode as an unresolved product/design decision, not as implemented behavior.
 
-## Colors
+## Canonical Color System
 
-Define the palette once as CSS custom properties. Components must consume these variables; do not hardcode hex values in component styles, inline styles, Tailwind arbitrary values, SVGs, charts, or JavaScript state mappings.
+The canonical palette is the teal/neutral system used in the shared design references and implemented most directly by Dashboard, Diagnosis, Severity, and Suicide Risk.
+
+Use repository-aligned token names:
 
 ```css
 :root {
-  --bg-base: #FFFFFF;
-  --bg-surface: #F9FAFB;
-  --bg-surface-subtle: #F3F4F6;
+  --primary: #0A9E8F;
+  --primary-hover: #088A7D;
+  --primary-light: #E6F6F5;
+  --on-primary: #FFFFFF;
 
-  --text-primary: #111827;
-  --text-muted: #6B7280;
-  --text-subtle: #9CA3AF;
-  --text-on-accent: #FFFFFF;
+  --ink: #111827;
+  --ink-muted: #6B7280;
+  --ink-subtle: #9CA3AF;
 
-  --accent-primary: #0A9E8F;
-  --accent-primary-hover: #088A7D;
-  --accent-primary-soft: #E6F6F5;
+  --canvas: #FFFFFF;
+  --surface-1: #F9FAFB;
+  --surface-2: #F3F4F6;
 
-  --border-default: #E5E7EB;
+  --border: #E5E7EB;
   --border-strong: #D1D5DB;
 
-  --state-error: #DC2626;
-  --state-error-bg: #FEF2F2;
-  --state-warning: #D97706;
-  --state-warning-bg: #FFFBEB;
-  --state-success: #059669;
-  --state-success-bg: #ECFDF5;
-  --state-follow-up: #7C3AED;
-  --state-follow-up-bg: #F5F3FF;
-  --state-info: #0284C7;
-  --state-info-bg: #F0F9FF;
+  --urgent: #DC2626;
+  --urgent-bg: #FEF2F2;
+
+  --warning: #D97706;
+  --warning-bg: #FFFBEB;
+
+  --normal: #059669;
+  --normal-bg: #ECFDF5;
+
+  --follow-up: #7C3AED;
+  --follow-up-bg: #F5F3FF;
+
+  --info: #0284C7;
+  --info-bg: #F0F9FF;
 }
 ```
 
-| Role | CSS Variable | Value |
+### Color roles
+
+| Role | Token | Use |
 | --- | --- | --- |
-| Page background | `--bg-base` | `#FFFFFF` |
-| Primary surface | `--bg-surface` | `#F9FAFB` |
-| Secondary / hover surface | `--bg-surface-subtle` | `#F3F4F6` |
-| Primary text | `--text-primary` | `#111827` |
-| Muted text | `--text-muted` | `#6B7280` |
-| Placeholder / disabled text | `--text-subtle` | `#9CA3AF` |
-| Text on primary accent | `--text-on-accent` | `#FFFFFF` |
-| Primary accent | `--accent-primary` | `#0A9E8F` |
-| Primary accent hover | `--accent-primary-hover` | `#088A7D` |
-| Selected / soft accent surface | `--accent-primary-soft` | `#E6F6F5` |
-| Default border | `--border-default` | `#E5E7EB` |
-| Strong border | `--border-strong` | `#D1D5DB` |
-| Error / urgent | `--state-error` | `#DC2626` |
-| Error / urgent tint | `--state-error-bg` | `#FEF2F2` |
-| Warning | `--state-warning` | `#D97706` |
-| Warning tint | `--state-warning-bg` | `#FFFBEB` |
-| Success / normal | `--state-success` | `#059669` |
-| Success / normal tint | `--state-success-bg` | `#ECFDF5` |
-| Follow-up | `--state-follow-up` | `#7C3AED` |
-| Follow-up tint | `--state-follow-up-bg` | `#F5F3FF` |
-| Informational | `--state-info` | `#0284C7` |
-| Informational tint | `--state-info-bg` | `#F0F9FF` |
+| Main page and card background | `--canvas` | Primary reading surface |
+| Sidebar, inset region, alternate panel | `--surface-1` | Low-emphasis structure |
+| Hover, disabled, selected-neutral surface | `--surface-2` | Secondary state |
+| Main text | `--ink` | Body copy, headings, values |
+| Supporting text | `--ink-muted` | Instructions, metadata, helper text |
+| Placeholder and low-emphasis text | `--ink-subtle` | Disabled and tertiary information |
+| Primary action and selected state | `--primary` | CTA, selected navigation, focus, progress |
+| Primary hover | `--primary-hover` | Pointer hover and pressed emphasis |
+| Soft selected state | `--primary-light` | Selected pills, tags, metric accents |
+| Critical state | `--urgent` / `--urgent-bg` | Urgent finding, destructive action, blocking error |
+| Caution state | `--warning` / `--warning-bg` | Review required, stale or incomplete data |
+| Normal state | `--normal` / `--normal-bg` | Complete, available, within range |
+| Follow-up state | `--follow-up` / `--follow-up-bg` | Ongoing care or scheduled follow-up |
+| Informational state | `--info` / `--info-bg` | Neutral guidance and provenance |
 
-### Color semantics
+### Color usage rules
 
-- `--state-error` represents urgent, critical, destructive, or validation-error states.
-- `--state-warning` represents pending review, follow-up needed, caution, and non-blocking safety concerns.
-- `--state-success` represents normal, complete, confirmed, or within-range states.
-- `--state-follow-up` represents scheduled follow-up and chronic-care flags.
-- `--state-info` represents neutral notices and contextual guidance.
-- Every state must include a text label and an icon or other non-color cue.
-- The Mermaid and PNG Bayesian-network diagrams in the archive use their own diagram colors. Those colors are model-documentation artifacts and are not application UI tokens.
+- Use teal for primary actions, active navigation, selected controls, progress, and focus indicators.
+- Use `--ink` for normal body text. Do not use teal as general paragraph text.
+- Pair every clinical state color with visible text and, where practical, an icon or shape.
+- Prefer a state-colored border, icon, badge, or narrow left stripe over a large saturated fill.
+- Light semantic background tints are acceptable for banners and safety cards when the state must remain continuously visible.
+- Never use red and green as the only distinction between two clinical outcomes.
+
+### Verified contrast constraint
+
+`#0A9E8F` against white is approximately `3.33:1`. It is suitable for non-text UI boundaries and sufficiently large or bold text, but not for ordinary small body text. White on `#0A9E8F` has the same approximate contrast, so primary-button labels must be adequately sized and weighted. For small critical copy, use darker ink-compatible state colors or pair color with another cue.
+
+## Existing Palette Deviations
+
+Several modules currently use related but noncanonical green/teal palettes. These are existing implementation facts, not additional global themes.
+
+| Module | Current primary/accent | Notable deviation |
+| --- | --- | --- |
+| Add New Patient | `#156C5B` | Green accent, blue focus ring, green/blue background gradient, large hero heading |
+| Medical History | `#176B5B` | Arial typography, blue focus ring, rust-red secondary accent |
+| DDI Checker | `#276A73` | Blue-green brand color and larger tinted severity-card backgrounds |
+| Treatment Plan | `#087F74` / `#06665E` | Darker teal to improve action contrast |
+| BN Manager | No teal brand token | Plain gray utility/status page |
+
+When creating a new module, use the canonical palette rather than selecting one of these variants. When modifying an existing divergent module, avoid adding further colors; standardize only when the requested scope permits it.
 
 ## Typography
 
 ```css
 :root {
-  --font-display: "Neue Haas Grotesk Display", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-sans: "Neue Haas Grotesk Text", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", Menlo, Consolas, monospace;
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
 }
 ```
 
-| Role | Font | Variable | Size / metrics | Use |
-| --- | --- | --- | --- | --- |
-| Display / page heading | Neue Haas Grotesk Display, Inter fallback | `--font-display` | `32px`, `600`, `1.2`, `-0.02em` | Workspace title, major section title, empty state |
-| UI body | Neue Haas Grotesk Text, Inter fallback | `--font-sans` | `15px`, `400`, `1.65`, `-0.005em` | Forms, clinical summaries, instructions, navigation |
-| Label / caption | Same sans stack | `--font-sans` | `12px`, `500`, `1.4`, `0.02em` | Field labels, table headers, status labels, metadata |
-| Clinical numeric / code | JetBrains Mono, Menlo fallback | `--font-mono` | `13px`, `400`, `1.6` | Patient codes, PANSS item codes and scores, dosages, vitals, timestamps, aligned numeric data |
+### Type roles
 
-Use a 20–32px range for section and page headings while preserving the display family and weight. The archive contains no font assets; these are font stacks, so Inter/system fallbacks must remain functional unless the preferred fonts are supplied separately.
+| Role | Size and weight | Use |
+| --- | --- | --- |
+| Major workspace title | `28–32px`, `600–700`, line-height `1.15–1.25` | Dashboard, risk assessment, major standalone workspace |
+| Module/page title | `20–26px`, `600–700` | Diagnosis, Severity, Treatment Plan sections |
+| Section title | `16–20px`, `600–700` | Cards, form sections, safety panels |
+| Clinical body | `14–15px`, `400`, line-height `1.5–1.65` | Instructions, descriptions, findings |
+| Label/caption | `11–13px`, `600–800` | Field labels, metadata, table headers, status kickers |
+| Numeric/code data | `12–15px`, mono | Patient identifiers, scores, versions, dosages, timestamps |
+| Large score/metric | `22–32px`, mono, `600–700` | PANSS totals, risk score, dashboard metrics |
+
+Uppercase labels are used for compact metadata and section kickers. Keep tracking restrained; the implemented repository frequently uses uppercase labels without large letter spacing.
 
 ## Border Radius
 
@@ -123,15 +162,84 @@ Use a 20–32px range for section and page headings while preserving the display
 }
 ```
 
-| Context | Class / token |
-| --- | --- |
-| Inline / small UI | `rounded-[4px]` / `var(--radius-sm)` |
-| Inputs and standard controls | `rounded-[8px]` / `var(--radius-md)` |
-| Cards / panels | `rounded-[12px]` / `var(--radius-lg)` |
-| Modals / overlays | `rounded-[16px]` / `var(--radius-xl)` |
-| Pills / status badges / selectable slots | `rounded-full` / `var(--radius-pill)` |
+Implementation guidance:
 
-Use the radius scale consistently. Do not introduce module-specific arbitrary radii unless a documented component requirement cannot be met by this scale.
+- Dense buttons and inputs may use `6px` where matching Dashboard, DDI Checker, Medical History, or Suicide Risk.
+- Standard controls should normally use `8px`.
+- Main clinical cards should use `8px` or `12px`.
+- Major overlays may use `10–16px`.
+- Status pills, score choices, and compact chips use pill radius.
+- Do not introduce highly rounded consumer-app cards or mixed arbitrary radii within one surface.
+
+## Spacing, Elevation, and Motion
+
+### Spacing scale
+
+```css
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+}
+```
+
+Use an 8px base rhythm. Use 4px for internal micro-gaps, not for main page spacing.
+
+Typical repository values:
+
+- page padding: `16–28px` on dense workspaces;
+- card padding: `14–24px`;
+- primary form/card padding: `24–32px`;
+- column gap: `18–24px`;
+- mobile page padding: `10–16px`;
+- section separation: `16–28px`.
+
+### Shadows
+
+```css
+:root {
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-overlay: 0 20px 60px rgba(0, 0, 0, 0.12);
+}
+```
+
+Use subtle borders as the primary surface separator. Shadows should remain restrained. Do not use large floating shadows on every card.
+
+### Motion
+
+```css
+:root {
+  --motion-fast: 100ms;
+  --motion-base: 180ms;
+  --motion-slow: 300ms;
+  --motion-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-decelerate: cubic-bezier(0, 0, 0.2, 1);
+}
+```
+
+- Use `100ms` for immediate selection feedback.
+- Use `180ms` for hover, border, background, and ordinary state changes.
+- Use `300ms` only for deliberate progress or expansion.
+- Use content-shaped skeletons where the repository already does so.
+- Honor `prefers-reduced-motion` by suppressing shimmer and movement.
+- Urgent information must not disappear automatically.
+
+- Use semantic HTML as the baseline contract.
+- Reuse the module's existing framework rather than introducing a second UI runtime.
+- Do not introduce a new cross-project component library as an incidental change.
+- Keep browser URLs relative to the gateway.
+- Scope CSS to the module root when embedding or when selector collision is possible.
+- Treat embeddability as module-specific. Diagnosis explicitly supports an embedded root and suppresses standalone chrome; do not assume every module already has the same mount/unmount contract.
 
 ## Component Library
 
@@ -205,41 +313,6 @@ Until an icon system is selected:
 - Decorative icons must be hidden from assistive technology. Interactive icon-only controls require an accessible name and tooltip.
 - The archive does not specify exact icon glyph sizes. Size icons relative to their control and preserve the minimum control target dimensions rather than inventing a global pixel size.
 
-## Spacing, Elevation, and Motion
-
-```css
-:root {
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-16: 64px;
-  --space-20: 80px;
-  --space-24: 96px;
-
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-elevated: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-overlay: 0 20px 60px rgba(0, 0, 0, 0.12);
-
-  --motion-fast: 100ms;
-  --motion-base: 180ms;
-  --motion-slow: 300ms;
-  --motion-easing: cubic-bezier(0.4, 0, 0.2, 1);
-  --motion-decelerate: cubic-bezier(0, 0, 0.2, 1);
-}
-```
-
-- Build spacing on the 8px base. Reserve 4px for micro-gaps such as icon-to-label spacing and badge internals.
-- Use card elevation for hoverable cards, elevated shadow for floating panels, and overlay shadow for dialogs.
-- Use `100ms` for immediate selection feedback, `180ms` for ordinary state changes, and `300ms` for deliberate expansion/collapse.
-- Alerts may enter from the top; non-urgent alerts persist for 4 seconds, while urgent alerts remain until dismissed.
-- Honor `prefers-reduced-motion`. Replace movement with immediate state changes and replace animated skeletons with static loading text.
-
 ## Accessibility and Clinical-Safety UI Rules
 
 - Primary ink on white is the default reading combination.
@@ -254,15 +327,4 @@ Until an icon system is selected:
 - The AI assistant is advisory, page-aware, and read-only with respect to application data. Never show patient names in assistant-bound content.
 - Do not put patient names, patient codes, or other PHI into browser URLs, filenames, analytics labels, or error traces.
 
-## Source Constraints and Open Decisions
 
-1. **Dark mode:** required at product-prompt level but not specified by the design system. Dark tokens and contrast validation are still required.
-2. **Right AI rail:** required by the product prompt; width, collapsed state, and breakpoint are unspecified.
-3. **Icon library:** no package is selected.
-4. **Preferred fonts:** font stacks are specified, but no font files are supplied.
-5. **Component standardization:** modules currently span vanilla CSS, Tailwind CDN, and React/Vite. No shared component package is present.
-6. **Branding:** user-facing branding is INSIGHT; do not expose the design-reference name as the product name.
-
-## Source Coverage
-
-This context was synthesized after inspecting all 97 files in the supplied archive. The archive contains 80 distinct payloads after exact-hash deduplication; 33 paths belong to duplicate groups. All 14 XML files parsed successfully, all 17 `.net` files were structurally scanned, all 8 Mermaid diagrams were inspected, and the PNG Bayesian-network diagram was reviewed. The clinical network files and guideline texts inform workflow and safety semantics but do not define application theme tokens. UI decisions above come from the global design contract, product prompts, architecture/context documents, and module README/handoff contracts.
