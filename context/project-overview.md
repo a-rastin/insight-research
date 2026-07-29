@@ -4,7 +4,7 @@
 
 INSIGHT is a clinical decision support system for psychiatrists managing patients with schizophrenia. It is intended to combine structured patient and encounter records, clinician-confirmed schizophrenia diagnostic assessment, PANSS severity assessment, risk and medical-history data, deterministic safety rules, drug-drug interaction checking, and versioned Bayesian-network evaluations to produce an **explainable Primary Treatment Plan** for psychiatrist review. The system is designed to address fragmented clinical information, inconsistent provenance, and opaque recommendation logic by preserving the exact source data, policy versions, model versions, evidence, safety findings, and psychiatrist decisions used in each recommendation. INSIGHT does not diagnose, prescribe, or issue clinical orders autonomously; the psychiatrist remains the final clinical authority.
 
-> **Current project boundary:** The supplied archive is an architectural and prototype baseline, not clinically releasable software. The Treatment Plan backend contains substantial lifecycle functionality, but its review UI still uses synthetic data and is not fully connected to the backend routes. Severity and Medical History retain prototype file-based persistence and require production authentication and audit integration. The DDI Checker currently lacks the required server-side REST service and stores operational state in the browser. Several bundled Bayesian networks use illustrative or qualitative conditional probability tables. Clinical use is blocked until the supported pathways, evidence mappings, safety policies, models, and release controls receive independent clinical, privacy, regulatory, and deployment approval.
+> **Current project boundary:** The Treatment Plan backend contains substantial lifecycle functionality, but its review UI still uses synthetic data and is not fully connected to the backend routes.
 
 ## Goals
 
@@ -21,9 +21,9 @@ INSIGHT is a clinical decision support system for psychiatrists managing patient
 5. The psychiatrist completes or reviews the relevant clinical inputs: clinician-controlled schizophrenia diagnosis, PANSS severity assessment, baseline and medical history, medication history, prior antipsychotic response and adherence, contraindications, and suicide/aggression risk information. The intended full workflow also includes a structured C-SSRS risk-assessment step.
 6. The Treatment Plan module requests versioned snapshots from the owning modules through internal REST APIs and creates an immutable Clinical Input Snapshot for an idempotent Recommendation Run.
 7. INSIGHT validates identity, schema compatibility, completeness, freshness, medication resolution, and cross-source consistency. Missing, stale, conflicting, ambiguous, or unavailable data are shown explicitly; the system does not silently infer or default clinically material facts.
-8. Eligible cases are evaluated through approved deterministic safety policies, the DDI service, and the applicable versioned Bayesian-network pathways. Deterministic contraindications and urgent safety rules take precedence over probabilistic recommendations.
-9. INSIGHT produces an explainable Primary Treatment Plan covering the supported treatment-setting, pharmacotherapy, safety, and follow-up recommendations. The draft is advisory and is not a prescription or signed order.
-10. The psychiatrist reviews the recommendation evidence and safety findings, accepts or modifies the draft, and provides rationale where policy requires it. Medication changes trigger renewed DDI and safety checks before finalization.
+8. Eligible cases are evaluated through the DDI service, and the applicable versioned Bayesian-network pathways. Deterministic contraindications and urgent safety rules take precedence over probabilistic recommendations.
+9. INSIGHT produces an explainable Primary Treatment Plan covering the supported treatment-setting, pharmacotherapy, and follow-up recommendations. The draft is advisory and is not a prescription or signed order.
+10. The psychiatrist reviews the recommendation evidence and accepts or modifies the draft, and provides rationale where policy requires it. Medication changes trigger renewed DDI and safety checks before finalization.
 11. The psychiatrist approves the plan. INSIGHT stores an attributable, immutable Final Treatment Plan with the original recommendation, all edits, overrides, evidence, model and knowledge versions, and audit/provenance records.
 12. At follow-up, INSIGHT captures a new Encounter and Follow-up Delta, revalidates the current facts and medications, generates a new plan when appropriate, and links it as a superseding version without mutating the prior Final Treatment Plan.
 
@@ -44,8 +44,7 @@ INSIGHT is a clinical decision support system for psychiatrists managing patient
 - A Treatment Plan orchestrator that assembles versioned data from Authentication, Patient, Diagnosis, Severity, Medical History, DDI, and BN Manager services.
 - Eligibility and data-quality policies that distinguish complete, incomplete, stale, conflicting, unresolved, and dependency-failure states.
 - Deterministic safety findings for allergies, contraindications, risk conditions, missing information, evidence quality, and other plan-qualifying or plan-blocking facts.
-- Drugâ€“drug interaction evaluation using normalized medication identities where available, while preserving original clinician-entered text.
-- Fail-closed medication resolution: ambiguous or unknown concepts are reported as incomplete interaction coverage and must not be presented as â€œno interaction.â€
+- Drug-drug interaction evaluation using normalized medication identities where available, while preserving original clinician-entered text.
 - Versioned Bayesian-network and influence-diagram support for candidate pathways represented in the archive, including:
   - treatment setting;
   - pharmacotherapy selection;
@@ -62,9 +61,7 @@ INSIGHT is a clinical decision support system for psychiatrists managing patient
 - Explainable Primary Treatment Plan presented as a system-generated draft rather than a prescription or clinical order.
 - Structured review workspace that preserves the original recommendation while showing psychiatrist changes as an explicit diff.
 - Append-only Plan Edit ledger with actor, timestamp, before/after values, and rationale where required.
-- Optimistic concurrency control so simultaneous edits are detected and neither user's changes are silently lost.
-- Re-execution of safety and DDI checks after clinically relevant edits and immediately before finalization.
-- Policy-controlled overrides that require authorization and a documented reason; unsupported overrides remain blocked.
+- Re-execution of DDI checks after clinically relevant edits and immediately before finalization.
 - Idempotent finalization producing an immutable and attributable Final Treatment Plan.
 - Follow-up supersession that creates a new version and preserves the complete history and provenance of earlier plans.
 
@@ -84,8 +81,7 @@ INSIGHT is a clinical decision support system for psychiatrists managing patient
 - Separation of security audit events from clinical provenance so access/activity records and recommendation lineage remain independently reviewable.
 - Exclusion of protected health information from URLs, browser storage, logs, correlation identifiers, and unprotected exports.
 - Encryption and secrets-management requirements for persisted sensitive data and deployed environments.
-- Versioned, reviewable model and knowledge artifacts with explicit lifecycle states; only approved DDI records may generate clinical alerts.
-- Clinical governance gates for intended use, supported pathways, deterministic policies, Bayesian evidence mappings and conditional probability tables, reference cases, override policy, retention, and release approval.
+- Versioned, reviewable model and knowledge artifacts with explicit lifecycle states.
 - Accessible clinical UI requirements, including visible text or icon indicators rather than color-only warnings and preservation of psychiatrist control.
 - A page-aware, read-only AI assistant described by the product specification; it must remain advisory, must not modify clinical data, and must receive scrubbed context without patient identifiers.
 
@@ -116,25 +112,19 @@ INSIGHT is a clinical decision support system for psychiatrists managing patient
 
 - Autonomous diagnosis, autonomous treatment selection, prescribing, medication ordering, or replacement of psychiatrist judgment.
 - Representing a Primary Treatment Plan as a prescription, signed clinical order, or mandatory course of action.
-- Real-world clinical deployment before the bundled models, mappings, knowledge base, safety policies, reference cases, and supported pathways are independently validated and all release gates are approved.
-- Treating illustrative or qualitative Bayesian-network probability tables as established clinical truth.
 - Silently guessing missing clinical facts, resolving ambiguous medications without review, suppressing contradictory data, or interpreting an unavailable dependency as a negative finding.
 - Direct database access between modules, a shared clinical database, cross-schema joins, shared mutable state, or one module owning another module's domain entities.
-- A full FHIR server or comprehensive EHR integration in the first unified release; interoperability mappings may be added later through explicit, versioned adapters.
 - Allowing the AI assistant to access patient identifiers, alter records, finalize plans, or act as an autonomous clinical decision-maker.
-- Claiming that software tests alone establish clinical safety or release readiness.
 
 ## Success Criteria
 
-1. A psychiatrist can authenticate, create or locate a patient, open an Encounter, and access only the workflows permitted by the psychiatrist role; a disabled or revoked account can no longer read or mutate protected data.
+1. A psychiatrist can authenticate, create and locate a patient, open an Encounter, and access only the workflows permitted by the psychiatrist role; a disabled or revoked account can no longer read or mutate protected data.
 2. Every module starts and passes its own tests independently, and the unified deployment communicates between modules exclusively through published, versioned REST contracts.
 3. The same canonical Patient UUID and Encounter UUID are used across all assessments and treatment-plan artifacts, while each module retains exclusive ownership of its own data and database.
 4. Given a complete approved reference case, INSIGHT generates the same Primary Treatment Plan for the same immutable input snapshot, policy version, DDI knowledge version, and Bayesian-model version, and displays the complete recommendation evidence trace.
 5. Missing severity data, conflicting risk information, stale inputs, unresolved medication concepts, unsupported schema versions, or unavailable dependencies produce explicit typed states and do not result in a silently completed recommendation.
-6. DDI evaluation uses only approved knowledge records for clinical alerts, reports unresolved medication coverage explicitly, and blocks or qualifies finalization according to the approved safety policy.
 7. A psychiatrist can modify a proposed treatment, see the original recommendation and diff, record required rationale, and trigger server-side DDI and safety revalidation before the plan is finalized.
 8. Concurrent editing produces a detectable precondition failure rather than lost updates, and all accepted edits remain attributable in an append-only ledger.
 9. Finalization is idempotent and creates an immutable Final Treatment Plan; a later follow-up plan supersedes the prior version while preserving both plans, their evidence, edits, and provenance.
 10. Existing plans retain the exact model and knowledge versions originally used after a BN or DDI knowledge-base upgrade, while newly generated plans visibly use the new approved versions.
 11. PHI is absent from URLs, browser storage, logs, and unprotected exports; authentication, CSRF, audit, migration, backup/restore, accessibility, failure-mode, and integrated deployment tests pass for the declared environment.
-12. Independent psychiatrists approve the supported pathways and reference cases, and the designated clinical, privacy, regulatory, security, and deployment owners approve release for the declared intended use before any clinical deployment.
