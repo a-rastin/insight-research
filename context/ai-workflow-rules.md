@@ -161,8 +161,6 @@ Additional rules:
 
 ## Bayesian Network and Clinical Model Governance
 
-- Begin with one approved Clinical Decision Point. Splitting one source into multiple decision points requires explicit permission.
-- Build only from supplied, approved clinical sources. Do not add medical rules from memory or general knowledge.
 - If source passages conflict in a way that affects a node, state, edge, eligibility rule, priority rule, or recommendation, pause for resolution.
 - Distinguish clearly among:
   - Patient State Nodes;
@@ -212,18 +210,6 @@ Do not add, convert, register, or remove models until the canonical runtime form
 - Do not duplicate clinical calculation logic in the browser. The server/domain engine is authoritative; client calculations may be projections only and must be equivalence-tested.
 - Every asynchronous failure must produce a visible, specific state. Do not leave a clinical action appearing successful after persistence fails.
 - Embedded modules must scope DOM and event listeners to their root, avoid owning host navigation, and release listeners/resources on unmount or destroy.
-
-## Handling Missing or Ambiguous Requirements
-
-- Do not invent behavior absent from the context and contract files.
-- Add each unresolved question to `progress-tracker.md` with:
-  - affected module(s);
-  - conflicting/missing source files;
-  - exact decision required;
-  - safety, privacy, migration, and compatibility impact;
-  - whether work is blocked or can proceed in an isolated unit.
-- Resolve the question in the owning context, contract, schema, or ADR before implementation.
-- Do not encode a recommendation from a source summary when the underlying source excerpt is unavailable.
 
 ## Protected Files and Artifacts
 

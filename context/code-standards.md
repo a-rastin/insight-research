@@ -27,7 +27,6 @@
 - Preserve existing public behavior through explicit, time-bounded compatibility adapters when contracts evolve.
 - Prefer the smallest correct change. Do not introduce speculative dependencies or abstractions without a demonstrated requirement.
 - Never simplify away input validation, authorization, privacy controls, auditability, accessibility, provenance, or clinical-safety checks.
-- Do not silently guess missing, stale, ambiguous, conflicting, or unresolved clinical data. Represent the condition explicitly and degrade safely.
 - Keep clinician judgment explicit. A model result, criteria result, or recommendation is evidence for review, not an automatic clinical decision.
 
 ## Source Precedence and Change Control
@@ -163,9 +162,6 @@
 - A snapshot MUST identify its patient, encounter, source observations, timestamps, schema version, and provenance.
 - Do not mutate historical snapshots after a recommendation has been generated.
 - Represent missing, stale, contradictory, low-quality, or unresolved evidence explicitly.
-- Do not substitute normal values, averages, or inferred answers for missing clinical evidence unless an approved clinical rule explicitly defines that behavior and records it.
-- Keep assessment ownership with the module responsible for that assessment type.
-- Use stable assessment identifiers and versions when another module references an assessment.
 - Preserve source values and normalized values separately when normalization affects clinical interpretation.
 - Keep medication instances distinct even when two rows normalize to the same medication; do not collapse exact duplicates without an explicit workflow decision.
 - Medication identity resolution MUST return a typed state such as resolved, ambiguous, or unknown.

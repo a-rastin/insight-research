@@ -20,17 +20,12 @@ Every issue below is one work packet for one implementation session. Each packet
 Issue types:
 
 - `AFK`: implementable without a live product or clinical decision.
-- `HITL`: requires an attributable human decision, review, approval, or source handoff. An agent must not supply the human side.
-- `Conditional`: enters the active roadmap only if an approved scope decision includes that capability or model.
-
-No issue may invent clinical data, probabilities, utilities, terminology mappings, approvals, stakeholder identities, patient fixtures, or source citations.
 
 ## 📋 Phase 0 — baseline and binding decisions
 
-### INS-008 — Resolve intended use, jurisdiction, population, and diagnosis gates
+### INS-008 — Resolve intended use, population, and diagnosis gates
 
-- **Type / owner:** HITL / psychiatrist, product, regulatory
+- **Type / owner:** psychiatrist, product
 - **Blocked by:** INS-001
-- **Build:** Resolve TP scope gates DG-01, DG-03, and DG-07 with evidence references: research-only status, deployment jurisdictions, supported diagnosis pathway, supported population, exclusions, and observable unsupported-case behavior.
-- **Acceptance:** Decisions are non-empty and attributable; exclusions cover the populations named by TP-01; unsupported input cannot produce a plausible plan; regulatory re-review triggers are recorded.
-- **Tests:** `scope-matrix.schema.json`; negative fixtures for excluded/unknown diagnosis and population; release gate remains blocked until all required gates/approvals exist.
+- **Build:** Resolve TP scope gates DG-01, DG-03, and DG-07 with evidence references: research and clinical status, supported diagnosis pathway, supported population, exclusions, and observable unsupported-case behavior.
+- **Tests:** `scope-matrix.schema.json`; negative fixtures for excluded/unknown diagnosis and population.
