@@ -4,7 +4,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Phase
 
-- Phase 0 architecture decisions
+- Phase 1 versioned contracts and canonical identity
 
 ## Current Goal
 
@@ -15,6 +15,27 @@ Update this file after every meaningful implementation change.
 
 ## Completed
 
+- INS-013 upgrades Authentication to schema version 7 and publishes
+  `GET /api/auth/v2/session` plus its Draft 2020-12 response schema and current
+  contract. Stable user and session UUIDs are assigned without replacing legacy
+  integer user keys; v2 returns canonical lowercase roles, RFC 3339 UTC expiry,
+  explicit password/disclaimer gates, interface/schema version `2.0.0`, and an
+  explicit legacy-ID/role mapping without a human authorization message.
+  Disablement, revocation, expiry, reset, role, password, and disclaimer checks
+  continue through one live server-side resolver. The unchanged flat
+  `/api/auth/session` shape remains a deprecated v1 adapter with successor
+  headers. JSON syntax passed with `python3 -m json.tool
+  docs/auth-session-v2.schema.json`; focused contract tests passed with
+  `python3 -B -m unittest discover -s tests -p "test_contract.py" -v` (7
+  tests); focused fresh/upgrade/rollback-plan migration tests passed with
+  `python3 -B -m unittest discover -s tests -p "test_migrations.py" -v` (3
+  tests); the full Authentication suite passed with `python3 -B -m unittest
+  discover -s tests -v` (19 tests); common REST profile tests passed with
+  `python3 -B -m unittest tests/test_common_rest_profile.py -v` (8 tests); and
+  root `git diff --check` passed. Full root discovery ran 59 tests with 58
+  passing and the known unrelated capability-matrix failure because `INS-011`
+  and `INS-067` through `INS-082` are referenced but absent from current
+  feature-spec issue headings.
 - INS-012 publishes accepted ADR-0009 and a copy-unchanged common internal REST
   package: normative profile, Draft 2020-12 schemas, OpenAPI 3.1 components, and
   examples. It standardizes safe RFC 9457 problem details, liveness, readiness,
@@ -422,12 +443,12 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## First Failing Integration Boundary
 
-- Authentication `GET /api/auth/session` returns a flat payload with lowercase
-  role and no concrete nested session object. Dashboard and Add New Patient
-  adapters expect nested `session`/`user` objects, uppercase role values, and a
-  session ID. Their real Authentication integration therefore rejects or cannot
-  normalize the current canonical response. Resolve the Authentication session
-  contract and consumer adapters before testing later clinical boundaries.
+- Authentication now publishes the canonical nested UUID contract at
+  `GET /api/auth/v2/session`. Dashboard and Add New Patient still target the
+  deprecated v1 path and expect uppercase role values. Their rollout packets
+  must switch to v2, validate `interfaceVersion`, `authorized`, UUIDs, gates,
+  and lowercase roles, then pass provider/consumer HTTP tests before later
+  clinical boundaries are tested.
 
 ## Next Up
 
@@ -477,8 +498,9 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
   gateway and supervisor configuration, module configuration adapters, missing
   liveness/readiness routes, graceful-shutdown wiring, and Docker Desktop/VPS
   integration tests without merging module boundaries.
-- Define and approve one versioned Authentication session response shape, then
-  align Dashboard and Add New Patient adapters and provider/consumer tests.
+- Align Dashboard and Add New Patient adapters and provider/consumer tests with
+  `GET /api/auth/v2/session`; remove their broad historical response heuristics
+  only after rollout tests pass.
 - Add BN Manager's missing test dependency or test extra and rerun its suite.
 - Restore Treatment Plan frontend optional native dependency and rerun Vitest;
   provide disposable PostgreSQL DSN to execute its skipped repository contract.
@@ -569,6 +591,13 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-013 changes Authentication contracts, additive migration 007, session
+  runtime behavior, focused tests, README, and this tracker. Existing integer
+  keys remain compatibility-only mappings; no applied migration, runtime
+  database, consumer module, clinical behavior, or protected artifact changed.
+  Authentication has no Git repository at its module root, so its required
+  nested-repository commit is unavailable. No file under `insight-research/doc/`
+  was read or modified.
 - INS-012 changes architecture contracts, examples, tests, and this tracker
   only. No module runtime, API route, persistence, UI, clinical source, model,
   or release state changed. No file under `doc/` was read or modified.
