@@ -8,11 +8,23 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
-- INS-004: Decide Follow-up, Encounter, and structured suicide-risk ownership
+- INS-005: Decide administration, logs, backup, and restore ownership
   (completed).
 
 ## Completed
 
+- INS-005 received task-level HITL approval: Dashboard owns navigation only;
+  Authentication owns account administration and security audit; clinical
+  modules retain provenance; emitting modules retain operational logs; and
+  deployment operations owns metadata-only orchestration and aggregate records.
+- Added ADR-0004 and versioned `contracts/administration-operations-v1.json` with
+  admin-versus-psychiatrist permissions, PHI-safe backup metadata, owner-enforced
+  retention, staged restore verification, and target-module-only restore writes.
+- Verified JSON syntax with `python3 -m json.tool
+  contracts/administration-operations-v1.json`; focused ownership tests passed
+  with `python3 -B -m unittest tests/test_administration_operations.py` (5
+  tests); full architecture discovery passed with `python3 -B -m unittest
+  discover -s tests -v` (15 tests).
 - INS-004 received task-level HITL approval: Follow-up is an orchestration flow,
   Add New Patient remains sole Encounter and Follow-up Delta writer, and a
   dedicated Suicide Risk module owns structured C-SSRS assessments.
@@ -68,8 +80,8 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
-- None. INS-004 ownership decision packet is complete; runtime APIs and storage
-  are separate work packets.
+- None. INS-005 ownership decision packet is complete; runtime APIs, backup
+  tooling, restore execution, and Dashboard UI wiring are separate work packets.
 
 ## Repository Baseline
 
@@ -263,6 +275,11 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Next Up
 
+- Define approved retention periods, encryption/key-management controls,
+  protected artifact storage, recovery objectives, and named accountable owners
+  before implementing production backup or restore.
+- Define versioned owner-local administration, log, backup, restore-verification,
+  and retention APIs before wiring Dashboard or deployment orchestration.
 - Obtain approved C-SSRS source/licensing contract and named clinical owner
   before defining any instrument questions, scoring, terminology, or release
   behavior.
@@ -286,6 +303,12 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Open Questions
 
+- Named accountable architecture, security, and operations owners for ADR-0004
+  remain unidentified. Task-level approval resolves ownership selection but not
+  release governance.
+- Retention periods, backup encryption and key custody, artifact storage,
+  recovery objectives, and disaster-recovery approval are not yet defined;
+  production backup and restore remain blocked.
 - Named accountable product, clinical, and architecture owners for ADR-0003
   remain unidentified; task-level approval resolves ownership selection but not
   release governance.
@@ -303,6 +326,11 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Architecture Decisions
 
+- ADR-0004 keeps Dashboard navigation-only, assigns account and security-audit
+  data to Authentication, clinical provenance to its clinical owner, operational
+  logs to each emitter, module backup/restore to each module, and metadata-only
+  aggregate orchestration to deployment operations. Restore is target-module-only
+  and rejects mismatched module identities before writes.
 - ADR-0003 makes Follow-up an orchestration flow, keeps Encounter and Follow-up
   Delta ownership in Add New Patient, assigns structured C-SSRS assessments to a
   dedicated Suicide Risk module, and blocks score/question inference until an
@@ -321,6 +349,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-005 defines and tests ownership and permissions only. No runtime API, UI,
+  backup artifact, restore, retention deletion, database, or deployment behavior
+  changed.
+- No file under `doc/` was read or modified during INS-005.
 - INS-004 changes ownership contracts only. No module runtime, persistence, API,
   UI, clinical instrument, risk score, question set, or release status changed.
 - No file under `doc/` was read or modified during INS-004.

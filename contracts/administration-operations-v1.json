@@ -1,0 +1,91 @@
+{
+  "contractId": "insight.administration-operations",
+  "schemaVersion": "1.0.0",
+  "status": "accepted",
+  "scope": "INS-005",
+  "dashboard": {
+    "role": "route-discovery-and-navigation-only",
+    "persistsOwnerData": false,
+    "proxiesOwnerData": false
+  },
+  "resources": [
+    {"id": "account-administration", "owner": "authentication", "store": "authentication"},
+    {"id": "security-audit", "owner": "authentication", "store": "authentication"},
+    {"id": "clinical-provenance", "owner": "originating-clinical-module", "store": "originating-clinical-module"},
+    {"id": "operational-log", "owner": "emitting-module", "store": "emitting-module"},
+    {"id": "module-backup-artifact", "owner": "source-module", "store": "protected-artifact-storage"},
+    {"id": "aggregate-backup-manifest", "owner": "deployment-operations", "store": "deployment-operations"},
+    {"id": "module-restore-verification", "owner": "target-module", "store": "target-module"},
+    {"id": "aggregate-restore-report", "owner": "deployment-operations", "store": "deployment-operations"}
+  ],
+  "permissions": [
+    {"capability": "manage-accounts", "admin": true, "psychiatrist": false, "enforcementOwner": "authentication"},
+    {"capability": "read-security-audit", "admin": true, "psychiatrist": false, "enforcementOwner": "authentication"},
+    {"capability": "read-clinical-provenance", "admin": false, "psychiatrist": true, "enforcementOwner": "originating-clinical-module", "additionalScope": "authorized-patient-and-encounter"},
+    {"capability": "read-operational-logs", "admin": true, "psychiatrist": false, "enforcementOwner": "emitting-module"},
+    {"capability": "initiate-backup", "admin": true, "psychiatrist": false, "enforcementOwner": "deployment-operations", "serviceIdentityRequired": true},
+    {"capability": "initiate-restore", "admin": true, "psychiatrist": false, "enforcementOwner": "deployment-operations", "serviceIdentityRequired": true},
+    {"capability": "manage-retention", "admin": true, "psychiatrist": false, "enforcementOwner": "record-owner"}
+  ],
+  "separation": {
+    "securityAuditOwner": "authentication",
+    "clinicalProvenanceOwner": "originating-clinical-module",
+    "operationalLogOwner": "emitting-module",
+    "sharedStoreAllowed": false,
+    "phiAllowedInOperationalLogs": false
+  },
+  "backupManifest": {
+    "manifestSchemaVersion": "1.0.0",
+    "aggregateOwner": "deployment-operations",
+    "containsModuleData": false,
+    "requiredEntryFields": [
+      "moduleId",
+      "moduleVersion",
+      "dataSchemaVersion",
+      "backupFormatVersion",
+      "createdAt",
+      "artifactName",
+      "byteCount",
+      "sha256"
+    ],
+    "artifactNamePattern": "^[a-z0-9-]+_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\\.backup$",
+    "forbiddenArtifactNameSources": [
+      "patient identifiers",
+      "user identifiers",
+      "encounter identifiers",
+      "clinical values",
+      "database paths",
+      "timestamps"
+    ]
+  },
+  "restore": {
+    "writer": "target-module-only",
+    "orchestratorMayReadModuleDatabase": false,
+    "orchestratorMayWriteModuleDatabase": false,
+    "orchestratorMayAccessPrivateDataDirectory": false,
+    "requiredChecks": [
+      "entry.moduleId equals target configured moduleId",
+      "artifact digest equals entry.sha256",
+      "backup format version supported",
+      "data schema version supported or module migration available",
+      "module-owned integrity verification passes",
+      "staged restore passes before atomic activation"
+    ],
+    "aggregateSuccessRequiresEveryModuleVerified": true
+  },
+  "retention": {
+    "recordPolicyEnforcer": "record-owner",
+    "moduleArtifactPolicyEnforcer": "source-module",
+    "aggregateMetadataPolicyEnforcer": "deployment-operations",
+    "immutableClinicalRecordsProtected": true,
+    "approvedPolicyRequired": true
+  },
+  "examples": [
+    {"name": "admin-account-management", "actorRole": "admin", "owner": "authentication", "result": "allowed"},
+    {"name": "psychiatrist-account-management", "actorRole": "psychiatrist", "owner": "authentication", "result": "denied"},
+    {"name": "psychiatrist-provenance-read", "actorRole": "psychiatrist", "owner": "originating-clinical-module", "patientEncounterAuthorized": true, "result": "allowed"},
+    {"name": "admin-provenance-read", "actorRole": "admin", "owner": "originating-clinical-module", "result": "denied"},
+    {"name": "phi-safe-backup", "moduleId": "authentication", "artifactName": "authentication_00000000-0000-4000-8000-000000000001.backup", "result": "accepted"},
+    {"name": "cross-module-restore", "sourceModuleId": "authentication", "targetModuleId": "treatment-plan", "result": "denied-before-write"}
+  ]
+}
