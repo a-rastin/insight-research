@@ -14,6 +14,18 @@ Update this file after every meaningful implementation change.
 
 ## Completed
 
+- INS-066 freezes versioned `contracts/capability-matrix-v1.json` and its Draft
+  2020-12 schema. The matrix hash-locks `context/project-overview.md` and maps
+  all 88 goals, core-flow steps, top-level and nested features, in-scope
+  statements, exclusions, and success criteria to required or conditional
+  status, implementation packets, contract/schema evidence, and research-build
+  versus controlled-clinical applicability. `INS-011` and `INS-067` through
+  `INS-082` record newly exposed one-session work before the freeze. Missing
+  evidence fails closed, and technical completion does not authorize clinical
+  deployment. Both JSON files passed `python3 -m json.tool`; focused tests
+  passed with `python3 -B -m unittest tests/test_capability_matrix.py -v` (6
+  tests); full discovery passed with `python3 -B -m unittest discover -s tests
+  -v` (51 tests); `git diff --check` passed.
 - INS-003 capability hardening separates runtime service origins from gateway
   base paths and defines validated, default-deny caller/destination/method/path
   configuration with segment-boundary matching and rejection of ambiguous path
@@ -403,6 +415,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Next Up
 
+- Complete INS-011 release-mode evidence and accountable sign-off contract,
+  then execute INS-067 through INS-082 in dependency order. Use
+  `contracts/capability-matrix-v1.json` as completion source of truth and keep
+  controlled-clinical deployment blocked until every applicable gate passes.
 - Obtain attributable psychiatrist and product approval for ADR-0008. Define
   owner-local appointment, availability, and timezone contracts before adding
   scheduling. Implement policy in Treatment Plan only after INS-008 scope and
@@ -529,6 +545,9 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-066 changes governance contracts, feature work packets, tests, and this
+  tracker only. No module runtime, API, persistence, UI, clinical source, model,
+  generated artifact, or release authorization changed.
 - INS-003 audit hardening changed ADR-0002, its governance contract, focused
   test, and this tracker only. No service keys, deployment capability entries,
   runtime adapter, or user identity were invented. No file under `doc/` was read
