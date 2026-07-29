@@ -2,18 +2,17 @@
 
 - Status: Accepted
 - Date: 2026-07-29
-- Decision owners: Task-level approval; accountable clinical, pharmacy, terminology, and product owners unresolved
+- Decision owners: Task-level product approval; accountable clinical and pharmacy sign-off remains a release gate
 - Scope: INS-009
 
 ## Context
 
-INSIGHT needs approved authorities for formularies, medication dosing,
+INSIGHT needs reproducible authorities for formularies, medication dosing,
 contraindications, monitoring, diagnosis terminology, and medication
-terminology. It also needs a review cadence that prevents stale knowledge from
-remaining active. Current normative materials identify these needs but provide
-no jurisdiction, licensed source, source version, approval record, or update
-cadence. Repository artifacts and prototype behavior cannot become clinical
-authority by implication.
+terminology. It also needs an update cadence that prevents stale knowledge from
+remaining active. No deployment jurisdiction or institutional formulary was
+supplied. INSIGHT remains research-only, so this packet selects a bounded US
+research profile without claiming clinical-release approval.
 
 This decision follows the [project overview](../project-overview.md), the
 [INS-009 specification](../feature-specs/09-knowledge-authority.md), and the
@@ -26,52 +25,57 @@ and checked by
 
 ## Decision
 
-All six knowledge domains remain unresolved. No formulary, medication dose,
-contraindication, monitoring source, diagnosis terminology, or medication
-terminology is approved for clinical use. No source name, jurisdiction,
-license, version, or approval is inferred from existing code, model assets, or
-prototype data.
+INS-009 uses a US research authority profile:
 
-Update cadence also remains unresolved. Activation requires an attributable
-domain owner and clinical approver, a named and licensed source, exact source
-and terminology versions where applicable, jurisdiction, review cadence, last
-review time, and next review deadline. Missing or expired metadata blocks the
-affected clinical use. Source withdrawal, safety notice, license change, or
-version retirement suspends use pending review.
+- INSIGHT makes no formulary, insurance coverage, reimbursement, stock, or local
+  availability claim. FDA approval status is not a formulary.
+- Per-product FDA-approved labeling indexed by Drugs@FDA governs medication
+  dosing, contraindication, and monitoring claims. Every extracted claim must
+  retain application number, submission number, labeling document date, source
+  URL, retrieval time, and source-byte SHA-256.
+- CDC/NCHS ICD-10-CM 2026 governs diagnosis terminology and codes. It does not
+  establish the psychiatrist's diagnosis or replace INS-008 diagnosis gates.
+- NLM RxNorm Current Prescribable Content Full Monthly Release dated July 6,
+  2026 governs medication concepts and identifiers. Original clinician-entered
+  text remains preserved, and ambiguous or unknown matches remain unresolved.
 
-Blocked use returns `knowledge-authority-blocked` with code
-`KNOWLEDGE_AUTHORITY_UNRESOLVED`, names every failed domain, preserves original
-clinician-entered values, displays uncertainty, and produces no authoritative
-normalization, dose, contraindication, monitoring, formulary, or terminology
-claim. Missing authority cannot be represented as no contraindication, normal
-monitoring, valid dose, formulary availability, or resolved terminology.
+Drugs@FDA is checked every weekday, RxNorm weekly, and ICD-10-CM every 30 days.
+The complete authority profile receives a 90-day governance review. A changed,
+withdrawn, unavailable, hash-mismatched, or overdue source is not
+auto-activated; affected output enters `knowledge-authority-blocked` pending
+validation and clinical review. Prior results retain their pinned source
+versions and hashes.
+
+Selected sources are approved for bounded research implementation only.
+Clinical deployment remains prohibited until named clinical and pharmacy owners
+approve the profile and deployment jurisdiction, validation, licensing, and
+release controls are complete.
 
 ## Alternatives
 
 | Alternative | Reason rejected |
 | --- | --- |
-| Select common external terminologies by convention | No jurisdiction, license, version, accountable owner, or approval was supplied. |
-| Treat bundled medication data as authoritative | Prototype assets do not establish dose, formulary, contraindication, monitoring, or terminology authority. |
-| Permit research output with an unversioned source | Results would not be reproducible and stale knowledge could appear current. |
-| Set an arbitrary annual review | Cadence is a clinical governance decision and cannot be invented. |
+| Treat FDA approval as formulary status | Approval does not establish payer coverage, local availability, or institutional policy. |
+| Use DSM terminology | Repository provides no licensed DSM terminology package or redistribution terms. |
+| Use full licensed RxNorm/UMLS release | Current Prescribable Content supplies needed normalized drug concepts without adding a license-gated artifact. |
+| Auto-activate upstream updates | Source publication does not replace ingestion validation and clinical review. |
 
 ## Consequences
 
-- Affected clinical use and release remain blocked until all required source and
-  cadence metadata receives attributable approval.
-- Clinician-entered text remains visible but cannot silently become a canonical
-  diagnosis or medication concept.
+- DG-02 and DG-08 have selected authorities, pinned baseline versions, and
+  explicit update cadence for research implementation.
+- Formulary-dependent behavior remains unavailable rather than guessed.
+- FDA labeling is product-specific; absent label evidence blocks the affected
+  claim and is not interpreted as no contraindication or no monitoring need.
 - No module API, runtime, persistence, UI, clinical source, terminology asset,
   or model artifact changes in this packet.
-- A superseding manifest and decision must identify exact approved sources,
-  versions, licenses, jurisdiction, owners, cadence, and migration behavior.
 
 ## Verification
 
 Run `python3 -B -m unittest tests/test_knowledge_source_manifest.py -v`.
 Tests validate the manifest against its Draft 2020-12 schema, require all six
-domains, reject incomplete approval metadata, and verify fail-closed behavior
-for unresolved authority and cadence.
+domains, verify source selections and cadence, and reject missing provenance or
+unsafe formulary claims.
 
 ## Rollback
 

@@ -4,32 +4,32 @@
   "title": "INSIGHT knowledge source manifest",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "contractId",
-    "schemaVersion",
-    "scope",
-    "status",
-    "authorityPolicy",
-    "sources",
-    "updateCadence",
-    "observableBlockedCase",
-    "releaseGate"
-  ],
+  "required": ["contractId", "schemaVersion", "scope", "status", "profile", "authorityPolicy", "sources", "requiredProvenance", "updateCadence", "observableBlockedCase", "releaseGate"],
   "properties": {
     "contractId": {"const": "insight.knowledge-source-manifest"},
     "schemaVersion": {"const": "1.0.0"},
     "scope": {"const": "INS-009"},
     "status": {"const": "accepted"},
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["jurisdiction", "releaseUse", "clinicalDeploymentAllowed"],
+      "properties": {
+        "jurisdiction": {"const": "US"},
+        "releaseUse": {"const": "research-only"},
+        "clinicalDeploymentAllowed": {"const": false}
+      }
+    },
     "authorityPolicy": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["requiredAuthorityStatus", "missingMetadataBehavior", "expiredReviewBehavior", "sourceChangeBehavior", "inferenceAllowed"],
+      "required": ["sourceUpdatesAutoActivate", "preserveOriginalClinicianValues", "unresolvedTermsRemainVisible", "missingOrStaleSourceBehavior", "historicalResultsRetainPinnedSources"],
       "properties": {
-        "requiredAuthorityStatus": {"const": "approved"},
-        "missingMetadataBehavior": {"const": "block-affected-clinical-use"},
-        "expiredReviewBehavior": {"const": "block-affected-clinical-use"},
-        "sourceChangeBehavior": {"const": "suspend-pending-review"},
-        "inferenceAllowed": {"const": false}
+        "sourceUpdatesAutoActivate": {"const": false},
+        "preserveOriginalClinicianValues": {"const": true},
+        "unresolvedTermsRemainVisible": {"const": true},
+        "missingOrStaleSourceBehavior": {"const": "block-affected-output"},
+        "historicalResultsRetainPinnedSources": {"const": true}
       }
     },
     "sources": {
@@ -39,56 +39,36 @@
       "uniqueItems": true,
       "items": {"$ref": "#/$defs/source"}
     },
+    "requiredProvenance": {
+      "type": "array",
+      "minItems": 8,
+      "uniqueItems": true,
+      "items": {"enum": ["authority-domain", "authority-name", "source-version", "source-record-identifier", "source-document-date", "source-url", "retrieved-at", "source-sha256"]}
+    },
     "updateCadence": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["status", "reviewIntervalDays", "lastReviewedAt", "nextReviewDueAt", "eventTriggers", "allowedClinicalUse"],
+      "required": ["drugsAtFda", "rxNorm", "icd10cm", "governanceReviewIntervalDays", "changeRequiresValidation", "changeRequiresClinicalReview", "overdueBehavior"],
       "properties": {
-        "status": {"enum": ["unresolved", "approved"]},
-        "reviewIntervalDays": {"type": ["integer", "null"], "minimum": 1},
-        "lastReviewedAt": {"type": ["string", "null"], "format": "date-time"},
-        "nextReviewDueAt": {"type": ["string", "null"], "format": "date-time"},
-        "eventTriggers": {
-          "type": "array",
-          "minItems": 4,
-          "uniqueItems": true,
-          "items": {"enum": ["source-withdrawal", "safety-notice", "license-change", "version-retirement"]}
-        },
-        "allowedClinicalUse": {"type": "boolean"}
-      },
-      "allOf": [
-        {
-          "if": {"properties": {"status": {"const": "approved"}}},
-          "then": {
-            "properties": {
-              "reviewIntervalDays": {"type": "integer"},
-              "lastReviewedAt": {"type": "string"},
-              "nextReviewDueAt": {"type": "string"},
-              "allowedClinicalUse": {"const": true}
-            }
-          },
-          "else": {
-            "properties": {
-              "reviewIntervalDays": {"const": null},
-              "lastReviewedAt": {"const": null},
-              "nextReviewDueAt": {"const": null},
-              "allowedClinicalUse": {"const": false}
-            }
-          }
-        }
-      ]
+        "drugsAtFda": {"$ref": "#/$defs/cadence"},
+        "rxNorm": {"$ref": "#/$defs/cadence"},
+        "icd10cm": {"$ref": "#/$defs/cadence"},
+        "governanceReviewIntervalDays": {"type": "integer", "minimum": 1},
+        "changeRequiresValidation": {"const": true},
+        "changeRequiresClinicalReview": {"const": true},
+        "overdueBehavior": {"const": "block-affected-output"}
+      }
     },
     "observableBlockedCase": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["state", "code", "includeFailedDomains", "includeResolutionActions", "preserveOriginalClinicianValues", "displayUncertainty", "authoritativeClinicalClaimAllowed"],
+      "required": ["state", "code", "includeFailedDomains", "includeSourceVersion", "includeResolutionActions", "authoritativeClinicalClaimAllowed"],
       "properties": {
         "state": {"const": "knowledge-authority-blocked"},
-        "code": {"const": "KNOWLEDGE_AUTHORITY_UNRESOLVED"},
+        "code": {"const": "KNOWLEDGE_AUTHORITY_UNAVAILABLE"},
         "includeFailedDomains": {"const": true},
+        "includeSourceVersion": {"const": true},
         "includeResolutionActions": {"const": true},
-        "preserveOriginalClinicianValues": {"const": true},
-        "displayUncertainty": {"const": true},
         "authoritativeClinicalClaimAllowed": {"const": false}
       }
     },
@@ -98,12 +78,7 @@
       "required": ["state", "blockedBy"],
       "properties": {
         "state": {"const": "blocked"},
-        "blockedBy": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {"type": "string", "minLength": 1}
-        }
+        "blockedBy": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
       }
     }
   },
@@ -111,54 +86,47 @@
     "source": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["domain", "authorityStatus", "authorityName", "sourceVersion", "terminologyVersion", "jurisdiction", "licenseStatus", "accountableOwner", "clinicalApprover", "allowedClinicalUse"],
+      "required": ["domain", "authorityStatus", "authorityName", "publisher", "sourceUrl", "pinnedVersion", "licenseStatus", "allowedResearchUse", "decision"],
       "properties": {
         "domain": {"enum": ["formulary", "medication-dosing", "medication-contraindications", "medication-monitoring", "diagnosis-terminology", "medication-terminology"]},
-        "authorityStatus": {"enum": ["unresolved", "approved"]},
+        "authorityStatus": {"enum": ["selected", "not-applicable"]},
         "authorityName": {"type": ["string", "null"], "minLength": 1},
-        "sourceVersion": {"type": ["string", "null"], "minLength": 1},
-        "terminologyVersion": {"type": ["string", "null"], "minLength": 1},
-        "jurisdiction": {"type": ["string", "null"], "minLength": 1},
-        "licenseStatus": {"enum": ["unresolved", "approved"]},
-        "accountableOwner": {"type": ["string", "null"], "minLength": 1},
-        "clinicalApprover": {"type": ["string", "null"], "minLength": 1},
-        "allowedClinicalUse": {"type": "boolean"}
+        "publisher": {"type": ["string", "null"], "minLength": 1},
+        "sourceUrl": {"type": ["string", "null"], "format": "uri"},
+        "pinnedVersion": {"type": ["string", "null"], "minLength": 1},
+        "licenseStatus": {"enum": ["public-us-government-source", "no-license-required-release", "not-applicable"]},
+        "allowedResearchUse": {"type": "boolean"},
+        "decision": {"type": "string", "minLength": 1}
       },
-      "allOf": [
-        {
-          "if": {"properties": {"authorityStatus": {"const": "approved"}}},
-          "then": {
-            "properties": {
-              "authorityName": {"type": "string"},
-              "sourceVersion": {"type": "string"},
-              "jurisdiction": {"type": "string"},
-              "licenseStatus": {"const": "approved"},
-              "accountableOwner": {"type": "string"},
-              "clinicalApprover": {"type": "string"},
-              "allowedClinicalUse": {"const": true}
-            }
-          },
-          "else": {
-            "properties": {
-              "authorityName": {"const": null},
-              "sourceVersion": {"const": null},
-              "terminologyVersion": {"const": null},
-              "jurisdiction": {"const": null},
-              "licenseStatus": {"const": "unresolved"},
-              "accountableOwner": {"const": null},
-              "clinicalApprover": {"const": null},
-              "allowedClinicalUse": {"const": false}
-            }
-          }
-        },
-        {
-          "if": {"properties": {"domain": {"enum": ["diagnosis-terminology", "medication-terminology"]}}},
-          "then": {
-            "if": {"properties": {"authorityStatus": {"const": "approved"}}},
-            "then": {"properties": {"terminologyVersion": {"type": "string"}}}
-          }
+      "if": {"properties": {"authorityStatus": {"const": "selected"}}},
+      "then": {
+        "properties": {
+          "authorityName": {"type": "string"},
+          "publisher": {"type": "string"},
+          "sourceUrl": {"type": "string"},
+          "pinnedVersion": {"type": "string"},
+          "allowedResearchUse": {"const": true}
         }
-      ]
+      },
+      "else": {
+        "properties": {
+          "authorityName": {"const": null},
+          "publisher": {"const": null},
+          "sourceUrl": {"const": null},
+          "pinnedVersion": {"const": null},
+          "licenseStatus": {"const": "not-applicable"},
+          "allowedResearchUse": {"const": false}
+        }
+      }
+    },
+    "cadence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checkSchedule", "maximumUncheckedDays"],
+      "properties": {
+        "checkSchedule": {"enum": ["weekdays", "weekly", "every-30-days"]},
+        "maximumUncheckedDays": {"type": "integer", "minimum": 1}
+      }
     }
   }
 }

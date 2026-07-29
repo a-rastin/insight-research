@@ -3,120 +3,130 @@
   "schemaVersion": "1.0.0",
   "scope": "INS-009",
   "status": "accepted",
+  "profile": {
+    "jurisdiction": "US",
+    "releaseUse": "research-only",
+    "clinicalDeploymentAllowed": false
+  },
   "authorityPolicy": {
-    "requiredAuthorityStatus": "approved",
-    "missingMetadataBehavior": "block-affected-clinical-use",
-    "expiredReviewBehavior": "block-affected-clinical-use",
-    "sourceChangeBehavior": "suspend-pending-review",
-    "inferenceAllowed": false
+    "sourceUpdatesAutoActivate": false,
+    "preserveOriginalClinicianValues": true,
+    "unresolvedTermsRemainVisible": true,
+    "missingOrStaleSourceBehavior": "block-affected-output",
+    "historicalResultsRetainPinnedSources": true
   },
   "sources": [
     {
       "domain": "formulary",
-      "authorityStatus": "unresolved",
+      "authorityStatus": "not-applicable",
       "authorityName": null,
-      "sourceVersion": null,
-      "terminologyVersion": null,
-      "jurisdiction": null,
-      "licenseStatus": "unresolved",
-      "accountableOwner": null,
-      "clinicalApprover": null,
-      "allowedClinicalUse": false
+      "publisher": null,
+      "sourceUrl": null,
+      "pinnedVersion": null,
+      "licenseStatus": "not-applicable",
+      "allowedResearchUse": false,
+      "decision": "INSIGHT does not make formulary, coverage, reimbursement, stock, or local availability claims."
     },
     {
       "domain": "medication-dosing",
-      "authorityStatus": "unresolved",
-      "authorityName": null,
-      "sourceVersion": null,
-      "terminologyVersion": null,
-      "jurisdiction": null,
-      "licenseStatus": "unresolved",
-      "accountableOwner": null,
-      "clinicalApprover": null,
-      "allowedClinicalUse": false
+      "authorityStatus": "selected",
+      "authorityName": "FDA-approved product labeling indexed by Drugs@FDA",
+      "publisher": "US Food and Drug Administration",
+      "sourceUrl": "https://www.fda.gov/drugs/drug-approvals-and-databases/drugsfda-data-files",
+      "pinnedVersion": "snapshot-2026-07-28",
+      "licenseStatus": "public-us-government-source",
+      "allowedResearchUse": true,
+      "decision": "Only product-specific labeled dosing may be represented; unsupported products or uses remain explicit."
     },
     {
       "domain": "medication-contraindications",
-      "authorityStatus": "unresolved",
-      "authorityName": null,
-      "sourceVersion": null,
-      "terminologyVersion": null,
-      "jurisdiction": null,
-      "licenseStatus": "unresolved",
-      "accountableOwner": null,
-      "clinicalApprover": null,
-      "allowedClinicalUse": false
+      "authorityStatus": "selected",
+      "authorityName": "FDA-approved product labeling indexed by Drugs@FDA",
+      "publisher": "US Food and Drug Administration",
+      "sourceUrl": "https://www.fda.gov/drugs/drug-approvals-and-databases/drugsfda-data-files",
+      "pinnedVersion": "snapshot-2026-07-28",
+      "licenseStatus": "public-us-government-source",
+      "allowedResearchUse": true,
+      "decision": "Only product-specific labeled contraindications may be represented; absent evidence is unknown, not no contraindication."
     },
     {
       "domain": "medication-monitoring",
-      "authorityStatus": "unresolved",
-      "authorityName": null,
-      "sourceVersion": null,
-      "terminologyVersion": null,
-      "jurisdiction": null,
-      "licenseStatus": "unresolved",
-      "accountableOwner": null,
-      "clinicalApprover": null,
-      "allowedClinicalUse": false
+      "authorityStatus": "selected",
+      "authorityName": "FDA-approved product labeling indexed by Drugs@FDA",
+      "publisher": "US Food and Drug Administration",
+      "sourceUrl": "https://www.fda.gov/drugs/drug-approvals-and-databases/drugsfda-data-files",
+      "pinnedVersion": "snapshot-2026-07-28",
+      "licenseStatus": "public-us-government-source",
+      "allowedResearchUse": true,
+      "decision": "Only product-specific labeled monitoring may be represented; absent evidence is unknown, not no monitoring required."
     },
     {
       "domain": "diagnosis-terminology",
-      "authorityStatus": "unresolved",
-      "authorityName": null,
-      "sourceVersion": null,
-      "terminologyVersion": null,
-      "jurisdiction": null,
-      "licenseStatus": "unresolved",
-      "accountableOwner": null,
-      "clinicalApprover": null,
-      "allowedClinicalUse": false
+      "authorityStatus": "selected",
+      "authorityName": "ICD-10-CM",
+      "publisher": "US Centers for Disease Control and Prevention, National Center for Health Statistics",
+      "sourceUrl": "https://www.cdc.gov/nchs/icd/icd-10-cm/files.html",
+      "pinnedVersion": "2026",
+      "licenseStatus": "public-us-government-source",
+      "allowedResearchUse": true,
+      "decision": "ICD-10-CM supplies diagnosis terminology and codes only; psychiatrist confirmation remains authoritative."
     },
     {
       "domain": "medication-terminology",
-      "authorityStatus": "unresolved",
-      "authorityName": null,
-      "sourceVersion": null,
-      "terminologyVersion": null,
-      "jurisdiction": null,
-      "licenseStatus": "unresolved",
-      "accountableOwner": null,
-      "clinicalApprover": null,
-      "allowedClinicalUse": false
+      "authorityStatus": "selected",
+      "authorityName": "RxNorm Current Prescribable Content Full Monthly Release",
+      "publisher": "US National Library of Medicine",
+      "sourceUrl": "https://www.nlm.nih.gov/research/umls/rxnorm/docs/rxnormfiles.html",
+      "pinnedVersion": "2026-07-06",
+      "licenseStatus": "no-license-required-release",
+      "allowedResearchUse": true,
+      "decision": "RxNorm identifiers normalize medications; ambiguous and unknown matches remain unresolved."
     }
   ],
+  "requiredProvenance": [
+    "authority-domain",
+    "authority-name",
+    "source-version",
+    "source-record-identifier",
+    "source-document-date",
+    "source-url",
+    "retrieved-at",
+    "source-sha256"
+  ],
   "updateCadence": {
-    "status": "unresolved",
-    "reviewIntervalDays": null,
-    "lastReviewedAt": null,
-    "nextReviewDueAt": null,
-    "eventTriggers": [
-      "source-withdrawal",
-      "safety-notice",
-      "license-change",
-      "version-retirement"
-    ],
-    "allowedClinicalUse": false
+    "drugsAtFda": {
+      "checkSchedule": "weekdays",
+      "maximumUncheckedDays": 3
+    },
+    "rxNorm": {
+      "checkSchedule": "weekly",
+      "maximumUncheckedDays": 8
+    },
+    "icd10cm": {
+      "checkSchedule": "every-30-days",
+      "maximumUncheckedDays": 31
+    },
+    "governanceReviewIntervalDays": 90,
+    "changeRequiresValidation": true,
+    "changeRequiresClinicalReview": true,
+    "overdueBehavior": "block-affected-output"
   },
   "observableBlockedCase": {
     "state": "knowledge-authority-blocked",
-    "code": "KNOWLEDGE_AUTHORITY_UNRESOLVED",
+    "code": "KNOWLEDGE_AUTHORITY_UNAVAILABLE",
     "includeFailedDomains": true,
+    "includeSourceVersion": true,
     "includeResolutionActions": true,
-    "preserveOriginalClinicianValues": true,
-    "displayUncertainty": true,
     "authoritativeClinicalClaimAllowed": false
   },
   "releaseGate": {
     "state": "blocked",
     "blockedBy": [
-      "formulary-authority-unresolved",
-      "medication-dosing-authority-unresolved",
-      "medication-contraindications-authority-unresolved",
-      "medication-monitoring-authority-unresolved",
-      "diagnosis-terminology-authority-unresolved",
-      "medication-terminology-authority-unresolved",
-      "update-cadence-unresolved",
-      "accountable-owners-unresolved"
+      "clinical-deployment-not-approved",
+      "named-clinical-owner-signoff-missing",
+      "named-pharmacy-owner-signoff-missing",
+      "source-ingestion-not-implemented",
+      "source-validation-not-implemented"
     ]
   }
 }

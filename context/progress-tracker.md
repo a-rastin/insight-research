@@ -15,15 +15,18 @@ Update this file after every meaningful implementation change.
 - INS-009 now has ADR-0007, versioned
   `contracts/knowledge-source-manifest-v1.json`, its Draft 2020-12 JSON Schema,
   and focused fail-closed contract tests covering DG-02 and DG-08.
-- Formularies, medication dosing, contraindication, monitoring, diagnosis
-  terminology, medication terminology, and update cadence remain explicitly
-  unresolved. Missing source, version, jurisdiction, license, owner, approval,
-  or cadence metadata blocks affected clinical use without suppressing original
-  clinician-entered values or uncertainty.
+- US research authorities are selected: product-specific FDA-approved labeling
+  for dosing, contraindications, and monitoring; ICD-10-CM 2026 for diagnosis
+  terminology; and RxNorm Current Prescribable Content 2026-07-06 for medication
+  terminology. INSIGHT makes no formulary, coverage, reimbursement, stock, or
+  local availability claim.
+- Drugs@FDA is checked weekdays, RxNorm weekly, ICD-10-CM every 30 days, and the
+  profile receives a 90-day governance review. Changes require validation and
+  clinical review; missing, stale, or changed sources block affected output.
 - Both JSON files passed `python3 -m json.tool`; Draft 2020-12 instance and
-  negative approval validation passed in `python3 -B -m unittest
-  tests/test_knowledge_source_manifest.py -v` (5 tests); full architecture
-  discovery passed with `python3 -B -m unittest discover -s tests -v` (35
+  negative provenance/formulary validation passed in `python3 -B -m unittest
+  tests/test_knowledge_source_manifest.py -v` (6 tests); full architecture
+  discovery passed with `python3 -B -m unittest discover -s tests -v` (36
   tests); `git diff --check` passed.
 - INS-008 now has ADR-0006, versioned `contracts/scope-matrix-v1.json`, Draft
   2020-12 `contracts/scope-matrix.schema.json`, and negative fixtures for
@@ -131,10 +134,10 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
-- INS-009 knowledge-authority and terminology-gate decision packet. Formularies,
-  dose/contraindication/monitoring sources, diagnosis terminology, medication
-  terminology, and update cadence are under review; no authority or cadence is
-  approved yet, so affected clinical use remains blocked.
+- INS-009 knowledge-authority and terminology-gate decision packet. US research
+  authorities, pinned baselines, provenance, and cadence are selected. Source
+  ingestion/validation and named clinical/pharmacy release sign-off remain
+  pending; clinical deployment stays blocked.
 - INS-008 intended-use, population, and diagnosis-gate decision packet.
   Research-only status, supported diagnosis pathway, and observable fail-closed
   behavior are implemented. Supported-population evidence and attributable
@@ -339,10 +342,9 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Next Up
 
-- Obtain attributable clinical, pharmacy, terminology, and product ownership;
-  select licensed, jurisdiction-specific authorities and exact versions for all
-  six INS-009 domains; approve review cadence and stale-source handling; then
-  supersede ADR-0007 and the source manifest before affected clinical use.
+- Implement owner-local ingestion and validation for Drugs@FDA, ICD-10-CM, and
+  RxNorm with pinned source bytes, hashes, identifiers, and review state. Obtain
+  named clinical and pharmacy sign-off before clinical deployment.
 - Obtain attributable psychiatrist/product approval and supporting evidence for
   a supported patient population and explicit exclusions. Supersede ADR-0006 and
   the scope matrix before allowing Treatment Plan generation for any population.
@@ -382,10 +384,9 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Open Questions
 
-- Which licensed, jurisdiction-specific formulary, dose, contraindication,
-  monitoring, diagnosis terminology, and medication terminology sources and
-  versions should govern INSIGHT? What review cadence and named accountable
-  owners approve them?
+- Which named clinical and pharmacy owners approve the selected US research
+  authority profile for clinical deployment, and which deployment institution
+  supplies any future local formulary authority?
 - What evidence-backed patient population and exclusions should replace the
   empty INS-008 population allowlist? Accountable psychiatrist and product owners
   remain unnamed.
@@ -418,10 +419,11 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Architecture Decisions
 
-- ADR-0007 leaves all six knowledge-authority domains and update cadence
-  unresolved, requires attributable source/version/license/jurisdiction/owner
-  metadata before activation, and blocks affected clinical use with explicit
-  uncertainty rather than inferring authority from repository artifacts.
+- ADR-0007 selects a US research profile: FDA-approved product labeling for
+  dosing, contraindications, and monitoring; ICD-10-CM 2026 for diagnosis
+  terminology; RxNorm Current Prescribable Content 2026-07-06 for medication
+  terminology; no formulary claims; scheduled checks and 90-day governance
+  review; no automatic source-update activation.
 - ADR-0006 keeps INSIGHT research-only, requires psychiatrist-confirmed
   schizophrenia for Treatment Plan scope, leaves the unsupported population
   allowlist empty, and returns explicit diagnosis/population reason codes without

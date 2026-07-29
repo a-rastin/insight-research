@@ -40,35 +40,42 @@ class KnowledgeSourceManifestTest(unittest.TestCase):
 
     def test_manifest_matches_source_manifest_schema(self):
         self.validator.validate(self.manifest)
-        self.assertEqual(self.manifest["contractId"], "insight.knowledge-source-manifest")
-        self.assertEqual(self.manifest["schemaVersion"], "1.0.0")
         self.assertEqual(self.manifest["scope"], "INS-009")
         self.assertEqual({source["domain"] for source in self.manifest["sources"]}, DOMAINS)
+        self.assertEqual(self.manifest["profile"]["jurisdiction"], "US")
+        self.assertFalse(self.manifest["profile"]["clinicalDeploymentAllowed"])
 
-    def test_unresolved_authorities_and_cadence_fail_closed(self):
-        for source in self.manifest["sources"]:
-            self.assertEqual(source["authorityStatus"], "unresolved", source["domain"])
-            self.assertFalse(source["allowedClinicalUse"], source["domain"])
-            self.assertIsNone(source["authorityName"], source["domain"])
-            self.assertIsNone(source["sourceVersion"], source["domain"])
+    def test_authorities_and_versions_are_selected(self):
+        sources = {source["domain"]: source for source in self.manifest["sources"]}
+        self.assertEqual(sources["formulary"]["authorityStatus"], "not-applicable")
+        self.assertFalse(sources["formulary"]["allowedResearchUse"])
+        for domain in ("medication-dosing", "medication-contraindications", "medication-monitoring"):
+            self.assertEqual(sources[domain]["authorityName"], "FDA-approved product labeling indexed by Drugs@FDA")
+            self.assertEqual(sources[domain]["pinnedVersion"], "snapshot-2026-07-28")
+        self.assertEqual(sources["diagnosis-terminology"]["authorityName"], "ICD-10-CM")
+        self.assertEqual(sources["diagnosis-terminology"]["pinnedVersion"], "2026")
+        self.assertEqual(sources["medication-terminology"]["authorityName"], "RxNorm Current Prescribable Content Full Monthly Release")
+        self.assertEqual(sources["medication-terminology"]["pinnedVersion"], "2026-07-06")
+
+    def test_update_cadence_and_change_gates(self):
         cadence = self.manifest["updateCadence"]
-        self.assertEqual(cadence["status"], "unresolved")
-        self.assertFalse(cadence["allowedClinicalUse"])
-        self.assertEqual(self.manifest["releaseGate"]["state"], "blocked")
+        self.assertEqual(cadence["drugsAtFda"]["checkSchedule"], "weekdays")
+        self.assertEqual(cadence["rxNorm"]["checkSchedule"], "weekly")
+        self.assertEqual(cadence["icd10cm"]["checkSchedule"], "every-30-days")
+        self.assertEqual(cadence["governanceReviewIntervalDays"], 90)
+        self.assertTrue(cadence["changeRequiresValidation"])
+        self.assertTrue(cadence["changeRequiresClinicalReview"])
+        self.assertFalse(self.manifest["authorityPolicy"]["sourceUpdatesAutoActivate"])
 
-    def test_incomplete_approval_metadata_is_rejected(self):
+    def test_selected_source_without_provenance_is_rejected(self):
         changed = copy.deepcopy(self.manifest)
-        changed["sources"][0]["authorityStatus"] = "approved"
-        errors = list(self.validator.iter_errors(changed))
-        self.assertTrue(errors)
+        changed["sources"][1]["pinnedVersion"] = None
+        self.assertTrue(list(self.validator.iter_errors(changed)))
 
-    def test_blocked_case_preserves_values_and_uncertainty(self):
-        blocked = self.manifest["observableBlockedCase"]
-        self.assertEqual(blocked["state"], "knowledge-authority-blocked")
-        self.assertEqual(blocked["code"], "KNOWLEDGE_AUTHORITY_UNRESOLVED")
-        self.assertTrue(blocked["preserveOriginalClinicianValues"])
-        self.assertTrue(blocked["displayUncertainty"])
-        self.assertFalse(blocked["authoritativeClinicalClaimAllowed"])
+    def test_formulary_claim_cannot_be_enabled(self):
+        changed = copy.deepcopy(self.manifest)
+        changed["sources"][0]["allowedResearchUse"] = True
+        self.assertTrue(list(self.validator.iter_errors(changed)))
 
 
 if __name__ == "__main__":
