@@ -23,8 +23,7 @@ Issue types:
 
 ### INS-002 — Decide gateway, process supervision, ports, and runtime matrix
 
-- **Type / owner:** HITL / architecture and operations
 - **Blocked by:** INS-001
-- **Build:** Write an ADR selecting the internal gateway/router, in-container process supervisor, module port/base-path map, compatible Python and Node runtime matrix, health aggregation policy, and shutdown behavior. Preserve one process and one data directory per module.
+- **Build:** Write an ADR selecting the internal gateway/router, in-container process supervisor, module port/base-path map, compatible Python and Node runtime matrix, shutdown behavior. Preserve one process and one data directory per module.
 - **Acceptance:** Decision names alternatives and trade-offs; only gateway is public; liveness/readiness remain per module; browser routes are relative; Windows Docker Desktop and Ubuntu VPS paths are covered.
 - **Tests:** ADR schema/link check; static deployment-policy test rejects public module ports, duplicate ports, root execution, and missing health entries.

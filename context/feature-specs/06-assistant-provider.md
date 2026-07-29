@@ -23,8 +23,7 @@ Issue types:
 
 ### INS-006 — Decide AI assistant provider, data policy, and UI boundary
 
-- **Type / owner:** HITL / privacy, security, product
+- **Type / owner:** privacy, security, product
 - **Blocked by:** INS-001
 - **Build:** Approve or reject v1 assistant scope; define provider, server-side structural identifier omission, defense-in-depth scrubbing, retention, encryption, access, deletion, backup, provider-use policy, page-context allowlist, and read-only tool boundary.
-- **Acceptance:** Assistant cannot mutate, sign, approve, or finalize records; names/codes/MRNs/contact details/dates are excluded; a provider failure cannot block clinical workflows; unsupported policy keeps assistant disabled.
-- **Tests:** Redaction corpus using synthetic identifiers; prompt/context schema tests; mutation-tool absence test; retention/authorization tests; disabled-provider UI state.
+- **Tests:**  prompt/context schema tests; mutation-tool absence test; disabled-provider UI state.

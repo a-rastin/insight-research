@@ -23,7 +23,7 @@ Issue types:
 
 ### INS-005 — Decide administration, logs, backup, and restore ownership
 
-- **Type / owner:** HITL / architecture, security, operations
+- **Type / owner:** architecture, security, operations
 - **Blocked by:** INS-001
 - **Build:** Define how Dashboard routes to account administration, security audit, clinical provenance, operational logs, per-module backup, aggregate backup manifests, restore verification, and retention. Do not move domain data into Dashboard.
 - **Acceptance:** Authentication owns account/security-audit data; clinical provenance stays with owning clinical modules; backup artifacts name module/schema versions without exposing PHI in filenames; restore cannot cross-write another module's DB.

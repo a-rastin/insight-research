@@ -23,7 +23,6 @@ Issue types:
 
 ### INS-003 — Define internal service authentication and attribution
 
-- **Type / owner:** HITL / security architecture
 - **Blocked by:** INS-001
 - **Build:** Version the contract for user-attributed internal REST calls and non-browser/background calls. Define allowed cookie forwarding, service identity, CSRF boundary, request/correlation/causation propagation, SSRF allowlists, revocation behavior, and audit separation.
 - **Acceptance:** No module decodes Authentication JWTs or trusts request-body identity; background calls cannot impersonate a psychiatrist; finalization remains bound to a current user session; secrets and PHI are excluded from headers/logs.

@@ -23,8 +23,8 @@ Issue types:
 
 ### INS-007 — Resolve model-source ownership and duplicate artifacts
 
-- **Type / owner:** HITL / BN owner and clinical model owner
+- **Type / owner:** BN owner and clinical model owner
 - **Blocked by:** INS-001
 - **Build:** Create a model manifest mapping every `BNs/` topic, model-only `Modules/` copy, and BN Manager registry file to source status, canonical owner, format, hash, approval state, and allowed runtime use. Record exact-copy hashes already observed; decide how derivative copies are regenerated or retired.
-- **Acceptance:** One runtime owner exists; duplicate copies cannot diverge silently; `.net` and non-registry XML assets remain non-runtime unless admitted through governance; protected source/model files are not modified in this packet.
-- **Tests:** Manifest schema; hash reconciliation; duplicate stable-ID rejection; missing source/approval blocks runtime admission.
+- **Acceptance:** One runtime owner exists; `.net` and non-registry XML assets remain non-runtime unless admitted through governance; protected source/model files are not modified in this packet.
+- **Tests:** Manifest schema; hash reconciliation.

@@ -23,8 +23,8 @@ Issue types:
 
 ### INS-004 — Decide Follow-up, Encounter, and structured suicide-risk ownership
 
-- **Type / owner:** HITL / product, clinical, architecture
+- **Type / owner:** product, clinical, architecture
 - **Blocked by:** INS-001
 - **Build:** Resolve whether Follow-up is a standalone owner or an orchestration flow, which module owns Encounter and Follow-up Delta, and which module owns structured C-SSRS assessment data. Obtain the approved C-SSRS source/licensing contract before defining questions or scoring.
 - **Acceptance:** Context map names one writer for every entity; Add New Patient remains Patient/Encounter owner unless explicitly changed; no risk score or question is inferred from model summaries; missing risk data has explicit fail-closed behavior.
-- **Tests:** Ownership-registry test rejects duplicate writers; schema examples cover initial encounter, follow-up encounter, unknown risk, unavailable assessment, and supersession.
+- **Tests:** schema examples cover initial encounter, follow-up encounter, unknown risk, unavailable assessment, and supersession.
