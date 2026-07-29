@@ -8,10 +8,30 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-010: Resolve plan breadth, scheduling, emergency, and override gates (In
+  progress).
 - INS-009: Resolve knowledge authority and terminology gates (In progress).
 
 ## Completed
 
+- INS-010 now has ADR-0008, versioned
+  `contracts/treatment-plan-safety-policy-v1.json`, its Draft 2020-12 JSON
+  Schema, and policy decision-table tests covering DG-04, DG-05, and DG-06.
+- System-generated plan breadth is limited to source-backed treatment setting,
+  pharmacotherapy, and follow-up. Non-pharmacological generation and structured
+  finalization remain unsupported. Appointment, availability, and timezone
+  ownership remain unresolved, so calendar lookup, booking, and exact date/time
+  recommendations are unavailable.
+- Emergency, required-data uncertainty, allergy, absolute contraindication,
+  urgent or unavailable suicide risk, unresolved medication, and unavailable
+  DDI coverage fail closed. Only high-severity DDI is overridable, requiring an
+  attributable psychiatrist rationale, preserved finding, repeated server-side
+  validation, and final attestation.
+- Both INS-010 JSON files passed `python3 -m json.tool`; focused policy and
+  scope-matrix validation passed with `python3 -B -m unittest
+  tests/test_treatment_plan_safety_policy.py -v` (7 tests); full architecture
+  discovery passed with `python3 -B -m unittest discover -s tests -v` (43
+  tests); `git diff --check` passed.
 - INS-009 now has ADR-0007, versioned
   `contracts/knowledge-source-manifest-v1.json`, its Draft 2020-12 JSON Schema,
   and focused fail-closed contract tests covering DG-02 and DG-08.
@@ -134,6 +154,10 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-010 plan breadth, scheduling, emergency, and override-gate decision packet.
+  Governance controls and scenarios are implemented. Accountable psychiatrist
+  and product approvals, scheduling ownership contracts, approved plan content,
+  and module-runtime rollout remain pending; clinical deployment stays blocked.
 - INS-009 knowledge-authority and terminology-gate decision packet. US research
   authorities, pinned baselines, provenance, and cadence are selected. Source
   ingestion/validation and named clinical/pharmacy release sign-off remain
@@ -342,6 +366,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Next Up
 
+- Obtain attributable psychiatrist and product approval for ADR-0008. Define
+  owner-local appointment, availability, and timezone contracts before adding
+  scheduling. Implement policy in Treatment Plan only after INS-008 scope and
+  INS-009 knowledge release gates permit recommendation generation.
 - Implement owner-local ingestion and validation for Drugs@FDA, ICD-10-CM, and
   RxNorm with pinned source bytes, hashes, identifiers, and review state. Obtain
   named clinical and pharmacy sign-off before clinical deployment.
@@ -384,6 +412,10 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Open Questions
 
+- Which named psychiatrist and product owners approve ADR-0008, and which module
+  owns appointments, availability, and timezone if scheduling enters scope?
+- Which approved taxonomy and evidence contract, if any, should permit
+  non-pharmacological recommendations in a future policy version?
 - Which named clinical and pharmacy owners approve the selected US research
   authority profile for clinical deployment, and which deployment institution
   supplies any future local formulary authority?
@@ -419,6 +451,11 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Architecture Decisions
 
+- ADR-0008 limits generated plan sections to source-backed treatment setting,
+  pharmacotherapy, and follow-up; leaves scheduling and non-pharmacological
+  generation unavailable; makes emergency and required safety/data gates hard
+  blockers; and permits only attributable, revalidated high-severity DDI
+  overrides.
 - ADR-0007 selects a US research profile: FDA-approved product labeling for
   dosing, contraindications, and monitoring; ICD-10-CM 2026 for diagnosis
   terminology; RxNorm Current Prescribable Content 2026-07-06 for medication
@@ -455,6 +492,9 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-010 changes governance contracts and tests only. No module runtime, API,
+  persistence, UI, clinical source, model artifact, or release status changed.
+  No file under `doc/` was read or modified.
 - INS-009 changes governance contracts and tests only. No module runtime, API,
   persistence, UI, clinical source, terminology asset, model artifact, or
   release status changed. No file under `doc/` was read or modified.

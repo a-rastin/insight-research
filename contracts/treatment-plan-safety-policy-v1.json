@@ -1,0 +1,171 @@
+{
+  "contractId": "insight.treatment-plan-safety-policy",
+  "schemaVersion": "1.0.0",
+  "scope": "INS-010",
+  "status": "accepted",
+  "planBreadth": {
+    "systemGeneratedSections": [
+      "treatment-setting",
+      "pharmacotherapy",
+      "follow-up"
+    ],
+    "sourceEvidenceRequired": true,
+    "unsupportedSectionsMustBeOmitted": true,
+    "nonPharmacologicalScope": {
+      "status": "unsupported",
+      "systemGenerationAllowed": false,
+      "structuredFinalizationAllowed": false,
+      "reason": "No approved intervention taxonomy, evidence contract, or owning workflow is defined."
+    }
+  },
+  "schedulingPolicy": {
+    "ownershipStatus": "unresolved",
+    "appointmentOwner": null,
+    "availabilityOwner": null,
+    "timezoneOwner": null,
+    "treatmentPlanOwnsScheduling": false,
+    "calendarLookupAllowed": false,
+    "appointmentBookingAllowed": false,
+    "exactDateTimeRecommendationAllowed": false,
+    "relativeFollowUpIntervalAllowed": true,
+    "relativeIntervalRequiresApprovedSource": true,
+    "unavailableState": "scheduling-unavailable",
+    "unavailableCode": "TP_SCHEDULING_UNAVAILABLE"
+  },
+  "emergencyPolicy": {
+    "triggerStates": [
+      "imminent-suicide-risk",
+      "substantial-suicide-risk-requiring-urgent-evaluation",
+      "other-emergency-condition"
+    ],
+    "resultState": "emergency-blocked",
+    "resultCode": "TP_EMERGENCY_ACTION_REQUIRED",
+    "classification": "hard-blocker",
+    "routineRecommendationRunAllowed": false,
+    "primaryTreatmentPlanAllowed": false,
+    "finalizationAllowed": false,
+    "overrideAllowed": false,
+    "persistentUntilResolved": true,
+    "visibleTextRequired": true,
+    "guidance": "Stop routine planning and follow the applicable local emergency protocol for immediate clinical evaluation.",
+    "emergencyServicesIntegration": {
+      "implemented": false,
+      "mustNotImplyDispatchContactOrBooking": true,
+      "mustNotClaimLocationSpecificServiceAvailability": true
+    }
+  },
+  "uncertaintyPolicy": {
+    "clinicallyRequiredInputStates": [
+      "missing",
+      "unknown",
+      "unavailable",
+      "stale",
+      "conflicting",
+      "invalid"
+    ],
+    "requiredInputOutcome": "blocked",
+    "optionalInputOutcome": "qualified-output",
+    "silentDefaultAllowed": false,
+    "distinctReasonCodeRequired": true,
+    "resolutionActionRequired": true
+  },
+  "gateDecisionTable": [
+    {
+      "id": "missing-required-data",
+      "classification": "hard-blocker",
+      "outcome": "blocked",
+      "code": "TP_REQUIRED_DATA_MISSING",
+      "overrideAllowed": false,
+      "requiredAction": "Obtain the required source data and rerun validation."
+    },
+    {
+      "id": "conflicting-required-data",
+      "classification": "hard-blocker",
+      "outcome": "blocked",
+      "code": "TP_REQUIRED_DATA_CONFLICTING",
+      "overrideAllowed": false,
+      "requiredAction": "Resolve the conflicting source data and create a new validated snapshot."
+    },
+    {
+      "id": "proposed-medication-allergy",
+      "classification": "hard-blocker",
+      "outcome": "proposed-item-blocked",
+      "code": "TP_MEDICATION_ALLERGY_BLOCKED",
+      "overrideAllowed": false,
+      "requiredAction": "Remove the proposed medication and rerun safety validation."
+    },
+    {
+      "id": "absolute-contraindication",
+      "classification": "hard-blocker",
+      "outcome": "proposed-item-blocked",
+      "code": "TP_CONTRAINDICATION_BLOCKED",
+      "overrideAllowed": false,
+      "requiredAction": "Remove the contraindicated item and rerun safety validation."
+    },
+    {
+      "id": "suicide-risk-substantial-or-imminent",
+      "classification": "hard-blocker",
+      "outcome": "emergency-blocked",
+      "code": "TP_EMERGENCY_ACTION_REQUIRED",
+      "overrideAllowed": false,
+      "requiredAction": "Stop routine planning and follow the applicable local emergency protocol."
+    },
+    {
+      "id": "suicide-risk-unknown-or-unavailable",
+      "classification": "hard-blocker",
+      "outcome": "blocked",
+      "code": "TP_SUICIDE_RISK_UNAVAILABLE",
+      "overrideAllowed": false,
+      "requiredAction": "Complete or obtain the approved suicide-risk assessment."
+    },
+    {
+      "id": "unresolved-medication-identity",
+      "classification": "hard-blocker",
+      "outcome": "blocked",
+      "code": "TP_MEDICATION_UNRESOLVED",
+      "overrideAllowed": false,
+      "requiredAction": "Resolve every medication identity required for interaction coverage."
+    },
+    {
+      "id": "ddi-service-or-knowledge-unavailable",
+      "classification": "hard-blocker",
+      "outcome": "blocked",
+      "code": "TP_DDI_UNAVAILABLE",
+      "overrideAllowed": false,
+      "requiredAction": "Restore approved DDI coverage and rerun safety validation."
+    },
+    {
+      "id": "high-severity-ddi",
+      "classification": "overridable-blocker",
+      "outcome": "override-required",
+      "code": "TP_HIGH_DDI_OVERRIDE_REQUIRED",
+      "overrideAllowed": true,
+      "requiredAction": "Change the medication plan or record an attributable psychiatrist override."
+    }
+  ],
+  "highSeverityDdiOverride": {
+    "allowedRole": "psychiatrist",
+    "rationaleRequired": true,
+    "rationaleMinLength": 20,
+    "rationaleMaxLength": 2000,
+    "actorUserIdRequired": true,
+    "actorUserIdFormat": "uuid",
+    "recordedAtRequired": true,
+    "recordedAtFormat": "date-time",
+    "originalFindingPreserved": true,
+    "overrideRecordedInPlanProvenance": true,
+    "serverSafetyRevalidationRequired": true,
+    "finalAttestationRequired": true,
+    "otherHardBlockersStillApply": true
+  },
+  "releaseGate": {
+    "state": "blocked",
+    "blockedBy": [
+      "supported-population-unresolved",
+      "clinical-plan-content-not-approved",
+      "appointment-availability-timezone-ownership-unresolved",
+      "accountable-psychiatrist-owner-unresolved",
+      "accountable-product-owner-unresolved"
+    ]
+  }
+}

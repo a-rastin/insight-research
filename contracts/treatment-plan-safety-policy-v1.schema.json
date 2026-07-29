@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "insight.treatment-plan-safety-policy-v1.schema.json",
+  "title": "INSIGHT Treatment Plan breadth and safety policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractId",
+    "schemaVersion",
+    "scope",
+    "status",
+    "planBreadth",
+    "schedulingPolicy",
+    "emergencyPolicy",
+    "uncertaintyPolicy",
+    "gateDecisionTable",
+    "highSeverityDdiOverride",
+    "releaseGate"
+  ],
+  "properties": {
+    "contractId": {"const": "insight.treatment-plan-safety-policy"},
+    "schemaVersion": {"const": "1.0.0"},
+    "scope": {"const": "INS-010"},
+    "status": {"const": "accepted"},
+    "planBreadth": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["systemGeneratedSections", "sourceEvidenceRequired", "unsupportedSectionsMustBeOmitted", "nonPharmacologicalScope"],
+      "properties": {
+        "systemGeneratedSections": {
+          "const": ["treatment-setting", "pharmacotherapy", "follow-up"]
+        },
+        "sourceEvidenceRequired": {"const": true},
+        "unsupportedSectionsMustBeOmitted": {"const": true},
+        "nonPharmacologicalScope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "systemGenerationAllowed", "structuredFinalizationAllowed", "reason"],
+          "properties": {
+            "status": {"const": "unsupported"},
+            "systemGenerationAllowed": {"const": false},
+            "structuredFinalizationAllowed": {"const": false},
+            "reason": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "schedulingPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ownershipStatus", "appointmentOwner", "availabilityOwner", "timezoneOwner", "treatmentPlanOwnsScheduling", "calendarLookupAllowed", "appointmentBookingAllowed", "exactDateTimeRecommendationAllowed", "relativeFollowUpIntervalAllowed", "relativeIntervalRequiresApprovedSource", "unavailableState", "unavailableCode"],
+      "properties": {
+        "ownershipStatus": {"const": "unresolved"},
+        "appointmentOwner": {"type": "null"},
+        "availabilityOwner": {"type": "null"},
+        "timezoneOwner": {"type": "null"},
+        "treatmentPlanOwnsScheduling": {"const": false},
+        "calendarLookupAllowed": {"const": false},
+        "appointmentBookingAllowed": {"const": false},
+        "exactDateTimeRecommendationAllowed": {"const": false},
+        "relativeFollowUpIntervalAllowed": {"const": true},
+        "relativeIntervalRequiresApprovedSource": {"const": true},
+        "unavailableState": {"const": "scheduling-unavailable"},
+        "unavailableCode": {"const": "TP_SCHEDULING_UNAVAILABLE"}
+      }
+    },
+    "emergencyPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["triggerStates", "resultState", "resultCode", "classification", "routineRecommendationRunAllowed", "primaryTreatmentPlanAllowed", "finalizationAllowed", "overrideAllowed", "persistentUntilResolved", "visibleTextRequired", "guidance", "emergencyServicesIntegration"],
+      "properties": {
+        "triggerStates": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "resultState": {"const": "emergency-blocked"},
+        "resultCode": {"const": "TP_EMERGENCY_ACTION_REQUIRED"},
+        "classification": {"const": "hard-blocker"},
+        "routineRecommendationRunAllowed": {"const": false},
+        "primaryTreatmentPlanAllowed": {"const": false},
+        "finalizationAllowed": {"const": false},
+        "overrideAllowed": {"const": false},
+        "persistentUntilResolved": {"const": true},
+        "visibleTextRequired": {"const": true},
+        "guidance": {"type": "string", "minLength": 1},
+        "emergencyServicesIntegration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["implemented", "mustNotImplyDispatchContactOrBooking", "mustNotClaimLocationSpecificServiceAvailability"],
+          "properties": {
+            "implemented": {"const": false},
+            "mustNotImplyDispatchContactOrBooking": {"const": true},
+            "mustNotClaimLocationSpecificServiceAvailability": {"const": true}
+          }
+        }
+      }
+    },
+    "uncertaintyPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["clinicallyRequiredInputStates", "requiredInputOutcome", "optionalInputOutcome", "silentDefaultAllowed", "distinctReasonCodeRequired", "resolutionActionRequired"],
+      "properties": {
+        "clinicallyRequiredInputStates": {
+          "const": ["missing", "unknown", "unavailable", "stale", "conflicting", "invalid"]
+        },
+        "requiredInputOutcome": {"const": "blocked"},
+        "optionalInputOutcome": {"const": "qualified-output"},
+        "silentDefaultAllowed": {"const": false},
+        "distinctReasonCodeRequired": {"const": true},
+        "resolutionActionRequired": {"const": true}
+      }
+    },
+    "gateDecisionTable": {
+      "type": "array",
+      "minItems": 9,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/gate"}
+    },
+    "highSeverityDdiOverride": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowedRole", "rationaleRequired", "rationaleMinLength", "rationaleMaxLength", "actorUserIdRequired", "actorUserIdFormat", "recordedAtRequired", "recordedAtFormat", "originalFindingPreserved", "overrideRecordedInPlanProvenance", "serverSafetyRevalidationRequired", "finalAttestationRequired", "otherHardBlockersStillApply"],
+      "properties": {
+        "allowedRole": {"const": "psychiatrist"},
+        "rationaleRequired": {"const": true},
+        "rationaleMinLength": {"type": "integer", "minimum": 1},
+        "rationaleMaxLength": {"type": "integer", "minimum": 1},
+        "actorUserIdRequired": {"const": true},
+        "actorUserIdFormat": {"const": "uuid"},
+        "recordedAtRequired": {"const": true},
+        "recordedAtFormat": {"const": "date-time"},
+        "originalFindingPreserved": {"const": true},
+        "overrideRecordedInPlanProvenance": {"const": true},
+        "serverSafetyRevalidationRequired": {"const": true},
+        "finalAttestationRequired": {"const": true},
+        "otherHardBlockersStillApply": {"const": true}
+      }
+    },
+    "releaseGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "blockedBy"],
+      "properties": {
+        "state": {"const": "blocked"},
+        "blockedBy": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "classification", "outcome", "code", "overrideAllowed", "requiredAction"],
+      "allOf": [
+        {
+          "if": {"properties": {"classification": {"const": "hard-blocker"}}},
+          "then": {"properties": {"overrideAllowed": {"const": false}}}
+        },
+        {
+          "if": {"properties": {"classification": {"const": "overridable-blocker"}}},
+          "then": {"properties": {"overrideAllowed": {"const": true}}}
+        }
+      ],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "classification": {"enum": ["hard-blocker", "overridable-blocker"]},
+        "outcome": {"enum": ["blocked", "proposed-item-blocked", "emergency-blocked", "override-required"]},
+        "code": {"pattern": "^TP_[A-Z0-9_]+$"},
+        "overrideAllowed": {"type": "boolean"},
+        "requiredAction": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}
