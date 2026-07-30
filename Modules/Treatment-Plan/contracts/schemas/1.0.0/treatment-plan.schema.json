@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://insight.example/contracts/treatment-plan/1.0.0/treatment-plan.schema.json",
+  "title": "INSIGHT Treatment Plan contract definitions",
+  "$defs": {
+    "Uuid": {"type": "string", "format": "uuid"},
+    "Instant": {"type": "string", "format": "date-time"},
+    "Version": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"},
+    "SourceReference": {
+      "type": "object", "additionalProperties": false,
+      "required": ["module", "resourceId", "schemaVersion", "retrievedAt", "contentHash"],
+      "properties": {
+        "module": {"type": "string", "enum": ["add-new-patient", "diagnosis", "severity", "medical-history", "ddi-checker", "bn-manager"]},
+        "resourceId": {"type": "string", "minLength": 1}, "schemaVersion": {"$ref": "#/$defs/Version"},
+        "retrievedAt": {"$ref": "#/$defs/Instant"}, "etag": {"type": "string", "minLength": 1},
+        "contentHash": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"}
+      }
+    },
+    "ClinicalInputSnapshot": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "snapshotId", "patientId", "encounterId", "capturedAt", "diagnosis", "severity", "medicalHistory", "currentMedications", "sources"],
+      "properties": {
+        "schemaVersion": {"const": "1.0.0"}, "snapshotId": {"$ref": "#/$defs/Uuid"}, "patientId": {"$ref": "#/$defs/Uuid"}, "encounterId": {"$ref": "#/$defs/Uuid"}, "capturedAt": {"$ref": "#/$defs/Instant"},
+        "diagnosis": {"type": "object", "additionalProperties": false, "required": ["code", "codeSystem", "status"], "properties": {"code": {"type": "string", "minLength": 1}, "codeSystem": {"type": "string", "enum": ["ICD-10-CM", "SNOMED-CT"]}, "status": {"type": "string", "enum": ["provisional", "confirmed"]}}},
+        "severity": {"type": "object", "additionalProperties": false, "required": ["instrument", "score", "interpretation"], "properties": {"instrument": {"type": "string", "minLength": 1}, "score": {"type": "number"}, "interpretation": {"type": "string", "minLength": 1}}},
+        "medicalHistory": {"type": "object", "additionalProperties": false, "required": ["allergies", "conditions"], "properties": {"allergies": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true}, "conditions": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true}}},
+        "currentMedications": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["medicationCode", "codeSystem"], "properties": {"medicationCode": {"type": "string", "minLength": 1}, "codeSystem": {"type": "string", "minLength": 1}, "dose": {"type": "string", "minLength": 1}}}},
+        "sources": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/SourceReference"}}
+      }
+    },
+    "SafetyFinding": {
+      "type": "object", "additionalProperties": false, "required": ["schemaVersion", "findingId", "category", "severity", "status", "summary", "detectedAt"],
+      "properties": {"schemaVersion": {"const": "1.0.0"}, "findingId": {"$ref": "#/$defs/Uuid"}, "category": {"type": "string", "enum": ["interaction", "allergy", "contraindication", "data-quality", "urgent-risk"]}, "severity": {"type": "string", "enum": ["info", "low", "moderate", "high", "critical"]}, "status": {"type": "string", "enum": ["open", "acknowledged", "overridden", "resolved"]}, "summary": {"type": "string", "minLength": 1}, "detectedAt": {"$ref": "#/$defs/Instant"}, "knowledgeVersion": {"type": "string", "minLength": 1}, "overrideRationale": {"type": "string", "minLength": 1}, "overrideActorId": {"$ref": "#/$defs/Uuid"}}
+    },
+    "PlanContent": {
+      "type": "object", "additionalProperties": false, "required": ["setting", "pharmacotherapy", "nextAppointment"],
+      "properties": {"setting": {"type": "string", "enum": ["outpatient", "intensive-outpatient", "inpatient", "emergency"]}, "pharmacotherapy": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["medicationCode", "codeSystem", "dose", "route", "frequency"], "properties": {"medicationCode": {"type": "string", "minLength": 1}, "codeSystem": {"type": "string", "minLength": 1}, "dose": {"type": "string", "minLength": 1}, "route": {"type": "string", "minLength": 1}, "frequency": {"type": "string", "minLength": 1}}}}, "nextAppointment": {"type": "object", "additionalProperties": false, "required": ["interval", "timezone"], "properties": {"interval": {"type": "string", "pattern": "^P(?!$).+"}, "timezone": {"type": "string", "pattern": "^[A-Za-z_]+/[A-Za-z_+-]+$"}}}
+      }
+    },
+    "PrimaryPlan": {
+      "type": "object", "additionalProperties": false, "required": ["schemaVersion", "planId", "runId", "patientId", "encounterId", "status", "createdAt", "content", "rationale", "safetyFindings"],
+      "properties": {"schemaVersion": {"const": "1.0.0"}, "planId": {"$ref": "#/$defs/Uuid"}, "runId": {"$ref": "#/$defs/Uuid"}, "patientId": {"$ref": "#/$defs/Uuid"}, "encounterId": {"$ref": "#/$defs/Uuid"}, "status": {"type": "string", "enum": ["generated", "editing", "ready-for-review"]}, "createdAt": {"$ref": "#/$defs/Instant"}, "content": {"$ref": "#/$defs/PlanContent"}, "rationale": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}, "safetyFindings": {"type": "array", "items": {"$ref": "#/$defs/SafetyFinding"}}
+      }
+    },
+    "PlanEdit": {
+      "type": "object", "additionalProperties": false, "required": ["schemaVersion", "editId", "planId", "actorId", "editedAt", "path", "operation", "before", "after", "rationale"],
+      "properties": {"schemaVersion": {"const": "1.0.0"}, "editId": {"$ref": "#/$defs/Uuid"}, "planId": {"$ref": "#/$defs/Uuid"}, "actorId": {"$ref": "#/$defs/Uuid"}, "editedAt": {"$ref": "#/$defs/Instant"}, "path": {"type": "string", "pattern": "^/content/(setting|pharmacotherapy|nextAppointment)(/.*)?$"}, "operation": {"type": "string", "enum": ["add", "replace", "remove"]}, "before": {}, "after": {}, "rationale": {"type": "string", "minLength": 1}}
+    },
+    "AuditProvenance": {
+      "type": "object", "additionalProperties": false, "required": ["schemaVersion", "recordId", "recordedAt", "actorId", "action", "requestId", "correlationId", "sources"],
+      "properties": {"schemaVersion": {"const": "1.0.0"}, "recordId": {"$ref": "#/$defs/Uuid"}, "recordedAt": {"$ref": "#/$defs/Instant"}, "actorId": {"$ref": "#/$defs/Uuid"}, "action": {"type": "string", "minLength": 1}, "requestId": {"$ref": "#/$defs/Uuid"}, "correlationId": {"$ref": "#/$defs/Uuid"}, "sources": {"type": "array", "items": {"$ref": "#/$defs/SourceReference"}}, "modelVersion": {"type": "string", "minLength": 1}, "policyVersion": {"$ref": "#/$defs/Version"}, "knowledgeVersion": {"type": "string", "minLength": 1}}
+    },
+    "FinalPlan": {
+      "type": "object", "additionalProperties": false, "required": ["schemaVersion", "planId", "primaryPlanId", "patientId", "encounterId", "version", "status", "finalizedAt", "finalizedBy", "attestation", "content", "safetyFindings", "provenance", "contentHash"],
+      "properties": {"schemaVersion": {"const": "1.0.0"}, "planId": {"$ref": "#/$defs/Uuid"}, "primaryPlanId": {"$ref": "#/$defs/Uuid"}, "patientId": {"$ref": "#/$defs/Uuid"}, "encounterId": {"$ref": "#/$defs/Uuid"}, "version": {"type": "integer", "minimum": 1}, "status": {"const": "finalized"}, "finalizedAt": {"$ref": "#/$defs/Instant"}, "finalizedBy": {"$ref": "#/$defs/Uuid"}, "attestation": {"type": "string", "minLength": 1}, "content": {"$ref": "#/$defs/PlanContent"}, "safetyFindings": {"type": "array", "items": {"$ref": "#/$defs/SafetyFinding"}}, "provenance": {"$ref": "#/$defs/AuditProvenance"}, "contentHash": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"}}
+    },
+    "FollowUpDelta": {
+      "type": "object", "additionalProperties": false, "required": ["schemaVersion", "deltaId", "patientId", "priorEncounterId", "encounterId", "priorFinalPlanId", "recordedAt", "changes"],
+      "properties": {"schemaVersion": {"const": "1.0.0"}, "deltaId": {"$ref": "#/$defs/Uuid"}, "patientId": {"$ref": "#/$defs/Uuid"}, "priorEncounterId": {"$ref": "#/$defs/Uuid"}, "encounterId": {"$ref": "#/$defs/Uuid"}, "priorFinalPlanId": {"$ref": "#/$defs/Uuid"}, "recordedAt": {"$ref": "#/$defs/Instant"}, "changes": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["domain", "summary", "sourceResourceId"], "properties": {"domain": {"type": "string", "enum": ["diagnosis", "severity", "medical-history", "medication", "encounter"]}, "summary": {"type": "string", "minLength": 1}, "sourceResourceId": {"type": "string", "minLength": 1}}}}
+    }
+    },
+    "RecommendationRun": {
+      "type": "object", "additionalProperties": false, "required": ["schemaVersion", "runId", "patientId", "encounterId", "snapshotId", "policyVersion", "status", "requestedAt"],
+      "properties": {"schemaVersion": {"const": "1.0.0"}, "runId": {"$ref": "#/$defs/Uuid"}, "patientId": {"$ref": "#/$defs/Uuid"}, "encounterId": {"$ref": "#/$defs/Uuid"}, "snapshotId": {"$ref": "#/$defs/Uuid"}, "policyVersion": {"$ref": "#/$defs/Version"}, "status": {"type": "string", "enum": ["requested", "gathering-inputs", "inputs-incomplete", "evaluating", "generated", "generation-failed"]}, "requestedAt": {"$ref": "#/$defs/Instant"}, "completedAt": {"$ref": "#/$defs/Instant"}, "primaryPlanId": {"$ref": "#/$defs/Uuid"}, "safetyFindings": {"type": "array", "items": {"$ref": "#/$defs/SafetyFinding"}}}
+    },
+    "ProblemDetails": {
+      "type": "object", "additionalProperties": false, "required": ["type", "title", "status", "code", "detail", "requestId", "correlationId"],
+      "properties": {"type": {"type": "string", "pattern": "^https://"}, "title": {"type": "string", "minLength": 1}, "status": {"type": "integer", "minimum": 400}, "code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"}, "detail": {"type": "string", "minLength": 1}, "instance": {"type": "string", "pattern": "^/"}, "requestId": {"$ref": "#/$defs/Uuid"}, "correlationId": {"$ref": "#/$defs/Uuid"}, "errors": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["path", "code"], "properties": {"path": {"type": "string"}, "code": {"type": "string", "minLength": 1}}}}
+    }
+  }
+}
+}

@@ -1,0 +1,122 @@
+{
+  "add_new_patient_backend/__init__.py": {
+    "mtime": 1783406248.3292613,
+    "ast_hash": "a1f69996882d04e3a7358146de9f89de",
+    "semantic_hash": "a1f69996882d04e3a7358146de9f89de"
+  },
+  "add_new_patient_backend/auth.py": {
+    "mtime": 1783420496.204752,
+    "ast_hash": "0c315b64a0e01565b173d2d716d4175a",
+    "semantic_hash": "0c315b64a0e01565b173d2d716d4175a"
+  },
+  "add_new_patient_backend/config.py": {
+    "mtime": 1783411798.3609865,
+    "ast_hash": "76d8c4f27ec37b09d80f15e5ed653abd",
+    "semantic_hash": "76d8c4f27ec37b09d80f15e5ed653abd"
+  },
+  "add_new_patient_backend/csrf.py": {
+    "mtime": 1783411813.9988856,
+    "ast_hash": "7b6441ef85d62da86d5163a20f4a843b",
+    "semantic_hash": "7b6441ef85d62da86d5163a20f4a843b"
+  },
+  "add_new_patient_backend/db.py": {
+    "mtime": 1783419098.1471517,
+    "ast_hash": "b0403908ee41b603b2bf3242cb19d053",
+    "semantic_hash": "b0403908ee41b603b2bf3242cb19d053"
+  },
+  "add_new_patient_backend/main.py": {
+    "mtime": 1783422166.853751,
+    "ast_hash": "5f5aa0f43c6a4e2e5409e3f4f4b68d94",
+    "semantic_hash": "5f5aa0f43c6a4e2e5409e3f4f4b68d94"
+  },
+  "add_new_patient_backend/models.py": {
+    "mtime": 1783418702.1812775,
+    "ast_hash": "50c746e45625653b24020a235c29da97",
+    "semantic_hash": "50c746e45625653b24020a235c29da97"
+  },
+  "add_new_patient_backend/repository.py": {
+    "mtime": 1783421966.9314976,
+    "ast_hash": "0a4031c56e23a5ddfc29a3a817ada6af",
+    "semantic_hash": "0a4031c56e23a5ddfc29a3a817ada6af"
+  },
+  "app.js": {
+    "mtime": 1783418811.8872929,
+    "ast_hash": "01e77b4df128eb48721667c2194ca70e",
+    "semantic_hash": "01e77b4df128eb48721667c2194ca70e"
+  },
+  "data/patients.json": {
+    "mtime": 1783336720.6350534,
+    "ast_hash": "58e0494c51d30eb3494f7c9198986bb9",
+    "semantic_hash": "58e0494c51d30eb3494f7c9198986bb9"
+  },
+  "schema/add-new-patient.schema.json": {
+    "mtime": 1783418811.9311533,
+    "ast_hash": "3136cc94feb5c7b0959142126da046ef",
+    "semantic_hash": "3136cc94feb5c7b0959142126da046ef"
+  },
+  "server.py": {
+    "mtime": 1783406304.9084957,
+    "ast_hash": "3a16daed9a98755ffe1795e60e563487",
+    "semantic_hash": "3a16daed9a98755ffe1795e60e563487"
+  },
+  "test_add_new_patient_backend.py": {
+    "mtime": 1783423062.686632,
+    "ast_hash": "0ba436003adb59cfbbda6ece5f8212b2",
+    "semantic_hash": "0ba436003adb59cfbbda6ece5f8212b2"
+  },
+  "test_frontend.mjs": {
+    "mtime": 1783425094.406896,
+    "ast_hash": "c27d3ddf0c12dcd98dd1e44e8ed783fa",
+    "semantic_hash": "c27d3ddf0c12dcd98dd1e44e8ed783fa"
+  },
+  "DESIGN.md": {
+    "mtime": 1782972678.1297934,
+    "ast_hash": "d3abb522a74038e6f89e590722e21067",
+    "semantic_hash": "d3abb522a74038e6f89e590722e21067"
+  },
+  "README.md": {
+    "mtime": 1783419896.226061,
+    "ast_hash": "2697cc597f599c04f2ed2b3e2d4e215d",
+    "semantic_hash": "2697cc597f599c04f2ed2b3e2d4e215d"
+  },
+  "docs/add-new-patient-handoff.md": {
+    "mtime": 1783424422.1862142,
+    "ast_hash": "fc622f351d7951d36ed2722f9dfcf33c",
+    "semantic_hash": "fc622f351d7951d36ed2722f9dfcf33c"
+  },
+  "docs/api-contract.md": {
+    "mtime": 1783425612.0000553,
+    "ast_hash": "7b5b19c129178d9c040b45f840ee9a76",
+    "semantic_hash": "7b5b19c129178d9c040b45f840ee9a76"
+  },
+  "docs/patient-domain-glossary.md": {
+    "mtime": 1783424476.407807,
+    "ast_hash": "88717922dd3587a176700b7b5d730d43",
+    "semantic_hash": "88717922dd3587a176700b7b5d730d43"
+  },
+  "handoff.md": {
+    "mtime": 1783426915.8171778,
+    "ast_hash": "2bec3bf643751aab8b796880f53e89f2",
+    "semantic_hash": "2bec3bf643751aab8b796880f53e89f2"
+  },
+  "index.html": {
+    "mtime": 1783418115.5592804,
+    "ast_hash": "64fff32c457c18697fb3228e47ac20d2",
+    "semantic_hash": "64fff32c457c18697fb3228e47ac20d2"
+  },
+  "requirements.txt": {
+    "mtime": 1783406305.0007436,
+    "ast_hash": "b7caf32574ae26ad78eb19c433a3bce5",
+    "semantic_hash": "b7caf32574ae26ad78eb19c433a3bce5"
+  },
+  "image1.png": {
+    "mtime": 1783318770.2343464,
+    "ast_hash": "c03c483d96b9dd5228aca589b78cab59",
+    "semantic_hash": "c03c483d96b9dd5228aca589b78cab59"
+  },
+  "image2.png": {
+    "mtime": 1783318472.3465962,
+    "ast_hash": "25254b42c37bbb6e362eb6a7612f3196",
+    "semantic_hash": "25254b42c37bbb6e362eb6a7612f3196"
+  }
+}

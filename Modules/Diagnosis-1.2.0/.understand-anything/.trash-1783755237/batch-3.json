@@ -1,0 +1,331 @@
+{
+  "batchIndex": 3,
+  "files": [
+    {
+      "path": "diagnosis/auth.py",
+      "language": "python",
+      "sizeLines": 153,
+      "fileCategory": "code"
+    },
+    {
+      "path": "diagnosis/csrf.py",
+      "language": "python",
+      "sizeLines": 155,
+      "fileCategory": "code"
+    },
+    {
+      "path": "diagnosis/store.py",
+      "language": "python",
+      "sizeLines": 293,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test_config.py",
+      "language": "python",
+      "sizeLines": 439,
+      "fileCategory": "code"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "file:diagnosis/auth.py",
+      "type": "file",
+      "name": "diagnosis/auth.py",
+      "filePath": "diagnosis/auth.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Auth adapter delegating trust to the central Insight auth service. Calls GET {AUTH_BASE_URL}/api/auth/session with the Cookie header and reads the JSON response (authenticated, user_id, roles, session_id). Never decodes JWTs or reads the auth DB.",
+      "tags": [
+        "auth-delegation",
+        "session",
+        "role-enforcement",
+        "insight-service"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/csrf.py",
+      "type": "file",
+      "name": "diagnosis/csrf.py",
+      "filePath": "diagnosis/csrf.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Signed double-submit CSRF token (HMAC-SHA256). mint() creates a fresh token set as cookie plus JSON body. require_csrf FastAPI dependency fails closed on any cookie/header mismatch or invalid signature. Pinned secret via DIAGNOSIS_CSRF_SECRET; per-process random fallback.",
+      "tags": [
+        "csrf",
+        "hmac-sha256",
+        "double-submit",
+        "owasp"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/store.py",
+      "type": "file",
+      "name": "diagnosis/store.py",
+      "filePath": "diagnosis/store.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "SQLite-backed repository adapter. DiagnosisStore wraps sessions (code PK, patient_id, checked JSON, decision) and audit (id, code, snapshot JSON, created_at) tables. WAL journal, thread-safe via process lock. Methods: init, exists, get, put, audit_snapshot, list_audits, reset.",
+      "tags": [
+        "persistence",
+        "sqlite",
+        "repository",
+        "wal-journal"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "class:diagnosis/auth.py:Session",
+      "type": "class",
+      "name": "Session",
+      "filePath": "diagnosis/auth.py",
+      "complexity": "simple",
+      "summary": "Frozen dataclass: user_id, roles (frozenset), session_id. Built from the auth service JSON response. has_any() checks role membership.",
+      "tags": [
+        "session",
+        "frozen-dataclass",
+        "role"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "class:diagnosis/auth.py:_AuthUnavailable",
+      "type": "class",
+      "name": "_AuthUnavailable",
+      "filePath": "diagnosis/auth.py",
+      "complexity": "simple",
+      "summary": "Exception raised on auth service transport or parse failure. Route maps to 401 without leaking infra details.",
+      "tags": [
+        "auth-exception",
+        "transport-error"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "class:diagnosis/store.py:DiagnosisStore",
+      "type": "class",
+      "name": "DiagnosisStore",
+      "filePath": "diagnosis/store.py",
+      "complexity": "moderate",
+      "summary": "SQLite repository. Methods: init, exists, get, put, audit_snapshot, list_audits, reset. Thread-safe via threading.Lock. Lazy connection with WAL journal.",
+      "tags": [
+        "persistence",
+        "sqlite",
+        "thread-safe"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/auth.py:require_role",
+      "type": "function",
+      "name": "require_role",
+      "filePath": "diagnosis/auth.py",
+      "complexity": "moderate",
+      "summary": "FastAPI dependency factory. Returns a dependency that enforces role membership. Reads cookie, calls auth service, returns Session or raises 401/403.",
+      "tags": [
+        "fastapi-dependency",
+        "role-enforcement"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/auth.py:reset_auth_for_tests",
+      "type": "function",
+      "name": "reset_auth_for_tests",
+      "filePath": "diagnosis/auth.py",
+      "complexity": "simple",
+      "summary": "Test-only hook: rebinds AUTH_BASE_URL module global for fake auth server tests.",
+      "tags": [
+        "test-hook",
+        "fake-auth"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/csrf.py:mint",
+      "type": "function",
+      "name": "mint",
+      "filePath": "diagnosis/csrf.py",
+      "complexity": "simple",
+      "summary": "Creates a fresh signed CSRF token: 32 random hex bytes signed with HMAC-SHA256. Returns token string.",
+      "tags": [
+        "csrf-token",
+        "mint"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/csrf.py:set_cookie",
+      "type": "function",
+      "name": "set_cookie",
+      "filePath": "diagnosis/csrf.py",
+      "complexity": "simple",
+      "summary": "Stamps the csrf cookie on a FastAPI response. HttpOnly=False so JS can read it; Secure flag from settings.",
+      "tags": [
+        "csrf",
+        "cookie"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/csrf.py:require_csrf",
+      "type": "function",
+      "name": "require_csrf",
+      "filePath": "diagnosis/csrf.py",
+      "complexity": "moderate",
+      "summary": "FastAPI dependency. Fails closed (403) if cookie/header missing, mismatched, or invalid HMAC. Bypassed when DIAGNOSIS_AUTH_BYPASS=1.",
+      "tags": [
+        "csrf-dependency",
+        "fastapi-dependency"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/csrf.py:reset_secret_for_tests",
+      "type": "function",
+      "name": "reset_secret_for_tests",
+      "filePath": "diagnosis/csrf.py",
+      "complexity": "simple",
+      "summary": "Test-only hook: pins the CSRF secret so tests can mint predictable tokens. Pass None to reset to fresh random.",
+      "tags": [
+        "test-hook",
+        "csrf-secret"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/store.py:_resolve_path",
+      "type": "function",
+      "name": "_resolve_path",
+      "filePath": "diagnosis/store.py",
+      "complexity": "simple",
+      "summary": "Resolves the SQLite DB path. Honours DIAGNOSIS_DB_PATH env var at call time (not import time) so mid-process flips work.",
+      "tags": [
+        "db-path",
+        "env-resolve"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/store.py:_store_selfcheck",
+      "type": "function",
+      "name": "_store_selfcheck",
+      "filePath": "diagnosis/store.py",
+      "complexity": "moderate",
+      "summary": "Self-verify persistence adapter end-to-end with a temp DB: init-once, timestamps monotonic, put plus get round-trip, bypass decision, audit snapshot recorded and durable across store restarts.",
+      "tags": [
+        "self-check",
+        "persistence"
+      ],
+      "languageNotes": ""
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:diagnosis/auth.py",
+      "target": "class:diagnosis/auth.py:Session",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/auth.py",
+      "target": "class:diagnosis/auth.py:_AuthUnavailable",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/auth.py",
+      "target": "function:diagnosis/auth.py:require_role",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/auth.py",
+      "target": "function:diagnosis/auth.py:reset_auth_for_tests",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/csrf.py",
+      "target": "function:diagnosis/csrf.py:mint",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/csrf.py",
+      "target": "function:diagnosis/csrf.py:set_cookie",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/csrf.py",
+      "target": "function:diagnosis/csrf.py:require_csrf",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/csrf.py",
+      "target": "function:diagnosis/csrf.py:reset_secret_for_tests",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/store.py",
+      "target": "class:diagnosis/store.py:DiagnosisStore",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/store.py",
+      "target": "function:diagnosis/store.py:_resolve_path",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/store.py",
+      "target": "function:diagnosis/store.py:_store_selfcheck",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/auth.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/csrf.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/store.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/deps.py",
+      "target": "file:diagnosis/auth.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/deps.py",
+      "target": "file:diagnosis/csrf.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/store.py",
+      "target": "file:diagnosis/deps.py",
+      "type": "imports",
+      "weight": 0.7
+    }
+  ]
+}

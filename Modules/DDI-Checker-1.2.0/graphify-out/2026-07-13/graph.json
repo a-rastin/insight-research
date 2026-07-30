@@ -1,0 +1,5798 @@
+{
+  "hyperedges": [
+    {
+      "id": "architecture_three_entry_points",
+      "label": "Three Domain Logic Entry Points",
+      "nodes": [
+        "graphs_architecture_browser_app",
+        "graphs_architecture_ingestion_cli",
+        "graphs_architecture_validation_cli"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "graphs/architecture.md"
+    },
+    {
+      "id": "index_primary_module_views",
+      "label": "Primary Module Views",
+      "nodes": [
+        "index_checker_view",
+        "index_admin_review_workspace",
+        "index_audit_log_view"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "index.html"
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0,
+  "nodes": [
+    {
+      "id": "understand_anything_trash_1783875387_tmp_ua_arch_analyze",
+      "label": "ua-arch-analyze.js",
+      "file_type": "code",
+      "source_file": ".understand-anything/.trash-1783875387/tmp/ua-arch-analyze.js",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "understand_anything_trash_1783875387_tmp_ua_arch_analyze_fs",
+      "label": "fs",
+      "file_type": "code",
+      "source_file": ".understand-anything/.trash-1783875387/tmp/ua-arch-analyze.js",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "understand_anything_trash_1783875387_tmp_ua_arch_analyze_groupfor",
+      "label": "groupFor()",
+      "file_type": "code",
+      "source_file": ".understand-anything/.trash-1783875387/tmp/ua-arch-analyze.js",
+      "source_location": "L17",
+      "_origin": "ast"
+    },
+    {
+      "id": "understand_anything_trash_1783875387_tmp_ua_tour_analyze",
+      "label": "ua-tour-analyze.js",
+      "file_type": "code",
+      "source_file": ".understand-anything/.trash-1783875387/tmp/ua-tour-analyze.js",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "understand_anything_trash_1783875387_tmp_ua_tour_analyze_fs",
+      "label": "fs",
+      "file_type": "code",
+      "source_file": ".understand-anything/.trash-1783875387/tmp/ua-tour-analyze.js",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "understand_anything_trash_1783875387_tmp_ua_tour_analyze_path",
+      "label": "path",
+      "file_type": "code",
+      "source_file": ".understand-anything/.trash-1783875387/tmp/ua-tour-analyze.js",
+      "source_location": "L2",
+      "_origin": "ast"
+    },
+    {
+      "id": "data_active_kb",
+      "label": "active-kb.js",
+      "file_type": "code",
+      "source_file": "data/active-kb.js",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "package",
+      "label": "package.json",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "package_name",
+      "label": "name",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L2",
+      "_origin": "ast"
+    },
+    {
+      "id": "package_version",
+      "label": "version",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L3",
+      "_origin": "ast"
+    },
+    {
+      "id": "package_private",
+      "label": "private",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L4",
+      "_origin": "ast"
+    },
+    {
+      "id": "package_description",
+      "label": "description",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L5",
+      "_origin": "ast"
+    },
+    {
+      "id": "package_type",
+      "label": "type",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L6",
+      "_origin": "ast"
+    },
+    {
+      "id": "package_scripts",
+      "label": "scripts",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L7",
+      "_origin": "ast"
+    },
+    {
+      "id": "package_scripts_ingest",
+      "label": "ingest",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L8",
+      "_origin": "ast"
+    },
+    {
+      "id": "package_scripts_validate",
+      "label": "validate",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L9",
+      "_origin": "ast"
+    },
+    {
+      "id": "package_scripts_validate_clinical",
+      "label": "validate:clinical",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L10",
+      "_origin": "ast"
+    },
+    {
+      "id": "package_scripts_test",
+      "label": "test",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L11",
+      "_origin": "ast"
+    },
+    {
+      "id": "package_keywords",
+      "label": "keywords",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "ref_clinical_decision_support",
+      "label": "clinical-decision-support",
+      "file_type": "concept",
+      "source_file": "package.json",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "ref_drug_interactions",
+      "label": "drug-interactions",
+      "file_type": "concept",
+      "source_file": "package.json",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "ref_rxnorm",
+      "label": "rxnorm",
+      "file_type": "concept",
+      "source_file": "package.json",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "ref_audit",
+      "label": "audit",
+      "file_type": "concept",
+      "source_file": "package.json",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "package_license",
+      "label": "license",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L19",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest",
+      "label": "ingest.mjs",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_require",
+      "label": "require",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L7",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_reportparser",
+      "label": "reportParser",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L8",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_filename",
+      "label": "__filename",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L9",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_dirname",
+      "label": "__dirname",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L10",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_project_root",
+      "label": "PROJECT_ROOT",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L11",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_normalization_config",
+      "label": "NORMALIZATION_CONFIG",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L16",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_rxnorm_seed",
+      "label": "RXNORM_SEED",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L24",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_slugify",
+      "label": "slugify()",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L86",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_cleanline",
+      "label": "cleanLine()",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L95",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_isnoiseline",
+      "label": "isNoiseLine()",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L103",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_normalizedrugname",
+      "label": "normalizeDrugName()",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L115",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_drugidfor",
+      "label": "drugIdFor()",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L125",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_getorcreatedrug",
+      "label": "getOrCreateDrug()",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L135",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_adddosesuggestions",
+      "label": "addDoseSuggestions()",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L158",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_extractdosesuggestions",
+      "label": "extractDoseSuggestions()",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L170",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_comparerelativepaths",
+      "label": "compareRelativePaths()",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L174",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_readtextfiles",
+      "label": "readTextFiles()",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L180",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_hashfield",
+      "label": "hashField()",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L207",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_createrevisionid",
+      "label": "createRevisionId()",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L214",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_createinteraction",
+      "label": "createInteraction()",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L230",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_parsereport",
+      "label": "parseReport()",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L244",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_validatedrugidentities",
+      "label": "validateDrugIdentities()",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L260",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_buildknowledgebase",
+      "label": "buildKnowledgeBase()",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L286",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_ingest_writeoutputs",
+      "label": "writeOutputs()",
+      "file_type": "code",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L370",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_validate_kb",
+      "label": "validate-kb.mjs",
+      "file_type": "code",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_validate_kb_here",
+      "label": "here",
+      "file_type": "code",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L5",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_validate_kb_required",
+      "label": "REQUIRED",
+      "file_type": "code",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L6",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_validate_kb_severity",
+      "label": "SEVERITY",
+      "file_type": "code",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L7",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_validate_kb_states",
+      "label": "STATES",
+      "file_type": "code",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L8",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_validate_kb_confidence",
+      "label": "CONFIDENCE",
+      "file_type": "code",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L9",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_validate_kb_object",
+      "label": "object()",
+      "file_type": "code",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L10",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_validate_kb_text",
+      "label": "text()",
+      "file_type": "code",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L11",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_validate_kb_label",
+      "label": "label()",
+      "file_type": "code",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L12",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_validate_kb_timestamp",
+      "label": "timestamp()",
+      "file_type": "code",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_validate_kb_pair",
+      "label": "pair()",
+      "file_type": "code",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L14",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_validate_kb_fingerprint",
+      "label": "fingerprint()",
+      "file_type": "code",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L15",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_validate_kb_validateknowledgebase",
+      "label": "validateKnowledgeBase()",
+      "file_type": "code",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L17",
+      "_origin": "ast"
+    },
+    {
+      "id": "scripts_validate_kb_runcli",
+      "label": "runCli()",
+      "file_type": "code",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L87",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app",
+      "label": "app.js",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_createemptykb",
+      "label": "createEmptyKb()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L76",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_readjson",
+      "label": "readJson()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L88",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_writejson",
+      "label": "writeJson()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L96",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_getsessioncode",
+      "label": "getSessionCode()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L100",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_loadlocalkb",
+      "label": "loadLocalKb()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L110",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_refreshheader",
+      "label": "refreshHeader()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L114",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_setview",
+      "label": "setView()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L127",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_rendersuggestions",
+      "label": "renderSuggestions()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L134",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_sourcedrugpool",
+      "label": "sourceDrugPool()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L141",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_lookslikeparsedtextfragment",
+      "label": "looksLikeParsedTextFragment()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L149",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_suggestsourcedrugs",
+      "label": "suggestSourceDrugs()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L158",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_selecteddrugfordose",
+      "label": "selectedDrugForDose()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L178",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_renderdosesuggestions",
+      "label": "renderDoseSuggestions()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L185",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_rendermedications",
+      "label": "renderMedications()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L199",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_checknow",
+      "label": "checkNow()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L216",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_updateresultsummary",
+      "label": "updateResultSummary()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L224",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_renderalerts",
+      "label": "renderAlerts()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L232",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_recordalertaction",
+      "label": "recordAlertAction()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L273",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_persistalertaction",
+      "label": "persistAlertAction()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L287",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_canceloverride",
+      "label": "cancelOverride()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L299",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_recordshownalerts",
+      "label": "recordShownAlerts()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L306",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_renderreviewlist",
+      "label": "renderReviewList()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L322",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_selectedrecord",
+      "label": "selectedRecord()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L340",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_renderreviewdetail",
+      "label": "renderReviewDetail()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L344",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_savereview",
+      "label": "saveReview()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L364",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_activaterevision",
+      "label": "activateRevision()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L386",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_persistkb",
+      "label": "persistKb()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L408",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_adddrugtokb",
+      "label": "addDrugToKb()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L414",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_mergedrugintokb",
+      "label": "mergeDrugIntoKb()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L430",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_interactionmergekey",
+      "label": "interactionMergeKey()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L457",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_mergeparsedreport",
+      "label": "mergeParsedReport()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L464",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_uploadreports",
+      "label": "uploadReports()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L518",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_addinteraction",
+      "label": "addInteraction()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L549",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_renderaudit",
+      "label": "renderAudit()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L581",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_exportaudit",
+      "label": "exportAudit()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L596",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_currentresultsexport",
+      "label": "currentResultsExport()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L607",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_exportresults",
+      "label": "exportResults()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L621",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_app_escapehtml",
+      "label": "escapeHtml()",
+      "file_type": "code",
+      "source_file": "src/app.js",
+      "source_location": "L631",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine",
+      "label": "ddi-engine.js",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_normalizename",
+      "label": "normalizeName()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L27",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_normalizeid",
+      "label": "normalizeId()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L37",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_pairkey",
+      "label": "pairKey()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L41",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_severityrank",
+      "label": "severityRank()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L47",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_slugify",
+      "label": "slugify()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L51",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_hashstring",
+      "label": "hashString()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L59",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_cleanreportline",
+      "label": "cleanReportLine()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L69",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_isreportnoiseline",
+      "label": "isReportNoiseLine()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L77",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_reportdrugidfor",
+      "label": "reportDrugIdFor()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L89",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_getorcreateparseddrug",
+      "label": "getOrCreateParsedDrug()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L93",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_adddosesuggestions",
+      "label": "addDoseSuggestions()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L116",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_extractdosesuggestions",
+      "label": "extractDoseSuggestions()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L128",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_createparsedinteraction",
+      "label": "createParsedInteraction()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L132",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_parsereporttext",
+      "label": "parseReportText()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L147",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_createemptyindex",
+      "label": "createEmptyIndex()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L172",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_addidentitycandidate",
+      "label": "addIdentityCandidate()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L182",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_isinteractioneligible",
+      "label": "isInteractionEligible()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L189",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_buildindex",
+      "label": "buildIndex()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L195",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_resolvedrug",
+      "label": "resolveDrug()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L241",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_suggestdrugs",
+      "label": "suggestDrugs()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L268",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_tomedication",
+      "label": "toMedication()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L289",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_assignmedicationinstanceids",
+      "label": "assignMedicationInstanceIds()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L299",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_checkinteractions",
+      "label": "checkInteractions()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L316",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_ddi_engine_createauditentry",
+      "label": "createAuditEntry()",
+      "file_type": "code",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L384",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_kb_persistence",
+      "label": "kb-persistence.js",
+      "file_type": "code",
+      "source_file": "src/kb-persistence.js",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_kb_persistence_reviewchanges",
+      "label": "reviewChanges()",
+      "file_type": "code",
+      "source_file": "src/kb-persistence.js",
+      "source_location": "L15",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_kb_persistence_createrevision",
+      "label": "createRevision()",
+      "file_type": "code",
+      "source_file": "src/kb-persistence.js",
+      "source_location": "L23",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_kb_persistence_revisionfromlegacy",
+      "label": "revisionFromLegacy()",
+      "file_type": "code",
+      "source_file": "src/kb-persistence.js",
+      "source_location": "L50",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_kb_persistence_rebase",
+      "label": "rebase()",
+      "file_type": "code",
+      "source_file": "src/kb-persistence.js",
+      "source_location": "L70",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_report_parser",
+      "label": "report-parser.js",
+      "file_type": "code",
+      "source_file": "src/report-parser.js",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_report_parser_cleanline",
+      "label": "cleanLine()",
+      "file_type": "code",
+      "source_file": "src/report-parser.js",
+      "source_location": "L16",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_report_parser_isnoiseline",
+      "label": "isNoiseLine()",
+      "file_type": "code",
+      "source_file": "src/report-parser.js",
+      "source_location": "L24",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_report_parser_normalizedrugname",
+      "label": "normalizeDrugName()",
+      "file_type": "code",
+      "source_file": "src/report-parser.js",
+      "source_location": "L31",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_report_parser_sourcestem",
+      "label": "sourceStem()",
+      "file_type": "code",
+      "source_file": "src/report-parser.js",
+      "source_location": "L37",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_report_parser_parseheader",
+      "label": "parseHeader()",
+      "file_type": "code",
+      "source_file": "src/report-parser.js",
+      "source_location": "L42",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_report_parser_extractdosesuggestions",
+      "label": "extractDoseSuggestions()",
+      "file_type": "code",
+      "source_file": "src/report-parser.js",
+      "source_location": "L52",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_report_parser_collectsections",
+      "label": "collectSections()",
+      "file_type": "code",
+      "source_file": "src/report-parser.js",
+      "source_location": "L73",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_report_parser_lookslikedrugheading",
+      "label": "looksLikeDrugHeading()",
+      "file_type": "code",
+      "source_file": "src/report-parser.js",
+      "source_location": "L88",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_report_parser_splitblocks",
+      "label": "splitBlocks()",
+      "file_type": "code",
+      "source_file": "src/report-parser.js",
+      "source_location": "L95",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_report_parser_extractlistdrugs",
+      "label": "extractListDrugs()",
+      "file_type": "code",
+      "source_file": "src/report-parser.js",
+      "source_location": "L109",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_report_parser_parsebullet",
+      "label": "parseBullet()",
+      "file_type": "code",
+      "source_file": "src/report-parser.js",
+      "source_location": "L114",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_report_parser_infermechanism",
+      "label": "inferMechanism()",
+      "file_type": "code",
+      "source_file": "src/report-parser.js",
+      "source_location": "L124",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_report_parser_inferrecommendation",
+      "label": "inferRecommendation()",
+      "file_type": "code",
+      "source_file": "src/report-parser.js",
+      "source_location": "L137",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_report_parser_infermonitoring",
+      "label": "inferMonitoring()",
+      "file_type": "code",
+      "source_file": "src/report-parser.js",
+      "source_location": "L149",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_report_parser_makeinteraction",
+      "label": "makeInteraction()",
+      "file_type": "code",
+      "source_file": "src/report-parser.js",
+      "source_location": "L160",
+      "_origin": "ast"
+    },
+    {
+      "id": "src_report_parser_parsereport",
+      "label": "parseReport()",
+      "file_type": "code",
+      "source_file": "src/report-parser.js",
+      "source_location": "L165",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_ddi_engine_test",
+      "label": "ddi-engine.test.mjs",
+      "file_type": "code",
+      "source_file": "test/ddi-engine.test.mjs",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_ddi_engine_test_require",
+      "label": "require",
+      "file_type": "code",
+      "source_file": "test/ddi-engine.test.mjs",
+      "source_location": "L5",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_ddi_engine_test_engine",
+      "label": "engine",
+      "file_type": "code",
+      "source_file": "test/ddi-engine.test.mjs",
+      "source_location": "L6",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_ddi_engine_test_fixturekb",
+      "label": "fixtureKb",
+      "file_type": "code",
+      "source_file": "test/ddi-engine.test.mjs",
+      "source_location": "L8",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_ingest_test",
+      "label": "ingest.test.mjs",
+      "file_type": "code",
+      "source_file": "test/ingest.test.mjs",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_kb_persistence_test",
+      "label": "kb-persistence.test.mjs",
+      "file_type": "code",
+      "source_file": "test/kb-persistence.test.mjs",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_kb_persistence_test_require",
+      "label": "require",
+      "file_type": "code",
+      "source_file": "test/kb-persistence.test.mjs",
+      "source_location": "L5",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_kb_persistence_test_persistence",
+      "label": "persistence",
+      "file_type": "code",
+      "source_file": "test/kb-persistence.test.mjs",
+      "source_location": "L6",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_kb_persistence_test_record",
+      "label": "record()",
+      "file_type": "code",
+      "source_file": "test/kb-persistence.test.mjs",
+      "source_location": "L8",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_kb_persistence_test_kb",
+      "label": "kb()",
+      "file_type": "code",
+      "source_file": "test/kb-persistence.test.mjs",
+      "source_location": "L11",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_report_parser_parity_test",
+      "label": "report-parser-parity.test.mjs",
+      "file_type": "code",
+      "source_file": "test/report-parser-parity.test.mjs",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_report_parser_parity_test_require",
+      "label": "require",
+      "file_type": "code",
+      "source_file": "test/report-parser-parity.test.mjs",
+      "source_location": "L9",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_report_parser_parity_test_engine",
+      "label": "engine",
+      "file_type": "code",
+      "source_file": "test/report-parser-parity.test.mjs",
+      "source_location": "L10",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_report_parser_parity_test_fixturedir",
+      "label": "fixtureDir",
+      "file_type": "code",
+      "source_file": "test/report-parser-parity.test.mjs",
+      "source_location": "L11",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_report_parser_parity_test_normalize",
+      "label": "normalize()",
+      "file_type": "code",
+      "source_file": "test/report-parser-parity.test.mjs",
+      "source_location": "L13",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_ui_source_test",
+      "label": "ui-source.test.mjs",
+      "file_type": "code",
+      "source_file": "test/ui-source.test.mjs",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_ui_source_test_filename",
+      "label": "__filename",
+      "file_type": "code",
+      "source_file": "test/ui-source.test.mjs",
+      "source_location": "L7",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_ui_source_test_dirname",
+      "label": "__dirname",
+      "file_type": "code",
+      "source_file": "test/ui-source.test.mjs",
+      "source_location": "L8",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_ui_source_test_projectroot",
+      "label": "projectRoot",
+      "file_type": "code",
+      "source_file": "test/ui-source.test.mjs",
+      "source_location": "L9",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_validate_kb_test",
+      "label": "validate-kb.test.mjs",
+      "file_type": "code",
+      "source_file": "test/validate-kb.test.mjs",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_validate_kb_test_dir",
+      "label": "dir",
+      "file_type": "code",
+      "source_file": "test/validate-kb.test.mjs",
+      "source_location": "L8",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_validate_kb_test_fixture",
+      "label": "fixture()",
+      "file_type": "code",
+      "source_file": "test/validate-kb.test.mjs",
+      "source_location": "L9",
+      "_origin": "ast"
+    },
+    {
+      "id": "test_validate_kb_test_clone",
+      "label": "clone()",
+      "file_type": "code",
+      "source_file": "test/validate-kb.test.mjs",
+      "source_location": "L10",
+      "_origin": "ast"
+    },
+    {
+      "id": "readme",
+      "label": "README.md",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "readme_drug_drug_interaction_checker",
+      "label": "Drug-Drug Interaction Checker",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "readme_run",
+      "label": "Run",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L5",
+      "_origin": "ast"
+    },
+    {
+      "id": "readme_module_shape",
+      "label": "Module Shape",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L28",
+      "_origin": "ast"
+    },
+    {
+      "id": "readme_medication_identity_resolution",
+      "label": "Medication Identity Resolution",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L42",
+      "_origin": "ast"
+    },
+    {
+      "id": "readme_upload_new_drug_txt",
+      "label": "Upload New Drug TXT",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L54",
+      "_origin": "ast"
+    },
+    {
+      "id": "readme_local_kb_upgrades_and_conflicts",
+      "label": "Local KB upgrades and conflicts",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L62",
+      "_origin": "ast"
+    },
+    {
+      "id": "readme_session_results_export",
+      "label": "Session Results Export",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L67",
+      "_origin": "ast"
+    },
+    {
+      "id": "readme_production_notes",
+      "label": "Production Notes",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L71",
+      "_origin": "ast"
+    },
+    {
+      "id": "readme_knowledge_base_validation",
+      "label": "Knowledge-base validation",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L82",
+      "_origin": "ast"
+    },
+    {
+      "id": "graphs_architecture",
+      "label": "architecture.md",
+      "file_type": "document",
+      "source_file": "graphs/architecture.md",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "graphs_architecture_knowledge_base_revision_identity",
+      "label": "Knowledge-base revision identity",
+      "file_type": "document",
+      "source_file": "graphs/architecture.md",
+      "source_location": "L1",
+      "_origin": "ast"
+    },
+    {
+      "id": "graphs_architecture_ddi_checker_1_1_0_architecture_data_flow",
+      "label": "DDI-Checker 1.1.0 — Architecture & Data Flow",
+      "file_type": "document",
+      "source_file": "graphs/architecture.md",
+      "source_location": "L5",
+      "_origin": "ast"
+    },
+    {
+      "id": "graphs_architecture_1_module_dependency_layering",
+      "label": "1. Module dependency & layering",
+      "file_type": "document",
+      "source_file": "graphs/architecture.md",
+      "source_location": "L7",
+      "_origin": "ast"
+    },
+    {
+      "id": "graphs_architecture_2_runtime_data_flow_the_four_layers_described_in_the_readme",
+      "label": "2. Runtime data-flow (the four layers described in the README)",
+      "file_type": "document",
+      "source_file": "graphs/architecture.md",
+      "source_location": "L71",
+      "_origin": "ast"
+    },
+    {
+      "id": "graphs_architecture_key_relationships_the_diagrams_capture",
+      "label": "Key relationships the diagrams capture",
+      "file_type": "document",
+      "source_file": "graphs/architecture.md",
+      "source_location": "L111",
+      "_origin": "ast"
+    },
+    {
+      "id": "graphs_architecture_potential_follow_ups_worth_a_look",
+      "label": "Potential follow-ups worth a look",
+      "file_type": "document",
+      "source_file": "graphs/architecture.md",
+      "source_location": "L125",
+      "_origin": "ast"
+    },
+    {
+      "id": "graphs_architecture_version_aware_local_kb_persistence",
+      "label": "Version-aware local KB persistence",
+      "file_type": "document",
+      "source_file": "graphs/architecture.md",
+      "source_location": "L130",
+      "_origin": "ast"
+    },
+    {
+      "id": "graphs_architecture_kb_validation_gate",
+      "label": "KB validation gate",
+      "file_type": "document",
+      "source_file": "graphs/architecture.md",
+      "source_location": "L135",
+      "_origin": "ast"
+    },
+    {
+      "label": "Shared Report Parser",
+      "file_type": "concept",
+      "source_file": "README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 35,
+      "norm_label": "shared report parser",
+      "id": "readme_shared_report_parser"
+    },
+    {
+      "label": "Reproducible KB Identity",
+      "file_type": "concept",
+      "source_file": "README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 33,
+      "norm_label": "reproducible kb identity",
+      "id": "readme_reproducible_kb_identity"
+    },
+    {
+      "label": "Clinical Alert Safety",
+      "file_type": "concept",
+      "source_file": "README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 29,
+      "norm_label": "clinical alert safety",
+      "id": "readme_clinical_alert_safety"
+    },
+    {
+      "label": "Local KB Revision Rebase",
+      "file_type": "concept",
+      "source_file": "README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 31,
+      "norm_label": "local kb revision rebase",
+      "id": "readme_local_kb_revision_rebase"
+    },
+    {
+      "label": "NLM RxNorm API",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": null,
+      "source_url": "https://lhncbc.nlm.nih.gov/RxNav/APIs/RxNormAPIs.html",
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 34,
+      "norm_label": "nlm rxnorm api",
+      "id": "readme_rxnorm_api"
+    },
+    {
+      "label": "DailyMed",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": null,
+      "source_url": "https://dailymed.nlm.nih.gov/dailymed/",
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 30,
+      "norm_label": "dailymed",
+      "id": "readme_dailymed"
+    },
+    {
+      "label": "openFDA Drug Labeling API",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": null,
+      "source_url": "https://open.fda.gov/apis/drug/label/",
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 32,
+      "norm_label": "openfda drug labeling api",
+      "id": "readme_openfda_drug_labeling_api"
+    },
+    {
+      "label": "Content-Addressed KB Revision",
+      "file_type": "concept",
+      "source_file": "graphs/architecture.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 12,
+      "norm_label": "content-addressed kb revision",
+      "id": "graphs_architecture_content_addressed_revision"
+    },
+    {
+      "label": "Browser Application",
+      "file_type": "concept",
+      "source_file": "graphs/architecture.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 22,
+      "norm_label": "browser application",
+      "id": "graphs_architecture_browser_app"
+    },
+    {
+      "label": "Ingestion CLI",
+      "file_type": "concept",
+      "source_file": "graphs/architecture.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 26,
+      "norm_label": "ingestion cli",
+      "id": "graphs_architecture_ingestion_cli"
+    },
+    {
+      "label": "Validation CLI",
+      "file_type": "concept",
+      "source_file": "graphs/architecture.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 28,
+      "norm_label": "validation cli",
+      "id": "graphs_architecture_validation_cli"
+    },
+    {
+      "label": "Environment-Neutral Report Parser",
+      "file_type": "concept",
+      "source_file": "graphs/architecture.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 24,
+      "norm_label": "environment-neutral report parser",
+      "id": "graphs_architecture_environment_neutral_parser"
+    },
+    {
+      "label": "DDI Engine",
+      "file_type": "concept",
+      "source_file": "graphs/architecture.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 23,
+      "norm_label": "ddi engine",
+      "id": "graphs_architecture_ddi_engine"
+    },
+    {
+      "label": "Version-Aware KB Persistence",
+      "file_type": "concept",
+      "source_file": "graphs/architecture.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 27,
+      "norm_label": "version-aware kb persistence",
+      "id": "graphs_architecture_kb_persistence"
+    },
+    {
+      "label": "Canonical Active KB JSON",
+      "file_type": "concept",
+      "source_file": "graphs/architecture.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 20,
+      "norm_label": "canonical active kb json",
+      "id": "graphs_architecture_active_kb_json"
+    },
+    {
+      "label": "Browser Active KB JavaScript",
+      "file_type": "concept",
+      "source_file": "graphs/architecture.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 5,
+      "norm_label": "browser active kb javascript",
+      "id": "graphs_architecture_active_kb_js"
+    },
+    {
+      "label": "Fail-Closed Identity Resolution",
+      "file_type": "concept",
+      "source_file": "graphs/architecture.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 25,
+      "norm_label": "fail-closed identity resolution",
+      "id": "graphs_architecture_fail_closed_resolution"
+    },
+    {
+      "label": "Audit Override Rationale Invariant",
+      "file_type": "concept",
+      "source_file": "graphs/architecture.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 21,
+      "norm_label": "audit override rationale invariant",
+      "id": "graphs_architecture_audit_override_rationale"
+    },
+    {
+      "label": "Drug-Drug Interaction Checker UI",
+      "file_type": "code",
+      "source_file": "index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 6,
+      "norm_label": "drug-drug interaction checker ui",
+      "id": "index_drug_drug_interaction_checker_ui"
+    },
+    {
+      "label": "Checker View",
+      "file_type": "code",
+      "source_file": "index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 6,
+      "norm_label": "checker view",
+      "id": "index_checker_view"
+    },
+    {
+      "label": "Admin Review Workspace",
+      "file_type": "code",
+      "source_file": "index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 6,
+      "norm_label": "admin review workspace",
+      "id": "index_admin_review_workspace"
+    },
+    {
+      "label": "Audit Log View",
+      "file_type": "code",
+      "source_file": "index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 6,
+      "norm_label": "audit log view",
+      "id": "index_audit_log_view"
+    },
+    {
+      "label": "Override Interaction Alert Dialog",
+      "file_type": "code",
+      "source_file": "index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 6,
+      "norm_label": "override interaction alert dialog",
+      "id": "index_override_dialog"
+    },
+    {
+      "label": "Report Parser Script",
+      "file_type": "code",
+      "source_file": "index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 6,
+      "norm_label": "report parser script",
+      "id": "index_report_parser_script"
+    },
+    {
+      "label": "DDI Engine Script",
+      "file_type": "code",
+      "source_file": "index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 6,
+      "norm_label": "ddi engine script",
+      "id": "index_ddi_engine_script"
+    },
+    {
+      "label": "KB Persistence Script",
+      "file_type": "code",
+      "source_file": "index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 6,
+      "norm_label": "kb persistence script",
+      "id": "index_kb_persistence_script"
+    },
+    {
+      "label": "Active KB Script",
+      "file_type": "code",
+      "source_file": "index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 6,
+      "norm_label": "active kb script",
+      "id": "index_active_kb_script"
+    },
+    {
+      "label": "Application Controller Script",
+      "file_type": "code",
+      "source_file": "index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 6,
+      "norm_label": "application controller script",
+      "id": "index_app_script"
+    },
+    {
+      "label": "Quetiapine",
+      "file_type": "concept",
+      "source_file": "test/fixtures/reports/compact-list.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 13,
+      "norm_label": "quetiapine",
+      "id": "test_fixtures_reports_compact_list_quetiapine"
+    },
+    {
+      "label": "Lefamulin",
+      "file_type": "concept",
+      "source_file": "test/fixtures/reports/compact-list.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 13,
+      "norm_label": "lefamulin",
+      "id": "test_fixtures_reports_compact_list_lefamulin"
+    },
+    {
+      "label": "Sedative CNS Depressants",
+      "file_type": "concept",
+      "source_file": "test/fixtures/reports/compact-list.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 13,
+      "norm_label": "sedative cns depressants",
+      "id": "test_fixtures_reports_compact_list_cns_depressants"
+    },
+    {
+      "label": "Fluoxetine",
+      "file_type": "concept",
+      "source_file": "test/fixtures/reports/long-form.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 14,
+      "norm_label": "fluoxetine",
+      "id": "test_fixtures_reports_long_form_fluoxetine"
+    },
+    {
+      "label": "Pimozide",
+      "file_type": "concept",
+      "source_file": "test/fixtures/reports/long-form.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 14,
+      "norm_label": "pimozide",
+      "id": "test_fixtures_reports_long_form_pimozide"
+    },
+    {
+      "label": "Amitriptyline",
+      "file_type": "concept",
+      "source_file": "test/fixtures/reports/long-form.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 14,
+      "norm_label": "amitriptyline",
+      "id": "test_fixtures_reports_long_form_amitriptyline"
+    },
+    {
+      "label": "Mysterydrug",
+      "file_type": "concept",
+      "source_file": "test/fixtures/reports/malformed.txt",
+      "source_location": null,
+      "source_url": "https://example.invalid/source",
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 15,
+      "norm_label": "mysterydrug",
+      "id": "test_fixtures_reports_malformed_mysterydrug"
+    },
+    {
+      "label": "Validdrug",
+      "file_type": "concept",
+      "source_file": "test/fixtures/reports/malformed.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 15,
+      "norm_label": "validdrug",
+      "id": "test_fixtures_reports_malformed_validdrug"
+    },
+    {
+      "label": "Invalid Drug Heading Candidate",
+      "file_type": "concept",
+      "source_file": "test/fixtures/reports/malformed.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 15,
+      "norm_label": "invalid drug heading candidate",
+      "id": "test_fixtures_reports_malformed_invalid_heading_candidate"
+    }
+  ],
+  "links": [
+    {
+      "source": "understand_anything_trash_1783875387_tmp_ua_arch_analyze",
+      "target": "ref_fs",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": ".understand-anything/.trash-1783875387/tmp/ua-arch-analyze.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "understand_anything_trash_1783875387_tmp_ua_arch_analyze",
+      "target": "understand_anything_trash_1783875387_tmp_ua_arch_analyze_fs",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".understand-anything/.trash-1783875387/tmp/ua-arch-analyze.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "understand_anything_trash_1783875387_tmp_ua_arch_analyze",
+      "target": "understand_anything_trash_1783875387_tmp_ua_arch_analyze_groupfor",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".understand-anything/.trash-1783875387/tmp/ua-arch-analyze.js",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "understand_anything_trash_1783875387_tmp_ua_tour_analyze",
+      "target": "ref_fs",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": ".understand-anything/.trash-1783875387/tmp/ua-tour-analyze.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "understand_anything_trash_1783875387_tmp_ua_tour_analyze",
+      "target": "understand_anything_trash_1783875387_tmp_ua_tour_analyze_fs",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".understand-anything/.trash-1783875387/tmp/ua-tour-analyze.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "understand_anything_trash_1783875387_tmp_ua_tour_analyze",
+      "target": "ref_path",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": ".understand-anything/.trash-1783875387/tmp/ua-tour-analyze.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "understand_anything_trash_1783875387_tmp_ua_tour_analyze",
+      "target": "understand_anything_trash_1783875387_tmp_ua_tour_analyze_path",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".understand-anything/.trash-1783875387/tmp/ua-tour-analyze.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "package",
+      "target": "package_name",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "package",
+      "target": "package_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "package",
+      "target": "package_private",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "package",
+      "target": "package_description",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "package",
+      "target": "package_type",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "package",
+      "target": "package_scripts",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "package_scripts",
+      "target": "package_scripts_ingest",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "package_scripts",
+      "target": "package_scripts_validate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "package_scripts",
+      "target": "package_scripts_validate_clinical",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "package_scripts",
+      "target": "package_scripts_test",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "package",
+      "target": "package_keywords",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "package_keywords",
+      "target": "ref_clinical_decision_support",
+      "relation": "extends",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L13",
+      "weight": 1.0,
+      "context": "import"
+    },
+    {
+      "source": "package_keywords",
+      "target": "ref_drug_interactions",
+      "relation": "extends",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L13",
+      "weight": 1.0,
+      "context": "import"
+    },
+    {
+      "source": "package_keywords",
+      "target": "ref_rxnorm",
+      "relation": "extends",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L13",
+      "weight": 1.0,
+      "context": "import"
+    },
+    {
+      "source": "package_keywords",
+      "target": "ref_audit",
+      "relation": "extends",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L13",
+      "weight": 1.0,
+      "context": "import"
+    },
+    {
+      "source": "package",
+      "target": "package_license",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "ref_node_fs",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "ref_node_path",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "ref_node_crypto",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "ref_node_url",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "ref_node_module",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_require",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "src_report_parser",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_reportparser",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_filename",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_dirname",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_project_root",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_normalization_config",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_rxnorm_seed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_slugify",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_cleanline",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_isnoiseline",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_normalizedrugname",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L115",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_drugidfor",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L125",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_getorcreatedrug",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_adddosesuggestions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L158",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_extractdosesuggestions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L170",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_comparerelativepaths",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L174",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_readtextfiles",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L180",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_hashfield",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L207",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_createrevisionid",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L214",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_createinteraction",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L230",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_parsereport",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L244",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_validatedrugidentities",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L260",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_buildknowledgebase",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L286",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest",
+      "target": "scripts_ingest_writeoutputs",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L370",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_drugidfor",
+      "target": "scripts_ingest_normalizedrugname",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L126",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_drugidfor",
+      "target": "scripts_ingest_slugify",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L127",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_getorcreatedrug",
+      "target": "scripts_ingest_normalizedrugname",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L136",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_getorcreatedrug",
+      "target": "scripts_ingest_drugidfor",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L138",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_getorcreatedrug",
+      "target": "scripts_ingest_cleanline",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L152",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_adddosesuggestions",
+      "target": "scripts_ingest_cleanline",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_readtextfiles",
+      "target": "scripts_ingest_comparerelativepaths",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L202",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_createrevisionid",
+      "target": "scripts_ingest_hashfield",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L219",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_createrevisionid",
+      "target": "scripts_ingest_comparerelativepaths",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L222",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_parsereport",
+      "target": "scripts_ingest_getorcreatedrug",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L247",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_parsereport",
+      "target": "scripts_ingest_adddosesuggestions",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L250",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_parsereport",
+      "target": "scripts_ingest_createinteraction",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L253",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_validatedrugidentities",
+      "target": "scripts_ingest_normalizedrugname",
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L266",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_buildknowledgebase",
+      "target": "scripts_ingest_readtextfiles",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L297",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_buildknowledgebase",
+      "target": "scripts_ingest_createrevisionid",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L301",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_buildknowledgebase",
+      "target": "scripts_ingest_parsereport",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L308",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_buildknowledgebase",
+      "target": "scripts_ingest_validatedrugidentities",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L328",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb",
+      "target": "ref_node_fs",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb",
+      "target": "ref_node_path",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb",
+      "target": "ref_node_url",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb",
+      "target": "scripts_validate_kb_here",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb",
+      "target": "scripts_validate_kb_required",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb",
+      "target": "scripts_validate_kb_severity",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb",
+      "target": "scripts_validate_kb_states",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb",
+      "target": "scripts_validate_kb_confidence",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb",
+      "target": "scripts_validate_kb_object",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb",
+      "target": "scripts_validate_kb_text",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb",
+      "target": "scripts_validate_kb_label",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb",
+      "target": "scripts_validate_kb_timestamp",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb",
+      "target": "scripts_validate_kb_pair",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb",
+      "target": "scripts_validate_kb_fingerprint",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb",
+      "target": "scripts_validate_kb_validateknowledgebase",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb",
+      "target": "scripts_validate_kb_runcli",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L87",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb_timestamp",
+      "target": "scripts_validate_kb_text",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb_validateknowledgebase",
+      "target": "scripts_validate_kb_object",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb_validateknowledgebase",
+      "target": "scripts_validate_kb_text",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb_validateknowledgebase",
+      "target": "scripts_validate_kb_label",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L38",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb_validateknowledgebase",
+      "target": "scripts_validate_kb_timestamp",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb_validateknowledgebase",
+      "target": "scripts_validate_kb_pair",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb_validateknowledgebase",
+      "target": "scripts_validate_kb_fingerprint",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb_runcli",
+      "target": "scripts_validate_kb_validateknowledgebase",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L93",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_createemptykb",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_readjson",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_writejson",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_getsessioncode",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L100",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_loadlocalkb",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L110",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_refreshheader",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L114",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_setview",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L127",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_rendersuggestions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L134",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_sourcedrugpool",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_lookslikeparsedtextfragment",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L149",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_suggestsourcedrugs",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L158",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_selecteddrugfordose",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L178",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_renderdosesuggestions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L185",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_rendermedications",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L199",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_checknow",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L216",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_updateresultsummary",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L224",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_renderalerts",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L232",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_recordalertaction",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L273",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_persistalertaction",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L287",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_canceloverride",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L299",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_recordshownalerts",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L306",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_renderreviewlist",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L322",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_selectedrecord",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L340",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_renderreviewdetail",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L344",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_savereview",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L364",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_activaterevision",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L386",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_persistkb",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L408",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_adddrugtokb",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L414",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_mergedrugintokb",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L430",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_interactionmergekey",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L457",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_mergeparsedreport",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L464",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_uploadreports",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L518",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_addinteraction",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L549",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_renderaudit",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L581",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_exportaudit",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L596",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_currentresultsexport",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L607",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_exportresults",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L621",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app",
+      "target": "src_app_escapehtml",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L631",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_loadlocalkb",
+      "target": "src_app_readjson",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_refreshheader",
+      "target": "src_app_updateresultsummary",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_setview",
+      "target": "src_app_renderaudit",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L130",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_setview",
+      "target": "src_app_renderreviewlist",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_rendersuggestions",
+      "target": "src_app_suggestsourcedrugs",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_rendersuggestions",
+      "target": "src_app_escapehtml",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L137",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_sourcedrugpool",
+      "target": "src_app_lookslikeparsedtextfragment",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L145",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_suggestsourcedrugs",
+      "target": "src_app_sourcedrugpool",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L160",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_renderdosesuggestions",
+      "target": "src_app_selecteddrugfordose",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L186",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_renderdosesuggestions",
+      "target": "src_app_escapehtml",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L190",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_rendermedications",
+      "target": "src_app_escapehtml",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L208",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_checknow",
+      "target": "src_app_renderalerts",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L219",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_checknow",
+      "target": "src_app_recordshownalerts",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L220",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_checknow",
+      "target": "src_app_updateresultsummary",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_renderalerts",
+      "target": "src_app_escapehtml",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L252",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_recordalertaction",
+      "target": "src_app_persistalertaction",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L284",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_persistalertaction",
+      "target": "src_app_readjson",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L288",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_persistalertaction",
+      "target": "src_app_writejson",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L295",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_persistalertaction",
+      "target": "src_app_renderaudit",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L296",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_recordshownalerts",
+      "target": "src_app_readjson",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L308",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_recordshownalerts",
+      "target": "src_app_writejson",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L318",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_recordshownalerts",
+      "target": "src_app_renderaudit",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L319",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_renderreviewlist",
+      "target": "src_app_escapehtml",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L331",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_renderreviewlist",
+      "target": "src_app_renderreviewdetail",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L337",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_renderreviewdetail",
+      "target": "src_app_selectedrecord",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L345",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_savereview",
+      "target": "src_app_selectedrecord",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L365",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_savereview",
+      "target": "src_app_persistkb",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L381",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_savereview",
+      "target": "src_app_renderreviewlist",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L382",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_savereview",
+      "target": "src_app_checknow",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L383",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_activaterevision",
+      "target": "src_app_persistkb",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L390",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_activaterevision",
+      "target": "src_app_refreshheader",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L403",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_activaterevision",
+      "target": "src_app_renderreviewlist",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L404",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_activaterevision",
+      "target": "src_app_checknow",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L405",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_persistkb",
+      "target": "src_app_writejson",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L409",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_persistkb",
+      "target": "src_app_refreshheader",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L411",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_mergeparsedreport",
+      "target": "src_app_mergedrugintokb",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L467",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_mergeparsedreport",
+      "target": "src_app_interactionmergekey",
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "source_file": "src/app.js",
+      "source_location": "L471",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_mergeparsedreport",
+      "target": "src_app_interactionmergekey",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L492",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_uploadreports",
+      "target": "src_app_mergeparsedreport",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L532",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_uploadreports",
+      "target": "src_app_persistkb",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L538",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_uploadreports",
+      "target": "src_app_rendersuggestions",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L539",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_uploadreports",
+      "target": "src_app_renderdosesuggestions",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L540",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_uploadreports",
+      "target": "src_app_renderreviewlist",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L541",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_uploadreports",
+      "target": "src_app_checknow",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L542",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_addinteraction",
+      "target": "src_app_adddrugtokb",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L551",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_addinteraction",
+      "target": "src_app_persistkb",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L577",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_addinteraction",
+      "target": "src_app_renderreviewlist",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L578",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_renderaudit",
+      "target": "src_app_readjson",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L582",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_renderaudit",
+      "target": "src_app_escapehtml",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L589",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_exportaudit",
+      "target": "src_app_readjson",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L597",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_currentresultsexport",
+      "target": "src_app_readjson",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L608",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_exportresults",
+      "target": "src_app_currentresultsexport",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app.js",
+      "source_location": "L622",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_normalizename",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_normalizeid",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_pairkey",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_severityrank",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_slugify",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L51",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_hashstring",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_cleanreportline",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_isreportnoiseline",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_reportdrugidfor",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L89",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_getorcreateparseddrug",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L93",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_adddosesuggestions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L116",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_extractdosesuggestions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L128",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_createparsedinteraction",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L132",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_parsereporttext",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L147",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_createemptyindex",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L172",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_addidentitycandidate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L182",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_isinteractioneligible",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L189",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_buildindex",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L195",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_resolvedrug",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L241",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_suggestdrugs",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L268",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_tomedication",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L289",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_assignmedicationinstanceids",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L299",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_checkinteractions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L316",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine",
+      "target": "src_ddi_engine_createauditentry",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L384",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_pairkey",
+      "target": "src_ddi_engine_normalizeid",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_reportdrugidfor",
+      "target": "src_ddi_engine_slugify",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_reportdrugidfor",
+      "target": "src_ddi_engine_normalizename",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_getorcreateparseddrug",
+      "target": "src_ddi_engine_normalizename",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L94",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_getorcreateparseddrug",
+      "target": "src_ddi_engine_reportdrugidfor",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_getorcreateparseddrug",
+      "target": "src_ddi_engine_cleanreportline",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L110",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_adddosesuggestions",
+      "target": "src_ddi_engine_cleanreportline",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L120",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_createparsedinteraction",
+      "target": "src_ddi_engine_hashstring",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_parsereporttext",
+      "target": "src_ddi_engine_getorcreateparseddrug",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L152",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_parsereporttext",
+      "target": "src_ddi_engine_adddosesuggestions",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L157",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_parsereporttext",
+      "target": "src_ddi_engine_createparsedinteraction",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L160",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_addidentitycandidate",
+      "target": "src_ddi_engine_normalizename",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_addidentitycandidate",
+      "target": "src_ddi_engine_normalizeid",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_buildindex",
+      "target": "src_ddi_engine_createemptyindex",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L196",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_buildindex",
+      "target": "src_ddi_engine_normalizeid",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L202",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_buildindex",
+      "target": "src_ddi_engine_addidentitycandidate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L203",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_buildindex",
+      "target": "src_ddi_engine_isinteractioneligible",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L227",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_buildindex",
+      "target": "src_ddi_engine_pairkey",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L229",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_buildindex",
+      "target": "src_ddi_engine_severityrank",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L235",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_resolvedrug",
+      "target": "src_ddi_engine_normalizename",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L243",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_resolvedrug",
+      "target": "src_ddi_engine_normalizeid",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L248",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_suggestdrugs",
+      "target": "src_ddi_engine_buildindex",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L269",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_suggestdrugs",
+      "target": "src_ddi_engine_normalizename",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L270",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_assignmedicationinstanceids",
+      "target": "src_ddi_engine_hashstring",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L305",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_checkinteractions",
+      "target": "src_ddi_engine_buildindex",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L317",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_checkinteractions",
+      "target": "src_ddi_engine_assignmedicationinstanceids",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L318",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_checkinteractions",
+      "target": "src_ddi_engine_tomedication",
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L319",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_checkinteractions",
+      "target": "src_ddi_engine_resolvedrug",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L321",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_checkinteractions",
+      "target": "src_ddi_engine_normalizename",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L324",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_checkinteractions",
+      "target": "src_ddi_engine_pairkey",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L336",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_checkinteractions",
+      "target": "src_ddi_engine_severityrank",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L366",
+      "weight": 1.0
+    },
+    {
+      "source": "src_kb_persistence",
+      "target": "src_kb_persistence_reviewchanges",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/kb-persistence.js",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "src_kb_persistence",
+      "target": "src_kb_persistence_createrevision",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/kb-persistence.js",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "src_kb_persistence",
+      "target": "src_kb_persistence_revisionfromlegacy",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/kb-persistence.js",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "src_kb_persistence",
+      "target": "src_kb_persistence_rebase",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/kb-persistence.js",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "src_kb_persistence_createrevision",
+      "target": "src_kb_persistence_reviewchanges",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/kb-persistence.js",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "src_kb_persistence_revisionfromlegacy",
+      "target": "src_kb_persistence_createrevision",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/kb-persistence.js",
+      "source_location": "L51",
+      "weight": 1.0
+    },
+    {
+      "source": "src_kb_persistence_rebase",
+      "target": "src_kb_persistence_revisionfromlegacy",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/kb-persistence.js",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "src_kb_persistence_rebase",
+      "target": "src_kb_persistence_createrevision",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/kb-persistence.js",
+      "source_location": "L94",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser",
+      "target": "src_report_parser_cleanline",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser",
+      "target": "src_report_parser_isnoiseline",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser",
+      "target": "src_report_parser_normalizedrugname",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser",
+      "target": "src_report_parser_sourcestem",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser",
+      "target": "src_report_parser_parseheader",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser",
+      "target": "src_report_parser_extractdosesuggestions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser",
+      "target": "src_report_parser_collectsections",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser",
+      "target": "src_report_parser_lookslikedrugheading",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser",
+      "target": "src_report_parser_splitblocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser",
+      "target": "src_report_parser_extractlistdrugs",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser",
+      "target": "src_report_parser_parsebullet",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L114",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser",
+      "target": "src_report_parser_infermechanism",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser",
+      "target": "src_report_parser_inferrecommendation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L137",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser",
+      "target": "src_report_parser_infermonitoring",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L149",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser",
+      "target": "src_report_parser_makeinteraction",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L160",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser",
+      "target": "src_report_parser_parsereport",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L165",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_parseheader",
+      "target": "src_report_parser_sourcestem",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_parseheader",
+      "target": "src_report_parser_cleanline",
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_parseheader",
+      "target": "src_report_parser_isnoiseline",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_parseheader",
+      "target": "src_report_parser_normalizedrugname",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_parseheader",
+      "target": "src_report_parser_cleanline",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_extractdosesuggestions",
+      "target": "src_report_parser_cleanline",
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_extractdosesuggestions",
+      "target": "src_report_parser_cleanline",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_extractdosesuggestions",
+      "target": "src_report_parser_isnoiseline",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_collectsections",
+      "target": "src_report_parser_cleanline",
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_collectsections",
+      "target": "src_report_parser_isnoiseline",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L78",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_lookslikedrugheading",
+      "target": "src_report_parser_cleanline",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L89",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_splitblocks",
+      "target": "src_report_parser_lookslikedrugheading",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L100",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_extractlistdrugs",
+      "target": "src_report_parser_lookslikedrugheading",
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_extractlistdrugs",
+      "target": "src_report_parser_normalizedrugname",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_parsebullet",
+      "target": "src_report_parser_extractlistdrugs",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L120",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_parsebullet",
+      "target": "src_report_parser_normalizedrugname",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L121",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_makeinteraction",
+      "target": "src_report_parser_infermechanism",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_makeinteraction",
+      "target": "src_report_parser_inferrecommendation",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_makeinteraction",
+      "target": "src_report_parser_infermonitoring",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_parsereport",
+      "target": "src_report_parser_parseheader",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L167",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_parsereport",
+      "target": "src_report_parser_extractdosesuggestions",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L168",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_parsereport",
+      "target": "src_report_parser_collectsections",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L171",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_parsereport",
+      "target": "src_report_parser_makeinteraction",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L175",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_parsereport",
+      "target": "src_report_parser_splitblocks",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L178",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_parsereport",
+      "target": "src_report_parser_parsebullet",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L179",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_parsereport",
+      "target": "src_report_parser_lookslikedrugheading",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L182",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_parsereport",
+      "target": "src_report_parser_normalizedrugname",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L182",
+      "weight": 1.0
+    },
+    {
+      "source": "src_report_parser_parsereport",
+      "target": "src_report_parser_sourcestem",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/report-parser.js",
+      "source_location": "L188",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ddi_engine_test",
+      "target": "ref_node_test",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ddi-engine.test.mjs",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ddi_engine_test",
+      "target": "ref_node_assert_strict",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ddi-engine.test.mjs",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ddi_engine_test",
+      "target": "ref_node_module",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ddi-engine.test.mjs",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ddi_engine_test",
+      "target": "test_ddi_engine_test_require",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ddi-engine.test.mjs",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ddi_engine_test",
+      "target": "src_ddi_engine",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ddi-engine.test.mjs",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ddi_engine_test",
+      "target": "test_ddi_engine_test_engine",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ddi-engine.test.mjs",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ddi_engine_test",
+      "target": "test_ddi_engine_test_fixturekb",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ddi-engine.test.mjs",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ingest_test",
+      "target": "ref_node_test",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ingest.test.mjs",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ingest_test",
+      "target": "ref_node_assert_strict",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ingest.test.mjs",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ingest_test",
+      "target": "ref_node_fs",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ingest.test.mjs",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ingest_test",
+      "target": "ref_node_os",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ingest.test.mjs",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ingest_test",
+      "target": "ref_node_path",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ingest.test.mjs",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ingest_test",
+      "target": "scripts_ingest",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ingest.test.mjs",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ingest_test",
+      "target": "scripts_ingest_buildknowledgebase",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ingest.test.mjs",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ingest_test",
+      "target": "scripts_ingest_extractdosesuggestions",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ingest.test.mjs",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ingest_test",
+      "target": "scripts_ingest_parsereport",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ingest.test.mjs",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ingest_test",
+      "target": "scripts_ingest_validatedrugidentities",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ingest.test.mjs",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "test_kb_persistence_test",
+      "target": "ref_node_test",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/kb-persistence.test.mjs",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "test_kb_persistence_test",
+      "target": "ref_node_assert_strict",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/kb-persistence.test.mjs",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "test_kb_persistence_test",
+      "target": "ref_node_module",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/kb-persistence.test.mjs",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "test_kb_persistence_test",
+      "target": "test_kb_persistence_test_require",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/kb-persistence.test.mjs",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "test_kb_persistence_test",
+      "target": "src_kb_persistence",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/kb-persistence.test.mjs",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "test_kb_persistence_test",
+      "target": "test_kb_persistence_test_persistence",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/kb-persistence.test.mjs",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "test_kb_persistence_test",
+      "target": "test_kb_persistence_test_record",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/kb-persistence.test.mjs",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "test_kb_persistence_test",
+      "target": "test_kb_persistence_test_kb",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/kb-persistence.test.mjs",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "test_report_parser_parity_test",
+      "target": "ref_node_test",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/report-parser-parity.test.mjs",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "test_report_parser_parity_test",
+      "target": "ref_node_assert_strict",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/report-parser-parity.test.mjs",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "test_report_parser_parity_test",
+      "target": "ref_node_fs",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/report-parser-parity.test.mjs",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "test_report_parser_parity_test",
+      "target": "ref_node_path",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/report-parser-parity.test.mjs",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "test_report_parser_parity_test",
+      "target": "ref_node_url",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/report-parser-parity.test.mjs",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "test_report_parser_parity_test",
+      "target": "ref_node_module",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/report-parser-parity.test.mjs",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "test_report_parser_parity_test",
+      "target": "scripts_ingest",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/report-parser-parity.test.mjs",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "test_report_parser_parity_test",
+      "target": "scripts_ingest_parsereport",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/report-parser-parity.test.mjs",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "test_report_parser_parity_test",
+      "target": "test_report_parser_parity_test_require",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/report-parser-parity.test.mjs",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "test_report_parser_parity_test",
+      "target": "src_ddi_engine",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/report-parser-parity.test.mjs",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "test_report_parser_parity_test",
+      "target": "test_report_parser_parity_test_engine",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/report-parser-parity.test.mjs",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "test_report_parser_parity_test",
+      "target": "test_report_parser_parity_test_fixturedir",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/report-parser-parity.test.mjs",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "test_report_parser_parity_test",
+      "target": "test_report_parser_parity_test_normalize",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/report-parser-parity.test.mjs",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ui_source_test",
+      "target": "ref_node_test",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ui-source.test.mjs",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ui_source_test",
+      "target": "ref_node_assert_strict",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ui-source.test.mjs",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ui_source_test",
+      "target": "ref_node_fs",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ui-source.test.mjs",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ui_source_test",
+      "target": "ref_node_path",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ui-source.test.mjs",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ui_source_test",
+      "target": "ref_node_url",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ui-source.test.mjs",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ui_source_test",
+      "target": "test_ui_source_test_filename",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ui-source.test.mjs",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ui_source_test",
+      "target": "test_ui_source_test_dirname",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ui-source.test.mjs",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "test_ui_source_test",
+      "target": "test_ui_source_test_projectroot",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/ui-source.test.mjs",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "test_validate_kb_test",
+      "target": "ref_node_assert_strict",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/validate-kb.test.mjs",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "test_validate_kb_test",
+      "target": "ref_node_fs",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/validate-kb.test.mjs",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "test_validate_kb_test",
+      "target": "ref_node_path",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/validate-kb.test.mjs",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "test_validate_kb_test",
+      "target": "ref_node_test",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/validate-kb.test.mjs",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "test_validate_kb_test",
+      "target": "ref_node_url",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/validate-kb.test.mjs",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "test_validate_kb_test",
+      "target": "scripts_validate_kb",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/validate-kb.test.mjs",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "test_validate_kb_test",
+      "target": "scripts_validate_kb_validateknowledgebase",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "test/validate-kb.test.mjs",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "test_validate_kb_test",
+      "target": "test_validate_kb_test_dir",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/validate-kb.test.mjs",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "test_validate_kb_test",
+      "target": "test_validate_kb_test_fixture",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/validate-kb.test.mjs",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "test_validate_kb_test",
+      "target": "test_validate_kb_test_clone",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test/validate-kb.test.mjs",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "readme",
+      "target": "readme_drug_drug_interaction_checker",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_drug_drug_interaction_checker",
+      "target": "readme_run",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_drug_drug_interaction_checker",
+      "target": "readme_module_shape",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_drug_drug_interaction_checker",
+      "target": "readme_medication_identity_resolution",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_drug_drug_interaction_checker",
+      "target": "readme_upload_new_drug_txt",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_drug_drug_interaction_checker",
+      "target": "readme_local_kb_upgrades_and_conflicts",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_drug_drug_interaction_checker",
+      "target": "readme_session_results_export",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_drug_drug_interaction_checker",
+      "target": "readme_production_notes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "readme_drug_drug_interaction_checker",
+      "target": "readme_knowledge_base_validation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L82",
+      "weight": 1.0
+    },
+    {
+      "source": "graphs_architecture",
+      "target": "graphs_architecture_knowledge_base_revision_identity",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "graphs/architecture.md",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "graphs_architecture",
+      "target": "graphs_architecture_ddi_checker_1_1_0_architecture_data_flow",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "graphs/architecture.md",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "graphs_architecture_ddi_checker_1_1_0_architecture_data_flow",
+      "target": "graphs_architecture_1_module_dependency_layering",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "graphs/architecture.md",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "graphs_architecture_ddi_checker_1_1_0_architecture_data_flow",
+      "target": "graphs_architecture_2_runtime_data_flow_the_four_layers_described_in_the_readme",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "graphs/architecture.md",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "graphs_architecture_ddi_checker_1_1_0_architecture_data_flow",
+      "target": "graphs_architecture_key_relationships_the_diagrams_capture",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "graphs/architecture.md",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "graphs_architecture_ddi_checker_1_1_0_architecture_data_flow",
+      "target": "graphs_architecture_potential_follow_ups_worth_a_look",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "graphs/architecture.md",
+      "source_location": "L125",
+      "weight": 1.0
+    },
+    {
+      "source": "graphs_architecture_ddi_checker_1_1_0_architecture_data_flow",
+      "target": "graphs_architecture_version_aware_local_kb_persistence",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "graphs/architecture.md",
+      "source_location": "L130",
+      "weight": 1.0
+    },
+    {
+      "source": "graphs_architecture_ddi_checker_1_1_0_architecture_data_flow",
+      "target": "graphs_architecture_kb_validation_gate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "graphs/architecture.md",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_validatedrugidentities",
+      "target": "scripts_validate_kb_label",
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L270",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_checknow",
+      "target": "test_kb_persistence_test_kb",
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/app.js",
+      "source_location": "L217",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_persistkb",
+      "target": "test_kb_persistence_test_kb",
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/app.js",
+      "source_location": "L409",
+      "weight": 1.0
+    },
+    {
+      "source": "src_app_currentresultsexport",
+      "target": "test_kb_persistence_test_kb",
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/app.js",
+      "source_location": "L609",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_buildindex",
+      "target": "scripts_validate_kb_label",
+      "relation": "indirect_call",
+      "context": "collection",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L212",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_assignmedicationinstanceids",
+      "target": "scripts_validate_kb_fingerprint",
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L306",
+      "weight": 1.0
+    },
+    {
+      "source": "src_ddi_engine_checkinteractions",
+      "target": "test_kb_persistence_test_record",
+      "relation": "indirect_call",
+      "context": "collection",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/ddi-engine.js",
+      "source_location": "L359",
+      "weight": 1.0
+    },
+    {
+      "source": "src_kb_persistence_createrevision",
+      "target": "test_kb_persistence_test_record",
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/kb-persistence.js",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_ingest_drugidfor",
+      "target": "scripts_ingest_rxnorm_seed",
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts/ingest.mjs",
+      "source_location": "L128",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb_validateknowledgebase",
+      "target": "scripts_validate_kb_severity",
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb_validateknowledgebase",
+      "target": "scripts_validate_kb_states",
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_validate_kb_validateknowledgebase",
+      "target": "scripts_validate_kb_confidence",
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "scripts/validate-kb.mjs",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "index.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "index_drug_drug_interaction_checker_ui",
+      "target": "index_active_kb_script"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "index.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "index_drug_drug_interaction_checker_ui",
+      "target": "index_admin_review_workspace"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "index.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "index_drug_drug_interaction_checker_ui",
+      "target": "index_app_script"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "index.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "index_drug_drug_interaction_checker_ui",
+      "target": "index_audit_log_view"
+    },
+    {
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "index.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "index_drug_drug_interaction_checker_ui",
+      "target": "index_checker_view"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "index.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "index_drug_drug_interaction_checker_ui",
+      "target": "index_ddi_engine_script"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "index.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "index_drug_drug_interaction_checker_ui",
+      "target": "index_kb_persistence_script"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "index.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "index_drug_drug_interaction_checker_ui",
+      "target": "index_report_parser_script"
+    },
+    {
+      "relation": "shares_data_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "index.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "index_audit_log_view",
+      "target": "index_override_dialog"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "test/fixtures/reports/compact-list.txt",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "test_fixtures_reports_compact_list_quetiapine",
+      "target": "test_fixtures_reports_compact_list_cns_depressants"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "test/fixtures/reports/compact-list.txt",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "test_fixtures_reports_compact_list_quetiapine",
+      "target": "test_fixtures_reports_compact_list_lefamulin"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "test/fixtures/reports/long-form.txt",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "test_fixtures_reports_long_form_fluoxetine",
+      "target": "test_fixtures_reports_long_form_amitriptyline"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "test/fixtures/reports/long-form.txt",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "test_fixtures_reports_long_form_fluoxetine",
+      "target": "test_fixtures_reports_long_form_pimozide"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "AMBIGUOUS",
+      "confidence_score": 0.2,
+      "source_file": "test/fixtures/reports/malformed.txt",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "test_fixtures_reports_malformed_invalid_heading_candidate",
+      "target": "test_fixtures_reports_malformed_mysterydrug"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "test/fixtures/reports/malformed.txt",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "test_fixtures_reports_malformed_mysterydrug",
+      "target": "test_fixtures_reports_malformed_validdrug"
+    }
+  ]
+}

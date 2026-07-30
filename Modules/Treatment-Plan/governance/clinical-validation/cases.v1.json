@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "pending_clinician_authorship",
+  "protocol": {
+    "evidenceRef": "",
+    "maxUnsafeOmissionRate": 0,
+    "maxUnsafeCommissionRate": 0,
+    "minConcordance": 1,
+    "maxAlertsPerCase": 0,
+    "minTaskCompletionRate": 1,
+    "maxUseErrorRate": 0,
+    "maxBrierScore": null
+  },
+  "cases": []
+}

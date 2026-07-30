@@ -1,0 +1,49 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "INSIGHT Diagnosis API",
+    "version": "2.0.0",
+    "description": "Encounter-bound schizophrenia diagnosis assessment decision support. Computed evaluation remains separate from explicit psychiatrist decision."
+  },
+  "paths": {
+    "/api/diagnosis/v2/contract": {"get": {"responses": {"200": {"description": "Contract discovery"}}}},
+    "/api/diagnosis/v2/openapi.json": {"get": {"responses": {"200": {"description": "OpenAPI contract"}}}},
+    "/api/diagnosis/v2/diagnosis-assessment-v2.schema.json": {"get": {"responses": {"200": {"description": "JSON Schema"}}}},
+    "/api/diagnosis/v2/assessments": {
+      "post": {
+        "parameters": [
+          {"$ref": "#/components/parameters/SchemaVersion"},
+          {"$ref": "#/components/parameters/IdempotencyKey"}
+        ],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "diagnosis-assessment-v2.schema.json#/$defs/assessmentInitRequest"}}}},
+        "responses": {"201": {"description": "Initialized assessment", "headers": {"ETag": {"schema": {"type": "string"}}}, "content": {"application/json": {"schema": {"$ref": "diagnosis-assessment-v2.schema.json#/$defs/assessment"}}}}}
+      }
+    },
+    "/api/diagnosis/v2/assessments/{assessmentId}": {
+      "parameters": [{"$ref": "#/components/parameters/AssessmentId"}],
+      "get": {"responses": {"200": {"description": "Assessment", "content": {"application/json": {"schema": {"$ref": "diagnosis-assessment-v2.schema.json#/$defs/assessment"}}}}}},
+      "put": {
+        "parameters": [{"$ref": "#/components/parameters/SchemaVersion"}, {"$ref": "#/components/parameters/IfMatch"}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "diagnosis-assessment-v2.schema.json#/$defs/assessmentUpdateRequest"}}}},
+        "responses": {"200": {"description": "Updated assessment", "content": {"application/json": {"schema": {"$ref": "diagnosis-assessment-v2.schema.json#/$defs/assessment"}}}}, "412": {"description": "Stale write"}}
+      }
+    },
+    "/api/diagnosis/v2/assessments/{assessmentId}/audit": {
+      "parameters": [{"$ref": "#/components/parameters/AssessmentId"}],
+      "get": {"responses": {"200": {"description": "Chronological audit trail", "content": {"application/json": {"schema": {"$ref": "diagnosis-assessment-v2.schema.json#/$defs/auditTrail"}}}}}}
+    },
+    "/api/diagnosis/v2/encounters/{encounterId}/assessment-snapshot": {
+      "parameters": [{"$ref": "#/components/parameters/EncounterId"}],
+      "get": {"responses": {"200": {"description": "Versioned encounter-bound assessment snapshot", "content": {"application/json": {"schema": {"$ref": "diagnosis-assessment-v2.schema.json#/$defs/assessment"}}}}}}
+    }
+  },
+  "components": {
+    "parameters": {
+      "AssessmentId": {"name": "assessmentId", "in": "path", "required": true, "schema": {"type": "string", "format": "uuid"}},
+      "EncounterId": {"name": "encounterId", "in": "path", "required": true, "schema": {"type": "string", "format": "uuid"}},
+      "SchemaVersion": {"name": "X-Schema-Version", "in": "header", "required": true, "schema": {"const": "2.0.0"}},
+      "IdempotencyKey": {"name": "Idempotency-Key", "in": "header", "required": true, "schema": {"type": "string", "minLength": 16, "maxLength": 128}},
+      "IfMatch": {"name": "If-Match", "in": "header", "required": true, "schema": {"type": "string"}}
+    }
+  }
+}

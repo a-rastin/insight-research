@@ -1,0 +1,85 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Medical History</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace" aria-labelledby="module-title">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Internal clinical module</p>
+            <h1 id="module-title">Medical History</h1>
+          </div>
+          <div class="status-pill" id="status-pill">Waiting</div>
+        </header>
+
+        <section class="activation-panel" id="activation-panel">
+          <div>
+            <h2>Activation code</h2>
+            <p>This standalone mode lets another module, or a local tester, activate Medical History with a 6-character code.</p>
+          </div>
+          <form class="activation-form" id="activation-form">
+            <label for="activation-code">Code</label>
+            <div class="activation-row">
+              <input id="activation-code" name="code" type="text" maxlength="6" autocomplete="off" placeholder="A1B2C3" required>
+              <button type="submit">Activate</button>
+            </div>
+          </form>
+        </section>
+
+        <form class="history-form hidden" id="history-form">
+          <input type="hidden" id="active-code">
+
+          <div class="form-grid">
+            <section class="field-block">
+              <div class="section-heading">
+                <h2>Past medical history</h2>
+                <span>Select multiple</span>
+              </div>
+              <label for="past-medical-history">Relevant diseases</label>
+              <select id="past-medical-history" multiple size="8"></select>
+            </section>
+
+            <section class="field-block">
+              <div class="section-heading">
+                <h2>Patient's drugs</h2>
+                <button class="secondary" id="add-medication" type="button">Add drug</button>
+              </div>
+              <div class="medication-list" id="medication-list"></div>
+            </section>
+          </div>
+
+          <section class="field-block clinical-questions">
+            <h2>Clinical questions</h2>
+            <fieldset class="yes-no"><legend>Substantial suicide risk?</legend><label><input type="radio" name="substantial-suicide-risk" value="yes"> Yes</label><label><input type="radio" name="substantial-suicide-risk" value="no" checked> No</label></fieldset>
+            <fieldset class="yes-no"><legend>Prior antipsychotic therapy?</legend><label><input type="radio" name="prior-antipsychotic-therapy" value="yes"> Yes</label><label><input type="radio" name="prior-antipsychotic-therapy" value="no" checked> No</label></fieldset>
+            <div class="conditional hidden" id="antipsychotic-details"><fieldset class="yes-no"><legend>Was the therapy successful?</legend><label><input type="radio" name="antipsychotic-successful" value="yes"> Yes</label><label><input type="radio" name="antipsychotic-successful" value="no" checked> No</label></fieldset><label for="antipsychotic">Which antipsychotic?</label><select id="antipsychotic"><option value="">Select an antipsychotic</option></select></div>
+            <fieldset class="yes-no"><legend>Any contraindication to clozapine?</legend><label><input type="radio" name="clozapine-contraindication" value="yes"> Yes</label><label><input type="radio" name="clozapine-contraindication" value="no" checked> No</label></fieldset>
+            <fieldset class="conditional hidden checkbox-list" id="clozapine-contraindications"><legend>Select all contraindications that apply</legend></fieldset>
+            <fieldset class="yes-no"><legend>Recurrent non-adherence-related deterioration?</legend><label><input type="radio" name="recurrent-non-adherence-deterioration" value="yes"> Yes</label><label><input type="radio" name="recurrent-non-adherence-deterioration" value="no" checked> No</label></fieldset>
+          </section>
+          <footer class="action-bar">
+            <button class="ghost" id="back-dashboard" type="button">Back to dashboard</button>
+            <button class="primary" type="submit">Submit</button>
+          </footer>
+        </form>
+
+        <section class="result-panel hidden" id="result-panel">
+          <h2>Medical history saved</h2>
+          <p id="result-summary"></p>
+          <div class="result-actions">
+            <button class="ghost" id="result-dashboard" type="button">Back to dashboard</button>
+            <button class="secondary" id="new-entry" type="button">New entry</button>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
+

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "open",
+  "hazards": [
+    {
+      "hazardId": "HZ-TP-001",
+      "unsafeCondition": "A clinically required action is omitted from a proposed or final plan.",
+      "severity": "critical",
+      "status": "open",
+      "mitigations": [{"mitigationId": "MIT-TP-001", "description": "Fresh deterministic safety recomputation blocks finalization.", "testRefs": ["tests/test_tp16_finalization.py"]}]
+    },
+    {
+      "hazardId": "HZ-TP-002",
+      "unsafeCondition": "A contraindicated or otherwise unsafe action is commissioned.",
+      "severity": "critical",
+      "status": "open",
+      "mitigations": [{"mitigationId": "MIT-TP-002", "description": "Safety and DDI findings fail closed and are bound to the reviewed plan.", "testRefs": ["tests/test_tp11_safety_policy.py", "tests/test_tp13_ddi_hash_binding.py"]}]
+    },
+    {
+      "hazardId": "HZ-TP-003",
+      "unsafeCondition": "Missing or unresolved source data is hidden from the reviewing clinician.",
+      "severity": "major",
+      "status": "open",
+      "mitigations": [{"mitigationId": "MIT-TP-003", "description": "Eligibility and synthesis preserve unresolved-data explanations.", "testRefs": ["tests/test_tp09_eligibility.py", "tests/test_tp13_ddi_unresolved.py"]}]
+    },
+    {
+      "hazardId": "HZ-TP-004",
+      "unsafeCondition": "An override is unattributed, unauthorized, or applied to a non-overridable blocker.",
+      "severity": "critical",
+      "status": "open",
+      "mitigations": [{"mitigationId": "MIT-TP-004", "description": "Override workflows require an authenticated actor, rationale, and immutable provenance.", "testRefs": ["tests/test_tp17_finalization_versioning.py"]}]
+    },
+    {
+      "hazardId": "HZ-TP-005",
+      "unsafeCondition": "Excessive or poorly prioritized alerts cause alert fatigue or use error.",
+      "severity": "major",
+      "status": "open",
+      "mitigations": [{"mitigationId": "MIT-TP-005", "description": "Clinical validation measures alert burden and human-factors outcomes against an approved protocol.", "testRefs": ["tests/test_tp21_clinical_validation.py"]}]
+    },
+    {
+      "hazardId": "HZ-TP-006",
+      "unsafeCondition": "A failed migration or container recovery exposes a partially available clinical workflow.",
+      "severity": "major",
+      "status": "open",
+      "mitigations": [{"mitigationId": "MIT-TP-006", "description": "Deployment verification gates readiness on migrations and restart recovery.", "testRefs": ["tests/test_tp22_deployment.py"]}]
+    }
+  ]
+}

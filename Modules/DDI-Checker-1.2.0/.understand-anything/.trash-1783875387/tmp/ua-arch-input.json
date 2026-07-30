@@ -1,0 +1,253 @@
+{
+    "fileNodes":  [
+                      {
+                          "id":  "file:.understand-anything/.understandignore",
+                          "type":  "file",
+                          "name":  ".understandignore",
+                          "filePath":  ".understand-anything/.understandignore",
+                          "summary":  "Controls which project paths the Understand analyzer excludes from codebase discovery and graph generation.",
+                          "tags":  [
+                                       "configuration",
+                                       "analysis",
+                                       "ignore-rules"
+                                   ]
+                      },
+                      {
+                          "id":  "config:.understand-anything/config.json",
+                          "type":  "config",
+                          "name":  "config.json",
+                          "filePath":  ".understand-anything/config.json",
+                          "summary":  "Stores the Understand analyzer output-language preference for this project.",
+                          "tags":  [
+                                       "configuration",
+                                       "analysis",
+                                       "localization"
+                                   ]
+                      },
+                      {
+                          "id":  "file:data/active-kb.js",
+                          "type":  "file",
+                          "name":  "active-kb.js",
+                          "filePath":  "data/active-kb.js",
+                          "summary":  "Generated browser-ready JavaScript artifact containing the active drug-interaction knowledge base for direct loading by the dashboard.",
+                          "tags":  [
+                                       "generated-data",
+                                       "knowledge-base",
+                                       "browser-runtime",
+                                       "drug-interactions"
+                                   ]
+                      },
+                      {
+                          "id":  "config:data/active-kb.json",
+                          "type":  "config",
+                          "name":  "active-kb.json",
+                          "filePath":  "data/active-kb.json",
+                          "summary":  "Canonical active knowledge-base dataset containing normalized drugs, interaction evidence, reports, clinical-use metadata, and audit schema.",
+                          "tags":  [
+                                       "knowledge-base",
+                                       "drug-interactions",
+                                       "clinical-data",
+                                       "generated-data"
+                                   ]
+                      },
+                      {
+                          "id":  "file:scripts/ingest.mjs",
+                          "type":  "file",
+                          "name":  "ingest.mjs",
+                          "filePath":  "scripts/ingest.mjs",
+                          "summary":  "Ingests source drug reports, normalizes drug identities and dose hints, extracts interaction records, and builds versioned browser and JSON knowledge-base artifacts.",
+                          "tags":  [
+                                       "data-pipeline",
+                                       "parsing",
+                                       "normalization",
+                                       "knowledge-base",
+                                       "validation",
+                                       "tested"
+                                   ]
+                      },
+                      {
+                          "id":  "file:scripts/validate-kb.mjs",
+                          "type":  "file",
+                          "name":  "validate-kb.mjs",
+                          "filePath":  "scripts/validate-kb.mjs",
+                          "summary":  "Validates required interaction fields, severity values, drug references, and self-interaction constraints in an active knowledge-base JSON file.",
+                          "tags":  [
+                                       "validation",
+                                       "knowledge-base",
+                                       "cli-script",
+                                       "data-integrity"
+                                   ]
+                      },
+                      {
+                          "id":  "file:src/app.js",
+                          "type":  "file",
+                          "name":  "app.js",
+                          "filePath":  "src/app.js",
+                          "summary":  "Coordinates the browser dashboard, local knowledge-base revisions, medication entry, interaction checks, clinical review workflows, report upload, audit history, and exports.",
+                          "tags":  [
+                                       "entry-point",
+                                       "ui-controller",
+                                       "event-handler",
+                                       "local-storage",
+                                       "clinical-workflow",
+                                       "tested"
+                                   ]
+                      },
+                      {
+                          "id":  "file:src/ddi-engine.js",
+                          "type":  "file",
+                          "name":  "ddi-engine.js",
+                          "filePath":  "src/ddi-engine.js",
+                          "summary":  "Provides the environment-neutral drug-interaction engine for report parsing, knowledge-base indexing, drug suggestion and resolution, pair checking, severity ordering, and audit entry creation.",
+                          "tags":  [
+                                       "service",
+                                       "drug-interactions",
+                                       "parsing",
+                                       "indexing",
+                                       "validation",
+                                       "tested"
+                                   ]
+                      },
+                      {
+                          "id":  "file:src/styles.css",
+                          "type":  "file",
+                          "name":  "styles.css",
+                          "filePath":  "src/styles.css",
+                          "summary":  "Defines the responsive visual system for the medication checker dashboard, alerts, review panels, forms, navigation, and administrative views.",
+                          "tags":  [
+                                       "component",
+                                       "responsive-design",
+                                       "dashboard",
+                                       "styling"
+                                   ]
+                      },
+                      {
+                          "id":  "file:test/ddi-engine.test.mjs",
+                          "type":  "file",
+                          "name":  "ddi-engine.test.mjs",
+                          "filePath":  "test/ddi-engine.test.mjs",
+                          "summary":  "Exercises the drug-interaction engine\u0027s normalization, parsing, suggestions, interaction detection, severity behavior, and audit output.",
+                          "tags":  [
+                                       "test",
+                                       "drug-interactions",
+                                       "validation",
+                                       "node-test"
+                                   ]
+                      },
+                      {
+                          "id":  "file:test/ingest.test.mjs",
+                          "type":  "file",
+                          "name":  "ingest.test.mjs",
+                          "filePath":  "test/ingest.test.mjs",
+                          "summary":  "Tests report-ingestion helpers and knowledge-base construction against representative drug and interaction text.",
+                          "tags":  [
+                                       "test",
+                                       "data-pipeline",
+                                       "parsing",
+                                       "node-test"
+                                   ]
+                      },
+                      {
+                          "id":  "file:test/ui-source.test.mjs",
+                          "type":  "file",
+                          "name":  "ui-source.test.mjs",
+                          "filePath":  "test/ui-source.test.mjs",
+                          "summary":  "Performs source-level UI assertions for administrative controls, session/result exports, and safe evidence rendering.",
+                          "tags":  [
+                                       "test",
+                                       "ui",
+                                       "security",
+                                       "source-inspection"
+                                   ]
+                      }
+                  ],
+    "importEdges":  [
+                        {
+                            "source":  "file:test/ddi-engine.test.mjs",
+                            "target":  "file:src/ddi-engine.js",
+                            "type":  "imports",
+                            "direction":  "forward",
+                            "weight":  0.7
+                        },
+                        {
+                            "source":  "file:test/ingest.test.mjs",
+                            "target":  "file:scripts/ingest.mjs",
+                            "type":  "imports",
+                            "direction":  "forward",
+                            "weight":  0.7
+                        }
+                    ],
+    "allEdges":  [
+                     {
+                         "source":  "file:test/ddi-engine.test.mjs",
+                         "target":  "file:src/ddi-engine.js",
+                         "type":  "imports",
+                         "direction":  "forward",
+                         "weight":  0.7
+                     },
+                     {
+                         "source":  "file:test/ingest.test.mjs",
+                         "target":  "file:scripts/ingest.mjs",
+                         "type":  "imports",
+                         "direction":  "forward",
+                         "weight":  0.7
+                     },
+                     {
+                         "source":  "file:src/ddi-engine.js",
+                         "target":  "file:test/ddi-engine.test.mjs",
+                         "type":  "tested_by",
+                         "direction":  "forward",
+                         "weight":  0.5
+                     },
+                     {
+                         "source":  "file:scripts/ingest.mjs",
+                         "target":  "file:test/ingest.test.mjs",
+                         "type":  "tested_by",
+                         "direction":  "forward",
+                         "weight":  0.5
+                     },
+                     {
+                         "source":  "file:src/app.js",
+                         "target":  "file:src/ddi-engine.js",
+                         "type":  "depends_on",
+                         "direction":  "forward",
+                         "weight":  0.6
+                     },
+                     {
+                         "source":  "file:src/app.js",
+                         "target":  "file:data/active-kb.js",
+                         "type":  "depends_on",
+                         "direction":  "forward",
+                         "weight":  0.6
+                     },
+                     {
+                         "source":  "file:scripts/validate-kb.mjs",
+                         "target":  "config:data/active-kb.json",
+                         "type":  "depends_on",
+                         "direction":  "forward",
+                         "weight":  0.6
+                     },
+                     {
+                         "source":  "config:data/active-kb.json",
+                         "target":  "file:data/active-kb.js",
+                         "type":  "related",
+                         "direction":  "forward",
+                         "weight":  0.5
+                     },
+                     {
+                         "source":  "file:src/styles.css",
+                         "target":  "file:src/app.js",
+                         "type":  "related",
+                         "direction":  "forward",
+                         "weight":  0.5
+                     },
+                     {
+                         "source":  "file:src/app.js",
+                         "target":  "file:test/ui-source.test.mjs",
+                         "type":  "tested_by",
+                         "direction":  "forward",
+                         "weight":  0.5,
+                         "description":  "Direction corrected (was test â†’ production)"
+                     }
+                 ]
+}

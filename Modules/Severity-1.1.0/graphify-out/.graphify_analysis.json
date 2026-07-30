@@ -1,0 +1,102 @@
+{
+  "communities": {
+    "0": [
+      "package",
+      "package_author",
+      "package_description",
+      "package_keywords",
+      "package_license",
+      "package_main",
+      "package_name",
+      "package_type",
+      "package_version"
+    ],
+    "1": [
+      "server",
+      "server_app",
+      "server_data_dir",
+      "server_data_file",
+      "server_dirname",
+      "server_filename",
+      "server_readassessments",
+      "server_writeassessments"
+    ],
+    "2": [
+      "express",
+      "package_dependencies",
+      "package_dependencies_express"
+    ],
+    "3": [
+      "package_scripts",
+      "package_scripts_start"
+    ],
+    "4": [
+      "test_api",
+      "test_api_runtests"
+    ]
+  },
+  "cohesion": {
+    "0": 0.2222222222222222,
+    "1": 0.25,
+    "2": 0.6666666666666666,
+    "3": 1.0,
+    "4": 1.0
+  },
+  "gods": [
+    {
+      "id": "package_scripts",
+      "label": "scripts",
+      "degree": 2
+    },
+    {
+      "id": "package_dependencies_express",
+      "label": "express",
+      "degree": 2
+    },
+    {
+      "id": "package_main",
+      "label": "main",
+      "degree": 1
+    },
+    {
+      "id": "express",
+      "label": "express",
+      "degree": 1
+    },
+    {
+      "id": "package_keywords",
+      "label": "keywords",
+      "degree": 1
+    },
+    {
+      "id": "package_author",
+      "label": "author",
+      "degree": 1
+    },
+    {
+      "id": "package_license",
+      "label": "license",
+      "degree": 1
+    },
+    {
+      "id": "server_filename",
+      "label": "__filename",
+      "degree": 1
+    },
+    {
+      "id": "server_dirname",
+      "label": "__dirname",
+      "degree": 1
+    },
+    {
+      "id": "server_app",
+      "label": "app",
+      "degree": 1
+    }
+  ],
+  "surprises": [],
+  "tokens": {
+    "input": 0,
+    "output": 0
+  }
+}

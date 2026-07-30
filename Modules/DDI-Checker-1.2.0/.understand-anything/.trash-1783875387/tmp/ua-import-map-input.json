@@ -1,0 +1,95 @@
+{
+    "projectRoot":  "G:\\INSIGHT-Project\\Modules\\DDI-Checker-1.1.0",
+    "files":  [
+                  {
+                      "path":  ".understand-anything/.understandignore",
+                      "language":  "unknown",
+                      "sizeLines":  43,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  ".understand-anything/config.json",
+                      "language":  "json",
+                      "sizeLines":  3,
+                      "fileCategory":  "config"
+                  },
+                  {
+                      "path":  "data/active-kb.js",
+                      "language":  "javascript",
+                      "sizeLines":  560669,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "data/active-kb.json",
+                      "language":  "json",
+                      "sizeLines":  560668,
+                      "fileCategory":  "config"
+                  },
+                  {
+                      "path":  "index.html",
+                      "language":  "html",
+                      "sizeLines":  183,
+                      "fileCategory":  "markup"
+                  },
+                  {
+                      "path":  "package.json",
+                      "language":  "json",
+                      "sizeLines":  18,
+                      "fileCategory":  "config"
+                  },
+                  {
+                      "path":  "README.md",
+                      "language":  "markdown",
+                      "sizeLines":  55,
+                      "fileCategory":  "docs"
+                  },
+                  {
+                      "path":  "scripts/ingest.mjs",
+                      "language":  "javascript",
+                      "sizeLines":  620,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "scripts/validate-kb.mjs",
+                      "language":  "javascript",
+                      "sizeLines":  46,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "src/app.js",
+                      "language":  "javascript",
+                      "sizeLines":  675,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "src/ddi-engine.js",
+                      "language":  "javascript",
+                      "sizeLines":  664,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "src/styles.css",
+                      "language":  "css",
+                      "sizeLines":  480,
+                      "fileCategory":  "markup"
+                  },
+                  {
+                      "path":  "test/ddi-engine.test.mjs",
+                      "language":  "javascript",
+                      "sizeLines":  109,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "test/ingest.test.mjs",
+                      "language":  "javascript",
+                      "sizeLines":  86,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "test/ui-source.test.mjs",
+                      "language":  "javascript",
+                      "sizeLines":  36,
+                      "fileCategory":  "code"
+                  }
+              ]
+}

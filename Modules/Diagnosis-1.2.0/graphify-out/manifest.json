@@ -1,0 +1,152 @@
+{
+  "diagnosis/__init__.py": {
+    "mtime": 1783578191.2555864,
+    "ast_hash": "4e4c5ddfba3645ec12ed2cb83601b767",
+    "semantic_hash": ""
+  },
+  "diagnosis/__main__.py": {
+    "mtime": 1783601453.8240216,
+    "ast_hash": "fb76ea77aa29a9c7ade49bf3717ca565",
+    "semantic_hash": ""
+  },
+  "diagnosis/api.py": {
+    "mtime": 1783587436.6790662,
+    "ast_hash": "378143e1ea5e00da46bc3ec7975620e1",
+    "semantic_hash": ""
+  },
+  "diagnosis/app.py": {
+    "mtime": 1783593605.3674424,
+    "ast_hash": "f51c4d9ebe2ed3ac82139520a3e40dd2",
+    "semantic_hash": ""
+  },
+  "diagnosis/auth.py": {
+    "mtime": 1783593566.6906781,
+    "ast_hash": "7ebd6492b566857e4e914de94ca3faf3",
+    "semantic_hash": ""
+  },
+  "diagnosis/criteria.py": {
+    "mtime": 1783586985.5422845,
+    "ast_hash": "20547e98e442afc350dcd09d9df748ac",
+    "semantic_hash": ""
+  },
+  "diagnosis/store.py": {
+    "mtime": 1783593550.9498556,
+    "ast_hash": "49db4b2fa8b08f773c1d427da534f2c7",
+    "semantic_hash": ""
+  },
+  "t.py": {
+    "mtime": 1783483802.210126,
+    "ast_hash": "a2f0562964dcb7787defd9fa0c6e4525",
+    "semantic_hash": "a2f0562964dcb7787defd9fa0c6e4525"
+  },
+  "test_auth.py": {
+    "mtime": 1783562539.8963375,
+    "ast_hash": "df1ac9192d08f16920e7e849be745d04",
+    "semantic_hash": "df1ac9192d08f16920e7e849be745d04"
+  },
+  "HANDOFF.md": {
+    "mtime": 1783602761.7554078,
+    "ast_hash": "6f60f636c87ff9d72271a0c3b98603bc",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1783602881.8425276,
+    "ast_hash": "f57dcf38964f1a833ef5630ac6e3db4f",
+    "semantic_hash": ""
+  },
+  "diagnosis/static/index.html": {
+    "mtime": 1783579875.952886,
+    "ast_hash": "8f233a3eb11ce7f9a1f67e416f5e2f49",
+    "semantic_hash": ""
+  },
+  "requirements.txt": {
+    "mtime": 1783568941.8863325,
+    "ast_hash": "3da5da591286e476e5b5293109c56ea1",
+    "semantic_hash": ""
+  },
+  "test_output.txt": {
+    "mtime": 1783504326.165418,
+    "ast_hash": "12630f782610a760e150433648762ed9",
+    "semantic_hash": "12630f782610a760e150433648762ed9"
+  },
+  "diagnosis/csrf.py": {
+    "mtime": 1783593592.9867551,
+    "ast_hash": "443a201fe9c180c20f64eb81993574e2",
+    "semantic_hash": ""
+  },
+  "test_csrf.py": {
+    "mtime": 1783562331.5221026,
+    "ast_hash": "cc6aa4e5ea634312ca4de50dce133d4a",
+    "semantic_hash": "cc6aa4e5ea634312ca4de50dce133d4a"
+  },
+  "diagnosis/patient.py": {
+    "mtime": 1783593585.0183768,
+    "ast_hash": "b78a2da7dee99c4132720e32d436c40c",
+    "semantic_hash": ""
+  },
+  "test_patient.py": {
+    "mtime": 1783565820.0914066,
+    "ast_hash": "b4f6f1e1c4ff5adaeeac053868b45816",
+    "semantic_hash": ""
+  },
+  "diagnosis/dashboard.py": {
+    "mtime": 1783593645.325107,
+    "ast_hash": "33846c586c53127aa526a68a2115abf7",
+    "semantic_hash": ""
+  },
+  "diagnosis/deps.py": {
+    "mtime": 1783568385.203135,
+    "ast_hash": "b811ca75fcffccd84f78d709a07d6f86",
+    "semantic_hash": ""
+  },
+  "diagnosis/diagnosis_api.py": {
+    "mtime": 1783587375.6870248,
+    "ast_hash": "1332167bed26360aa3a49ed348efe9cf",
+    "semantic_hash": ""
+  },
+  "diagnosis/page.py": {
+    "mtime": 1783567706.991517,
+    "ast_hash": "0c5e7bfd71a904b4e15aab2bb33350eb",
+    "semantic_hash": ""
+  },
+  "test_routes.py": {
+    "mtime": 1783587397.2462971,
+    "ast_hash": "7f5826de2c7f69f12c1fa802774a8cc8",
+    "semantic_hash": ""
+  },
+  "test_discovery.py": {
+    "mtime": 1783570427.2974079,
+    "ast_hash": "b570e538bcaac83fea065876a5d2bdeb",
+    "semantic_hash": ""
+  },
+  "diagnosis/readiness.py": {
+    "mtime": 1783571589.766317,
+    "ast_hash": "ab3256a0ac3373c72ad08efe1cce80cd",
+    "semantic_hash": ""
+  },
+  "test_readiness.py": {
+    "mtime": 1783571769.3698628,
+    "ast_hash": "7c99eab3251e2bf013fb30feb93e0609",
+    "semantic_hash": ""
+  },
+  "test_unittest.py": {
+    "mtime": 1783587432.8357666,
+    "ast_hash": "ca31b1a18d15e02e580d5c35c3bba712",
+    "semantic_hash": ""
+  },
+  "test_embed.py": {
+    "mtime": 1783587517.5716627,
+    "ast_hash": "6b443eb1e8cd4c3d839b8f31d0fd0009",
+    "semantic_hash": ""
+  },
+  "diagnosis/config.py": {
+    "mtime": 1783593539.8945384,
+    "ast_hash": "b5db61db339b59668c491fe45ebbb085",
+    "semantic_hash": ""
+  },
+  "test_config.py": {
+    "mtime": 1783601453.821023,
+    "ast_hash": "31e0a8bb89004e66923a6dc9e83cdcd6",
+    "semantic_hash": ""
+  }
+}

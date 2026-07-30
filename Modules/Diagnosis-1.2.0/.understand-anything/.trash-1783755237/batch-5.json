@@ -1,0 +1,555 @@
+{
+  "batchIndex": 5,
+  "files": [
+    {
+      "path": "test_csrf.py",
+      "language": "python",
+      "sizeLines": 298,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test_discovery.py",
+      "language": "python",
+      "sizeLines": 188,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test_patient.py",
+      "language": "python",
+      "sizeLines": 325,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test_readiness.py",
+      "language": "python",
+      "sizeLines": 395,
+      "fileCategory": "code"
+    },
+    {
+      "path": "diagnosis/static/index.html",
+      "language": "html",
+      "sizeLines": 710,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "docs/api-contract.md",
+      "language": "markdown",
+      "sizeLines": 817,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "HANDOFF.md",
+      "language": "markdown",
+      "sizeLines": 969,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "sizeLines": 332,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "requirements.txt",
+      "language": "txt",
+      "sizeLines": 5,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".understand-anything/.understandignore",
+      "language": "unknown",
+      "sizeLines": 51,
+      "fileCategory": "config"
+    },
+    {
+      "path": "test_unittest.py",
+      "language": "python",
+      "sizeLines": 1075,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test_auth.py",
+      "language": "python",
+      "sizeLines": 322,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test_config.py",
+      "language": "python",
+      "sizeLines": 439,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test_embed.py",
+      "language": "python",
+      "sizeLines": 325,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test_routes.py",
+      "language": "python",
+      "sizeLines": 250,
+      "fileCategory": "code"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "file:test_csrf.py",
+      "type": "file",
+      "name": "test_csrf.py",
+      "filePath": "test_csrf.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "CSRF tests for write routes. Covers missing header, missing cookie, mismatch, bad signature, valid token allows write, token route sets cookie, HTML page carries meta tag, bypass env skips CSRF.",
+      "tags": [
+        "csrf-tests",
+        "double-submit",
+        "fake-http-server"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:test_discovery.py",
+      "type": "file",
+      "name": "test_discovery.py",
+      "filePath": "test_discovery.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Dashboard module-route discovery tests: descriptor shape and launch href, admin can read, unknown moduleId returns 404, nurse role returns 403, no cookie returns 401.",
+      "tags": [
+        "discovery-tests",
+        "dashboard",
+        "module-routes"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:test_patient.py",
+      "type": "file",
+      "name": "test_patient.py",
+      "filePath": "test_patient.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Patient identity adapter tests: init and put bind canonical patient id, unknown code returns 422, registry 404 maps to 422, empty code returns 400, missing canonical id returns 422, bad JSON returns 422, registry 500 returns 422, registry down returns 422, lookup disabled falls back to free-text.",
+      "tags": [
+        "patient-tests",
+        "identity-adapter",
+        "registry-mock"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:test_readiness.py",
+      "type": "file",
+      "name": "test_readiness.py",
+      "filePath": "test_readiness.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Readiness probe tests: default env is ready, bypass shim fails readiness, auth URL blank fails, patient lookup enabled and URL set is ready, patient lookup enabled with blank URL fails, DB fault returns False without raising, HTTP 200 and 503 responses, response never leaks URLs.",
+      "tags": [
+        "readiness-tests",
+        "probe",
+        "no-leak"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/static/index.html",
+      "type": "file",
+      "name": "diagnosis/static/index.html",
+      "filePath": "diagnosis/static/index.html",
+      "language": "html",
+      "complexity": "moderate",
+      "summary": "Single-page DSM-5-TR criteria checklist UI. No build step. Exposes window.createDiagnosisModule({root, apiBaseUrl, embedded, initialCode}) returning {mount(), unmount(), setPatientCode()}. Derives all display from GET /diagnosis/_meta rules contract \u2014 JS never reimplements DSM logic. Stamps CSRF token from meta tag on every write.",
+      "tags": [
+        "spa",
+        "vanilla-js",
+        "embeddable",
+        "criteria-ui",
+        "no-build-step"
+      ],
+      "fileCategory": "markup",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:docs/api-contract.md",
+      "type": "document",
+      "name": "docs/api-contract.md",
+      "filePath": "docs/api-contract.md",
+      "language": "markdown",
+      "complexity": "moderate",
+      "summary": "Canonical REST API contract: route shapes, request/response bodies, error codes, auth, CSRF, route discovery, invariants. Locked against the live router by test_unittest.TestRestContract.test_api_contract_doc_lists_every_live_route. If code and document disagree, the code wins.",
+      "tags": [
+        "api-contract",
+        "canonical-spec",
+        "insight-integrator"
+      ],
+      "fileCategory": "docs",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:HANDOFF.md",
+      "type": "document",
+      "name": "HANDOFF.md",
+      "filePath": "HANDOFF.md",
+      "language": "markdown",
+      "complexity": "moderate",
+      "summary": "Deep-module handoff guide for future LLMs or humans. Maps the codebase architecture, design decisions, seam layout, env knobs, self-check chain, and the clinician-authority invariant.",
+      "tags": [
+        "handoff",
+        "architecture",
+        "design-decisions",
+        "llm-guide"
+      ],
+      "fileCategory": "docs",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "language": "markdown",
+      "complexity": "simple",
+      "summary": "User-facing module overview: DSM-5-TR schizophrenia criteria checklist for Insight. Interface table, CSRF protocol, patient identity, readiness probe, standalone and mounted deployment, embeddable UI contract.",
+      "tags": [
+        "readme",
+        "user-facing",
+        "overview"
+      ],
+      "fileCategory": "docs",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:requirements.txt",
+      "type": "config",
+      "name": "requirements.txt",
+      "filePath": "requirements.txt",
+      "language": "txt",
+      "complexity": "simple",
+      "summary": "Python dependencies: fastapi>=0.110, uvicorn[standard]>=0.27, pydantic>=2.5, httpx2>=1.0, httpcore.",
+      "tags": [
+        "dependencies",
+        "python",
+        "fastapi",
+        "uvicorn"
+      ],
+      "fileCategory": "config",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:.understand-anything/.understandignore",
+      "type": "config",
+      "name": ".understand-anything/.understandignore",
+      "filePath": ".understand-anything/.understandignore",
+      "language": "unknown",
+      "complexity": "simple",
+      "summary": "Understand-anything ignore patterns: excludes .venv, __pycache__, graphify-out, .understand-anything, *.db, diagnosis_store.db, notebooks, and scratch files.",
+      "tags": [
+        "understandignore",
+        "exclusions"
+      ],
+      "fileCategory": "config",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:test_unittest.py",
+      "type": "file",
+      "name": "test_unittest.py",
+      "filePath": "test_unittest.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Unittest suite locking clinical contracts: TestCriteriaRules (pure rule engine), TestRestContract (route/persistence contract), TestAuditSeam (audit hook on every PUT), TestClinicianAuthority (model-never-auto-decides invariant), TestAuthRejection, TestCSRF, TestPersistence, TestPatientIdentity. Loaded by _http_selfcheck and _demo at boot time.",
+      "tags": [
+        "unittest",
+        "clinical-contracts",
+        "criteria-rules",
+        "audit",
+        "authority-invariant"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:test_auth.py",
+      "type": "file",
+      "name": "test_auth.py",
+      "filePath": "test_auth.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Role-enforcement tests. In-process fake HTTP server exercising all protected paths with no-cookie, unauthenticated, nurse-role, psychiatrist-role, and admin-role requests. No external framework \u2014 stdlib unittest plus threading HTTP server.",
+      "tags": [
+        "auth-tests",
+        "role-enforcement",
+        "fake-http-server",
+        "ponytail-harness"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:test_config.py",
+      "type": "file",
+      "name": "test_config.py",
+      "filePath": "test_config.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Settings adapter tests: blank env returns prior defaults, custom env is honoured, Settings is frozen, module_id derives from mount prefix, CORS parses comma list, mock_auth and patient_lookup are truthy gates, host/port override.",
+      "tags": [
+        "config-tests",
+        "settings-adapter",
+        "env-snapshot"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:test_embed.py",
+      "type": "file",
+      "name": "test_embed.py",
+      "filePath": "test_embed.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Embeddable module UI tests: page is standalone shell, exposes createDiagnosisModule, contract takes root+apiBaseUrl, drops dashboard placeholder, no standalone topbar, embedded flag skips chrome, mount/unmount handle, CSRF meta tag still read, route layer unchanged, bypass serve byte-clean.",
+      "tags": [
+        "embed-tests",
+        "ui-contract",
+        "createDiagnosisModule"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:test_routes.py",
+      "type": "file",
+      "name": "test_routes.py",
+      "filePath": "test_routes.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Route-seam split tests: page seam owns only browser page, dashboard seam owns only discovery routes, diagnosis seam owns only per-patient REST, composed router has all paths, literal routes precede parameterized, audit seam is in dashboard only, discovery moduleId constant, back-compat re-exports, each seam shares one store and policy.",
+      "tags": [
+        "route-tests",
+        "seam-split",
+        "route-invariants"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:test_csrf.py",
+      "target": "file:diagnosis/api.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_csrf.py",
+      "target": "file:diagnosis/csrf.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_csrf.py",
+      "target": "file:diagnosis/page.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_discovery.py",
+      "target": "file:diagnosis/api.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_discovery.py",
+      "target": "file:diagnosis/dashboard.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_patient.py",
+      "target": "file:diagnosis/diagnosis_api.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_patient.py",
+      "target": "file:diagnosis/patient.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_patient.py",
+      "target": "file:diagnosis/auth.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_readiness.py",
+      "target": "file:diagnosis/app.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_readiness.py",
+      "target": "file:diagnosis/readiness.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/page.py",
+      "target": "file:diagnosis/static/index.html",
+      "type": "serves",
+      "weight": 0.5
+    },
+    {
+      "source": "file:docs/api-contract.md",
+      "target": "file:README.md",
+      "type": "documents",
+      "weight": 0.5
+    },
+    {
+      "source": "file:HANDOFF.md",
+      "target": "file:diagnosis/api.py",
+      "type": "documents",
+      "weight": 0.5
+    },
+    {
+      "source": "file:HANDOFF.md",
+      "target": "file:diagnosis/criteria.py",
+      "type": "documents",
+      "weight": 0.5
+    },
+    {
+      "source": "file:requirements.txt",
+      "target": "file:diagnosis/app.py",
+      "type": "documents",
+      "weight": 0.5
+    },
+    {
+      "source": "file:test_unittest.py",
+      "target": "file:diagnosis/criteria.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_unittest.py",
+      "target": "file:diagnosis/api.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_unittest.py",
+      "target": "file:diagnosis/store.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_unittest.py",
+      "target": "file:diagnosis/patient.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_unittest.py",
+      "target": "file:diagnosis/readiness.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_unittest.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_unittest.py",
+      "target": "file:diagnosis/auth.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_unittest.py",
+      "target": "file:diagnosis/csrf.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_auth.py",
+      "target": "file:diagnosis/api.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_auth.py",
+      "target": "file:diagnosis/auth.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_auth.py",
+      "target": "file:diagnosis/deps.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_config.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_config.py",
+      "target": "file:diagnosis/app.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_config.py",
+      "target": "file:diagnosis/__main__.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_embed.py",
+      "target": "file:diagnosis/api.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_embed.py",
+      "target": "file:diagnosis/page.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_routes.py",
+      "target": "file:diagnosis/api.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_routes.py",
+      "target": "file:diagnosis/page.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_routes.py",
+      "target": "file:diagnosis/dashboard.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test_routes.py",
+      "target": "file:diagnosis/diagnosis_api.py",
+      "type": "imports",
+      "weight": 0.7
+    }
+  ]
+}

@@ -1,0 +1,333 @@
+{
+    "projectName":  "diagnosis",
+    "rawDescription":  "DSM-5-TR schizophrenia criteria checklist for the Insight clinical decision support tool. Clinician-controlled — the psychiatrist confirms or bypasses; the model never decides.",
+    "readmeHead":  "## diagnosis module — DSM-5-TR schizophrenia criteria checklist for the Insight clinical decision support tool. Clinician-controlled — the psychiatrist confirms or bypasses; the model never decides.",
+    "languages":  [
+                      "python",
+                      "html",
+                      "markdown",
+                      "sql",
+                      "txt"
+                  ],
+    "frameworks":  [
+                       "FastAPI",
+                       "uvicorn",
+                       "sqlite3",
+                       "stdlib unittest",
+                       "httpx"
+                   ],
+    "description":  "DSM-5-TR schizophrenia criteria checklist (Insight diagnosis module). A FastAPI router exposing a minimalist REST seam over a pure-function DSM-5-TR evaluation, backed by a SQLite repository adapter. Designed as a deep module: small interface (8 routes) hiding the clinical logic. Clinician-authoritative — the model never auto-decides.",
+    "files":  [
+                  {
+                      "path":  "diagnosis/__init__.py",
+                      "language":  "python",
+                      "sizeLines":  35,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "diagnosis/__main__.py",
+                      "language":  "python",
+                      "sizeLines":  56,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "diagnosis/api.py",
+                      "language":  "python",
+                      "sizeLines":  142,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "diagnosis/app.py",
+                      "language":  "python",
+                      "sizeLines":  55,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "diagnosis/auth.py",
+                      "language":  "python",
+                      "sizeLines":  153,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "diagnosis/config.py",
+                      "language":  "python",
+                      "sizeLines":  288,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "diagnosis/criteria.py",
+                      "language":  "python",
+                      "sizeLines":  214,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "diagnosis/csrf.py",
+                      "language":  "python",
+                      "sizeLines":  155,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "diagnosis/dashboard.py",
+                      "language":  "python",
+                      "sizeLines":  197,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "diagnosis/deps.py",
+                      "language":  "python",
+                      "sizeLines":  74,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "diagnosis/diagnosis_api.py",
+                      "language":  "python",
+                      "sizeLines":  136,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "diagnosis/page.py",
+                      "language":  "python",
+                      "sizeLines":  58,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "diagnosis/patient.py",
+                      "language":  "python",
+                      "sizeLines":  263,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "diagnosis/readiness.py",
+                      "language":  "python",
+                      "sizeLines":  278,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "diagnosis/static/index.html",
+                      "language":  "html",
+                      "sizeLines":  710,
+                      "fileCategory":  "markup"
+                  },
+                  {
+                      "path":  "diagnosis/store.py",
+                      "language":  "python",
+                      "sizeLines":  293,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "docs/api-contract.md",
+                      "language":  "markdown",
+                      "sizeLines":  817,
+                      "fileCategory":  "docs"
+                  },
+                  {
+                      "path":  "HANDOFF.md",
+                      "language":  "markdown",
+                      "sizeLines":  969,
+                      "fileCategory":  "docs"
+                  },
+                  {
+                      "path":  "README.md",
+                      "language":  "markdown",
+                      "sizeLines":  332,
+                      "fileCategory":  "docs"
+                  },
+                  {
+                      "path":  "requirements.txt",
+                      "language":  "txt",
+                      "sizeLines":  5,
+                      "fileCategory":  "docs"
+                  },
+                  {
+                      "path":  "test_auth.py",
+                      "language":  "python",
+                      "sizeLines":  322,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "test_config.py",
+                      "language":  "python",
+                      "sizeLines":  439,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "test_csrf.py",
+                      "language":  "python",
+                      "sizeLines":  298,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "test_discovery.py",
+                      "language":  "python",
+                      "sizeLines":  188,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "test_embed.py",
+                      "language":  "python",
+                      "sizeLines":  325,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "test_patient.py",
+                      "language":  "python",
+                      "sizeLines":  325,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "test_readiness.py",
+                      "language":  "python",
+                      "sizeLines":  395,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "test_routes.py",
+                      "language":  "python",
+                      "sizeLines":  250,
+                      "fileCategory":  "code"
+                  },
+                  {
+                      "path":  "test_unittest.py",
+                      "language":  "python",
+                      "sizeLines":  1075,
+                      "fileCategory":  "code"
+                  }
+              ],
+    "totalFiles":  29,
+    "filteredByIgnore":  117,
+    "estimatedComplexity":  "small",
+    "importMap":  {
+                      "diagnosis/__init__.py":  [
+                                                    "diagnosis/api.py",
+                                                    "diagnosis/criteria.py",
+                                                    "diagnosis/readiness.py"
+                                                ],
+                      "diagnosis/__main__.py":  [
+
+                                                ],
+                      "diagnosis/api.py":  [
+                                               "diagnosis/dashboard.py",
+                                               "diagnosis/diagnosis_api.py",
+                                               "diagnosis/page.py"
+                                           ],
+                      "diagnosis/app.py":  [
+                                               "diagnosis/api.py",
+                                               "diagnosis/config.py",
+                                               "diagnosis/readiness.py"
+                                           ],
+                      "diagnosis/auth.py":  [
+                                                "diagnosis/config.py"
+                                            ],
+                      "diagnosis/config.py":  [
+
+                                              ],
+                      "diagnosis/criteria.py":  [
+
+                                                ],
+                      "diagnosis/csrf.py":  [
+                                                "diagnosis/config.py"
+                                            ],
+                      "diagnosis/dashboard.py":  [
+                                                     "diagnosis/auth.py",
+                                                     "diagnosis/config.py",
+                                                     "diagnosis/criteria.py",
+                                                     "diagnosis/deps.py"
+                                                 ],
+                      "diagnosis/deps.py":  [
+                                                "diagnosis/auth.py",
+                                                "diagnosis/store.py"
+                                            ],
+                      "diagnosis/diagnosis_api.py":  [
+                                                         "diagnosis/auth.py",
+                                                         "diagnosis/criteria.py",
+                                                         "diagnosis/dashboard.py",
+                                                         "diagnosis/deps.py",
+                                                         "diagnosis/patient.py"
+                                                     ],
+                      "diagnosis/page.py":  [
+                                                "diagnosis/auth.py",
+                                                "diagnosis/deps.py"
+                                            ],
+                      "diagnosis/patient.py":  [
+                                                   "diagnosis/config.py"
+                                               ],
+                      "diagnosis/readiness.py":  [
+
+                                                 ],
+                      "diagnosis/static/index.html":  [
+
+                                                      ],
+                      "diagnosis/store.py":  [
+                                                 "diagnosis/config.py"
+                                             ],
+                      "docs/api-contract.md":  [
+
+                                               ],
+                      "HANDOFF.md":  [
+
+                                     ],
+                      "README.md":  [
+
+                                    ],
+                      "requirements.txt":  [
+
+                                           ],
+                      "test_auth.py":  [
+                                           "diagnosis/__init__.py",
+                                           "diagnosis/app.py"
+                                       ],
+                      "test_config.py":  [
+
+                                         ],
+                      "test_csrf.py":  [
+                                           "diagnosis/__init__.py",
+                                           "diagnosis/app.py"
+                                       ],
+                      "test_discovery.py":  [
+                                                "diagnosis/__init__.py",
+                                                "diagnosis/app.py"
+                                            ],
+                      "test_embed.py":  [
+                                            "diagnosis/__init__.py",
+                                            "diagnosis/api.py",
+                                            "diagnosis/page.py"
+                                        ],
+                      "test_patient.py":  [
+                                              "diagnosis/__init__.py",
+                                              "diagnosis/app.py"
+                                          ],
+                      "test_readiness.py":  [
+                                                "diagnosis/__init__.py",
+                                                "diagnosis/app.py",
+                                                "diagnosis/readiness.py",
+                                                "diagnosis/store.py"
+                                            ],
+                      "test_routes.py":  [
+                                             "diagnosis/__init__.py",
+                                             "diagnosis/dashboard.py",
+                                             "diagnosis/diagnosis_api.py",
+                                             "diagnosis/page.py"
+                                         ],
+                      "test_unittest.py":  [
+                                               "diagnosis/__init__.py",
+                                               "diagnosis/api.py",
+                                               "diagnosis/app.py",
+                                               "diagnosis/criteria.py",
+                                               "diagnosis/patient.py"
+                                           ]
+                  },
+    "stats":  {
+                  "filesScanned":  29,
+                  "byCategory":  {
+                                     "code":  24,
+                                     "markup":  1,
+                                     "docs":  4
+                                 },
+                  "byLanguage":  {
+                                     "python":  24,
+                                     "html":  1,
+                                     "markdown":  3,
+                                     "txt":  1
+                                 }
+              }
+}

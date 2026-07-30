@@ -1,0 +1,12 @@
+{
+  "schemaVersion":"1.0.0","version":"ikb-test","status":"draft","clinicalUse":{},
+  "drugs":[
+    {"id":"d1","name":"Alpha","aliases":["Shared"]},
+    {"id":"d1","name":"Beta","aliases":[]},
+    {"id":"d2","name":"Shared","aliases":[]}
+  ],
+  "interactions":[
+    {"id":"i1","drugAId":"d1","drugBId":"d2","severity":"major","mechanism":"M1","clinicalEffect":"E","recommendation":"R","monitoring":"M","evidenceSource":"S","evidenceExcerpt":"X","sourceReportPath":"a","reviewedBy":null,"reviewedAt":null,"reviewStatus":"invented","parserConfidence":"certain","knowledgeBaseVersion":"old"},
+    {"id":"i1","drugAId":"d2","drugBId":"d1","severity":"minor","mechanism":"M2","clinicalEffect":"E2","recommendation":"R2","monitoring":"M2","evidenceSource":"S2","evidenceExcerpt":"X2","sourceReportPath":"b","reviewedBy":null,"reviewedAt":null,"reviewStatus":"parsed_pending_review","parserConfidence":"medium","knowledgeBaseVersion":"ikb-test"}
+  ]
+}

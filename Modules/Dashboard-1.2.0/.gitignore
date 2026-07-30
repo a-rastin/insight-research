@@ -1,0 +1,6 @@
+﻿__pycache__/
+*.py[cod]
+dashboard.sqlite3
+uvicorn.log
+uvicorn.err.log
+uvicorn.pid

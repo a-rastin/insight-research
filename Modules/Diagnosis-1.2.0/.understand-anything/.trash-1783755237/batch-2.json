@@ -1,0 +1,519 @@
+{
+  "batchIndex": 2,
+  "files": [
+    {
+      "path": "diagnosis/criteria.py",
+      "language": "python",
+      "sizeLines": 214,
+      "fileCategory": "code"
+    },
+    {
+      "path": "diagnosis/config.py",
+      "language": "python",
+      "sizeLines": 288,
+      "fileCategory": "code"
+    },
+    {
+      "path": "diagnosis/patient.py",
+      "language": "python",
+      "sizeLines": 263,
+      "fileCategory": "code"
+    },
+    {
+      "path": "diagnosis/readiness.py",
+      "language": "python",
+      "sizeLines": 278,
+      "fileCategory": "code"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "file:diagnosis/criteria.py",
+      "type": "file",
+      "name": "diagnosis/criteria.py",
+      "filePath": "diagnosis/criteria.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Pure-function DSM-5-TR evaluation engine. CRITERIA list holds 9 criterion dicts (A1-A6, B1, C1, D1). evaluate(checked_ids) returns an Evaluation with no side effects. meta_contract() exposes rule primitives the browser page uses for optimistic display. Locked by test_unittest.TestCriteriaRules.",
+      "tags": [
+        "clinical-logic",
+        "pure-function",
+        "dsm-5-tr",
+        "criteria-engine"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/config.py",
+      "type": "file",
+      "name": "diagnosis/config.py",
+      "filePath": "diagnosis/config.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Settings adapter: single source of truth for every integration knob (db_path, auth_url, patient_url, cors_origins, mock_auth, csrf_secret, module_base_path, host, port). Frozen Settings dataclass read once at import. Only place to add a new env knob.",
+      "tags": [
+        "settings",
+        "config-adapter",
+        "frozen-dataclass",
+        "env-knobs"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/patient.py",
+      "type": "file",
+      "name": "diagnosis/patient.py",
+      "filePath": "diagnosis/patient.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Patient identity adapter. Aligns free-text {code} path param with canonical INSIGHT patient.id via internal REST lookup (GET /api/patients/lookup). Opt-in via DIAGNOSIS_PATIENT_LOOKUP=1; default disabled preserves prior diagnosis-local identity for self-check and offline tests.",
+      "tags": [
+        "patient-identity",
+        "adapter",
+        "canonical-id",
+        "opt-in"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/readiness.py",
+      "type": "file",
+      "name": "diagnosis/readiness.py",
+      "filePath": "diagnosis/readiness.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Module-local readiness probe. Pure check_readiness() aggregates DB (SELECT 1), Auth (configured + not bypassed), and Patient (configured when enabled) checks. Never calls live services or leaks URLs. Route in app.py maps ok to 200/503.",
+      "tags": [
+        "readiness",
+        "probe",
+        "no-leak",
+        "module-local"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "class:diagnosis/criteria.py:Evaluation",
+      "type": "class",
+      "name": "Evaluation",
+      "filePath": "diagnosis/criteria.py",
+      "complexity": "simple",
+      "summary": "Dataclass holding evaluation result: met (bool), checked_ids, a_count, core_count, failures list, reason string. No decision field \u2014 clinician authority is a tested contract at the REST layer.",
+      "tags": [
+        "dataclass",
+        "evaluation-result",
+        "clinical-logic"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "class:diagnosis/config.py:Settings",
+      "type": "class",
+      "name": "Settings",
+      "filePath": "diagnosis/config.py",
+      "complexity": "simple",
+      "summary": "Frozen dataclass snapshot of every integration knob. Properties module_id and launch_href are derived from module_base_path.",
+      "tags": [
+        "frozen-dataclass",
+        "settings",
+        "config"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "class:diagnosis/patient.py:Patient",
+      "type": "class",
+      "name": "Patient",
+      "filePath": "diagnosis/patient.py",
+      "complexity": "simple",
+      "summary": "Frozen dataclass for canonical patient identity consumed by store.put. Fields: id (INSIGHT registry pk), patient_code (free-text), display_name.",
+      "tags": [
+        "patient-identity",
+        "frozen-dataclass"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/criteria.py:evaluate",
+      "type": "function",
+      "name": "evaluate",
+      "filePath": "diagnosis/criteria.py",
+      "complexity": "moderate",
+      "summary": "Pure function: given checked criterion ids returns an Evaluation. Rules: >=2 A symptoms, >=1 from core triad (A1-A3), duration (A6) required, guards B/C/D must be checked. No side effects.",
+      "tags": [
+        "pure-function",
+        "criteria-evaluation"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/criteria.py:get_criteria",
+      "type": "function",
+      "name": "get_criteria",
+      "filePath": "diagnosis/criteria.py",
+      "complexity": "simple",
+      "summary": "Returns a copy of the CRITERIA list for the UI criteria tree. Caller must not mutate.",
+      "tags": [
+        "criteria-tree",
+        "ui-bootstrap"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/criteria.py:meta_contract",
+      "type": "function",
+      "name": "meta_contract",
+      "filePath": "diagnosis/criteria.py",
+      "complexity": "simple",
+      "summary": "Returns the rule contract dict the browser page uses for optimistic display (symptom_ids, core_ids, duration_id, guard_ids, thresholds). Single source of truth \u2014 server rules drive the UI, not JS mirroring.",
+      "tags": [
+        "rule-contract",
+        "ui-optimistic-display",
+        "single-source-of-truth"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/criteria.py:_demo",
+      "type": "function",
+      "name": "_demo",
+      "filePath": "diagnosis/criteria.py",
+      "complexity": "simple",
+      "summary": "Boot-time self-check shim: runs test_unittest.TestCriteriaRules via stdlib unittest and exits non-zero on failure.",
+      "tags": [
+        "self-check",
+        "boot-fail-fast"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/config.py:_env_truthy",
+      "type": "function",
+      "name": "_env_truthy",
+      "filePath": "diagnosis/config.py",
+      "complexity": "simple",
+      "summary": "Returns True when env var equals '1', False otherwise.",
+      "tags": [
+        "env-helper"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/config.py:_env_list",
+      "type": "function",
+      "name": "_env_list",
+      "filePath": "diagnosis/config.py",
+      "complexity": "simple",
+      "summary": "Parses comma-separated env list; bare asterisk returns default list verbatim.",
+      "tags": [
+        "env-helper",
+        "comma-list"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/config.py:_load",
+      "type": "function",
+      "name": "_load",
+      "filePath": "diagnosis/config.py",
+      "complexity": "simple",
+      "summary": "Builds a Settings instance from env vars with prior hard-coded defaults. Pure, never raises on missing values.",
+      "tags": [
+        "settings-loader",
+        "env-adapter"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/config.py:_config_selfcheck",
+      "type": "function",
+      "name": "_config_selfcheck",
+      "filePath": "diagnosis/config.py",
+      "complexity": "simple",
+      "summary": "Self-verify the settings adapter: blank env returns prior defaults, custom env is honoured, Settings is frozen.",
+      "tags": [
+        "self-check",
+        "settings"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/patient.py:resolve_patient",
+      "type": "function",
+      "name": "resolve_patient",
+      "filePath": "diagnosis/patient.py",
+      "complexity": "moderate",
+      "summary": "Resolves free-text code to Patient. When DIAGNOSIS_PATIENT_LOOKUP is not '1' (default): returns self-consistent Patient(id=code). When enabled: calls registry, maps 404/transport/id-missing to 422.",
+      "tags": [
+        "patient-resolution",
+        "registry-lookup",
+        "422-map"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/patient.py:reset_patient_for_tests",
+      "type": "function",
+      "name": "reset_patient_for_tests",
+      "filePath": "diagnosis/patient.py",
+      "complexity": "simple",
+      "summary": "Test-only hook: rebinds PATIENT_BASE_URL module global for fake-registry tests.",
+      "tags": [
+        "test-hook",
+        "fake-registry"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/patient.py:_patient_selfcheck",
+      "type": "function",
+      "name": "_patient_selfcheck",
+      "filePath": "diagnosis/patient.py",
+      "complexity": "simple",
+      "summary": "Self-verify patient adapter: empty code returns 400, lookup-disabled falls back to free-text, _build_patient fails closed on missing canonical id.",
+      "tags": [
+        "self-check",
+        "patient-adapter"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/readiness.py:check_readiness",
+      "type": "function",
+      "name": "check_readiness",
+      "filePath": "diagnosis/readiness.py",
+      "complexity": "simple",
+      "summary": "Pure function returning {ok, module, checks: {db, auth, patient}}. Never raises, never calls live services.",
+      "tags": [
+        "readiness",
+        "pure-function"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/readiness.py:_check_db",
+      "type": "function",
+      "name": "_check_db",
+      "filePath": "diagnosis/readiness.py",
+      "complexity": "simple",
+      "summary": "Probes DiagnosisStore with SELECT 1. Catches all SQLite faults and returns ok=False without leaking the error.",
+      "tags": [
+        "db-check",
+        "select-1"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/readiness.py:_check_auth",
+      "type": "function",
+      "name": "_check_auth",
+      "filePath": "diagnosis/readiness.py",
+      "complexity": "simple",
+      "summary": "Checks AUTH_BASE_URL is non-empty and bypass shim is off. Never calls the auth service.",
+      "tags": [
+        "auth-config-check",
+        "no-service-call"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/readiness.py:_check_patient",
+      "type": "function",
+      "name": "_check_patient",
+      "filePath": "diagnosis/readiness.py",
+      "complexity": "simple",
+      "summary": "When DIAGNOSIS_PATIENT_LOOKUP=1: checks PATIENT_BASE_URL non-empty. Otherwise returns {ok:true, enabled:False, configured:true} (skipped is a healthy state).",
+      "tags": [
+        "patient-config-check",
+        "opt-in"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/readiness.py:_readiness_selfcheck",
+      "type": "function",
+      "name": "_readiness_selfcheck",
+      "filePath": "diagnosis/readiness.py",
+      "complexity": "moderate",
+      "summary": "Self-verify readiness probe: default env is ready, bypass on fails readiness, patient-enabled+URL-set ready, patient-enabled+blank-URL fails, DB fault returns False without raising.",
+      "tags": [
+        "self-check",
+        "readiness"
+      ],
+      "languageNotes": ""
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:diagnosis/criteria.py",
+      "target": "class:diagnosis/criteria.py:Evaluation",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/criteria.py",
+      "target": "function:diagnosis/criteria.py:evaluate",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/criteria.py",
+      "target": "function:diagnosis/criteria.py:get_criteria",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/criteria.py",
+      "target": "function:diagnosis/criteria.py:meta_contract",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/criteria.py",
+      "target": "function:diagnosis/criteria.py:_demo",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/config.py",
+      "target": "class:diagnosis/config.py:Settings",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/config.py",
+      "target": "function:diagnosis/config.py:_env_truthy",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/config.py",
+      "target": "function:diagnosis/config.py:_env_list",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/config.py",
+      "target": "function:diagnosis/config.py:_load",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/config.py",
+      "target": "function:diagnosis/config.py:_config_selfcheck",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/patient.py",
+      "target": "class:diagnosis/patient.py:Patient",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/patient.py",
+      "target": "function:diagnosis/patient.py:resolve_patient",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/patient.py",
+      "target": "function:diagnosis/patient.py:reset_patient_for_tests",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/patient.py",
+      "target": "function:diagnosis/patient.py:_patient_selfcheck",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/readiness.py",
+      "target": "function:diagnosis/readiness.py:check_readiness",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/readiness.py",
+      "target": "function:diagnosis/readiness.py:_check_db",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/readiness.py",
+      "target": "function:diagnosis/readiness.py:_check_auth",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/readiness.py",
+      "target": "function:diagnosis/readiness.py:_check_patient",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/readiness.py",
+      "target": "function:diagnosis/readiness.py:_readiness_selfcheck",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/deps.py",
+      "target": "file:diagnosis/criteria.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/deps.py",
+      "target": "file:diagnosis/patient.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/deps.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/readiness.py",
+      "target": "file:diagnosis/deps.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/readiness.py",
+      "target": "file:diagnosis/store.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/patient.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/patient.py",
+      "target": "file:diagnosis/auth.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/criteria.py",
+      "target": "file:diagnosis/__init__.py",
+      "type": "exports",
+      "weight": 0.8
+    },
+    {
+      "source": "file:diagnosis/readiness.py",
+      "target": "file:diagnosis/__init__.py",
+      "type": "exports",
+      "weight": 0.8
+    }
+  ]
+}

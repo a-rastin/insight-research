@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Drug-Drug Interaction Checker</title>
+    <link rel="stylesheet" href="src/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <div id="storageFailure" class="storage-failure" role="alert" aria-live="assertive" hidden></div>
+      <header class="topbar">
+        <div>
+          <h1>Drug-Drug Interaction Checker</h1>
+          <p id="kbSummary">Loading interaction knowledge base...</p>
+        </div>
+        <div class="topbar-actions">
+          <button type="button" class="admin-shortcut" data-view="admin">Admin</button>
+          <div class="revision-pill" id="revisionPill">KB</div>
+        </div>
+      </header>
+
+      <nav class="tabs" aria-label="Module views">
+        <button type="button" class="tab active" data-view="checker">Checker</button>
+        <button type="button" class="tab" data-view="admin">Admin</button>
+        <button type="button" class="tab" data-view="audit">Audit</button>
+      </nav>
+
+      <section class="view active" id="checkerView">
+        <section class="dashboard-grid" aria-label="Session dashboard">
+          <article class="panel metric-panel">
+            <span>Session code</span>
+            <strong id="sessionCode">Loading</strong>
+          </article>
+          <article class="panel metric-panel">
+            <span>Current results</span>
+            <strong id="resultSummary">Not checked</strong>
+          </article>
+          <article class="panel metric-panel action-panel">
+            <span>Export</span>
+            <button type="button" id="exportResultsButton" class="primary">Export results</button>
+          </article>
+        </section>
+
+        <div class="checker-layout">
+          <section class="panel medication-panel">
+            <h2>Patient medications</h2>
+            <form id="medicationForm" class="med-form">
+              <label>
+                Drug
+                <input id="drugInput" list="drugSuggestions" autocomplete="off" placeholder="Start typing a drug name">
+                <datalist id="drugSuggestions"></datalist>
+              </label>
+              <label>
+                Dose
+                <input id="doseInput" list="doseSuggestions" placeholder="Choose or enter dosage">
+                <datalist id="doseSuggestions"></datalist>
+              </label>
+              <button type="submit" class="primary">Add</button>
+            </form>
+            <ul id="medicationList" class="med-list"></ul>
+          </section>
+
+          <section class="alerts-region">
+            <div class="alerts-header">
+              <h2>Structured alerts</h2>
+              <button id="checkButton" class="primary">Check</button>
+            </div>
+            <div id="unresolvedBox" class="notice hidden"></div>
+            <div id="alertsList" class="alerts-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="adminView">
+        <div class="admin-layout">
+          <section class="panel review-list-panel">
+            <div class="section-title">
+              <h2>Parsed records</h2>
+              <button id="activateRevisionButton">Activate revision</button>
+            </div>
+            <input id="reviewSearch" class="search" placeholder="Filter by drug, severity, or evidence">
+            <div id="reviewList" class="review-list"></div>
+          </section>
+
+          <section class="panel review-detail-panel">
+            <div class="section-title">
+              <h2>Review workspace</h2>
+              <span id="reviewStatusBadge" class="status-badge">Select a record</span>
+            </div>
+            <div class="side-by-side">
+              <article>
+                <h3>Parsed interaction</h3>
+                <form id="reviewForm" class="review-form">
+                  <label>
+                    Severity
+                    <select id="reviewSeverity">
+                      <option value="contraindicated">Contraindicated</option>
+                      <option value="major">Major</option>
+                      <option value="moderate">Moderate</option>
+                      <option value="minor">Minor</option>
+                      <option value="unknown">Unknown</option>
+                    </select>
+                  </label>
+                  <label>
+                    Mechanism
+                    <textarea id="reviewMechanism" rows="3"></textarea>
+                  </label>
+                  <label>
+                    Clinical effect
+                    <textarea id="reviewEffect" rows="4"></textarea>
+                  </label>
+                  <label>
+                    Recommendation
+                    <textarea id="reviewRecommendation" rows="4"></textarea>
+                  </label>
+                  <label>
+                    Monitoring
+                    <textarea id="reviewMonitoring" rows="3"></textarea>
+                  </label>
+                  <label>
+                    Reviewed by
+                    <input id="reviewerName" placeholder="Clinician or pharmacist">
+                  </label>
+                  <div class="review-actions">
+                    <button type="button" id="approveButton" class="primary">Approve</button>
+                    <button type="button" id="rejectButton">Reject</button>
+                    <button type="button" id="saveDraftButton">Save edit</button>
+                  </div>
+                </form>
+              </article>
+              <article class="source-pane">
+                <h3>Source evidence</h3>
+                <p id="sourcePath" class="source-path"></p>
+                <pre id="sourceExcerpt"></pre>
+              </article>
+            </div>
+          </section>
+        </div>
+
+        <section class="panel add-panel">
+          <h2>Upload TXT report</h2>
+          <form id="uploadReportForm" class="upload-form">
+            <input id="reportFileInput" type="file" accept=".txt,.md,text/plain,text/markdown" multiple>
+            <button type="submit" class="primary">Import report</button>
+          </form>
+          <p id="uploadStatus" class="inline-status"></p>
+        </section>
+
+        <section class="panel add-panel">
+          <h2>Add interaction</h2>
+          <form id="addInteractionForm" class="add-form">
+            <input id="newDrugA" placeholder="Drug A">
+            <input id="newDrugB" placeholder="Drug B">
+            <select id="newSeverity">
+              <option value="major">Major</option>
+              <option value="contraindicated">Contraindicated</option>
+              <option value="moderate">Moderate</option>
+              <option value="minor">Minor</option>
+              <option value="unknown">Unknown</option>
+            </select>
+            <input id="newEffect" placeholder="Clinical concern">
+            <input id="newRecommendation" placeholder="Recommended psychiatrist action">
+            <button type="submit" class="primary">Add to review queue</button>
+          </form>
+        </section>
+      </section>
+
+      <section class="view" id="auditView">
+        <section class="panel">
+          <div class="section-title">
+            <h2>Audit log</h2>
+            <button id="exportAuditButton">Export JSON</button>
+          </div>
+          <div id="auditList" class="audit-list"></div>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="overrideDialog" class="override-dialog" aria-labelledby="overrideDialogTitle">
+      <form id="overrideForm" method="dialog">
+        <h2 id="overrideDialogTitle">Override interaction alert</h2>
+        <p>A rationale is required for this safety-relevant action.</p>
+        <label for="overrideReason">
+          Clinical rationale
+          <textarea id="overrideReason" rows="5" maxlength="500" required></textarea>
+        </label>
+        <p id="overrideError" class="form-error" role="alert" aria-live="polite"></p>
+        <div class="dialog-actions">
+          <button type="button" id="cancelOverrideButton">Cancel</button>
+          <button type="submit" class="primary">Record override</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="src/report-parser.js"></script>
+    <script src="src/ddi-engine.js"></script>
+    <script src="src/kb-persistence.js"></script>
+    <script src="src/storage-adapter.js"></script>
+    <script src="data/active-kb.js"></script>
+    <script src="src/app.js"></script>
+  </body>
+</html>
+
+

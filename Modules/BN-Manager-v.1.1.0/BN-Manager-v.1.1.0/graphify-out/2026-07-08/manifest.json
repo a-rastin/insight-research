@@ -1,0 +1,177 @@
+{
+  "bn_manager_backend/__init__.py": {
+    "mtime": 1783436079.9379585,
+    "ast_hash": "44bacfd0f15ec34f9e35d97a7f2c2632",
+    "semantic_hash": "44bacfd0f15ec34f9e35d97a7f2c2632"
+  },
+  "bn_manager_backend/auth_adapter.py": {
+    "mtime": 1783436628.9946935,
+    "ast_hash": "5349b75edaabb7c18cd985ec65be0989",
+    "semantic_hash": "5349b75edaabb7c18cd985ec65be0989"
+  },
+  "bn_manager_backend/config.py": {
+    "mtime": 1783436639.604091,
+    "ast_hash": "1bdf0515cc4752cf8626ab0783e38263",
+    "semantic_hash": "1bdf0515cc4752cf8626ab0783e38263"
+  },
+  "bn_manager_backend/main.py": {
+    "mtime": 1783440118.7601247,
+    "ast_hash": "33609a073f604840802d8cef1968efeb",
+    "semantic_hash": "33609a073f604840802d8cef1968efeb"
+  },
+  "bn_manager_backend/model_registry.py": {
+    "mtime": 1783438512.0836806,
+    "ast_hash": "55cab7a5a39080226b314b255c5fb2df",
+    "semantic_hash": "55cab7a5a39080226b314b255c5fb2df"
+  },
+  "bn_manager_backend/server.py": {
+    "mtime": 1783436088.2839875,
+    "ast_hash": "f5784e3533af77044b37ba315ddcbb67",
+    "semantic_hash": "f5784e3533af77044b37ba315ddcbb67"
+  },
+  "clinical_graph_models/__init__.py": {
+    "mtime": 1783440100.4021995,
+    "ast_hash": "ebc2c4a55fc79188004790337adc432c",
+    "semantic_hash": "ebc2c4a55fc79188004790337adc432c"
+  },
+  "clinical_graph_models/contract.py": {
+    "mtime": 1783436716.1501417,
+    "ast_hash": "07b0a65c2072624d60df1907b9ea3650",
+    "semantic_hash": "07b0a65c2072624d60df1907b9ea3650"
+  },
+  "clinical_graph_models/evaluation.py": {
+    "mtime": 1783249736.0,
+    "ast_hash": "3ce2b47f1e6bd0a9d7cb10c40b3d5ae4",
+    "semantic_hash": "3ce2b47f1e6bd0a9d7cb10c40b3d5ae4"
+  },
+  "clinical_graph_models/model.py": {
+    "mtime": 1783249736.0,
+    "ast_hash": "ddeec5558ebcb03c6adcfeb43619ee12",
+    "semantic_hash": "ddeec5558ebcb03c6adcfeb43619ee12"
+  },
+  "clinical_graph_models/net_parser.py": {
+    "mtime": 1783249736.0,
+    "ast_hash": "6106a3c8495b4a10a032dc597c413004",
+    "semantic_hash": "6106a3c8495b4a10a032dc597c413004"
+  },
+  "clinical_graph_models/tables.py": {
+    "mtime": 1783249736.0,
+    "ast_hash": "b14faf595a97fc7a68048f87a498e67d",
+    "semantic_hash": "b14faf595a97fc7a68048f87a498e67d"
+  },
+  "clinical_graph_models/validation.py": {
+    "mtime": 1783249736.0,
+    "ast_hash": "d16fb0b5839a7a3a2c38c36ba1f5d8e6",
+    "semantic_hash": "d16fb0b5839a7a3a2c38c36ba1f5d8e6"
+  },
+  "clinical_graph_models/workbench.py": {
+    "mtime": 1783249736.0,
+    "ast_hash": "46b53b4376798bce32b201547bcb5056",
+    "semantic_hash": "46b53b4376798bce32b201547bcb5056"
+  },
+  "clinical_graph_models/xmlbif_compiler.py": {
+    "mtime": 1783440092.712815,
+    "ast_hash": "ad033cff0dec66994dae0d4c54d880a0",
+    "semantic_hash": "ad033cff0dec66994dae0d4c54d880a0"
+  },
+  "main.py": {
+    "mtime": 1783436097.2642448,
+    "ast_hash": "bcddc7246af3a0808dc8ffa92131b0a4",
+    "semantic_hash": "bcddc7246af3a0808dc8ffa92131b0a4"
+  },
+  "pyproject.toml": {
+    "mtime": 1783440133.5252862,
+    "ast_hash": "99ba08a9908c4cc21a821cfd337081fc",
+    "semantic_hash": "99ba08a9908c4cc21a821cfd337081fc"
+  },
+  "server.py": {
+    "mtime": 1783436101.420122,
+    "ast_hash": "e3f4af44ea683adb76e99517b08e72a4",
+    "semantic_hash": "e3f4af44ea683adb76e99517b08e72a4"
+  },
+  "tests/test_auth_adapter.py": {
+    "mtime": 1783436753.2173164,
+    "ast_hash": "6853f60e1f8a97d4f4380d472efa7616",
+    "semantic_hash": "6853f60e1f8a97d4f4380d472efa7616"
+  },
+  "tests/test_bn_manager_backend.py": {
+    "mtime": 1783504556.2194545,
+    "ast_hash": "f3b40bd14b69e6dc40646addce2cc7fa",
+    "semantic_hash": "f3b40bd14b69e6dc40646addce2cc7fa"
+  },
+  "tests/test_contract.py": {
+    "mtime": 1783436763.039628,
+    "ast_hash": "390ed04435a77123ac5121f7bf28f590",
+    "semantic_hash": "390ed04435a77123ac5121f7bf28f590"
+  },
+  "tests/test_net_parser.py": {
+    "mtime": 1783249736.0,
+    "ast_hash": "714fda6f39e128afbc42d9448cd8930a",
+    "semantic_hash": "714fda6f39e128afbc42d9448cd8930a"
+  },
+  "tests/test_xmlbif_compiler.py": {
+    "mtime": 1783440160.2674646,
+    "ast_hash": "72212b61307c22fe3acaf1e2d4365169",
+    "semantic_hash": "72212b61307c22fe3acaf1e2d4365169"
+  },
+  "CONTEXT.md": {
+    "mtime": 1783504584.949425,
+    "ast_hash": "f29aa7ddbdcb3b37256be6101c356e7d",
+    "semantic_hash": "f29aa7ddbdcb3b37256be6101c356e7d"
+  },
+  "README.md": {
+    "mtime": 1783438618.3497527,
+    "ast_hash": "45dc673a28eabd9df37013e9620909b8",
+    "semantic_hash": "45dc673a28eabd9df37013e9620909b8"
+  },
+  "UBIQUITOUS_LANGUAGE.md": {
+    "mtime": 1783434363.8286188,
+    "ast_hash": "4a15ddca5b708b63aea544c89d59becf",
+    "semantic_hash": "4a15ddca5b708b63aea544c89d59becf"
+  },
+  "bn_manager_backend/static/index.html": {
+    "mtime": 1783436093.6994596,
+    "ast_hash": "8211fe418bbe409f5494d1f3165463bd",
+    "semantic_hash": "8211fe418bbe409f5494d1f3165463bd"
+  },
+  "docs/BNM-01-primitive-contract.md": {
+    "mtime": 1783436893.3798263,
+    "ast_hash": "bd518ce3a344f4d8a1d3fb126157208d",
+    "semantic_hash": "bd518ce3a344f4d8a1d3fb126157208d"
+  },
+  "docs/BNM-02-standalone-fastapi-module-shell.md": {
+    "mtime": 1783437330.5523963,
+    "ast_hash": "e8d4f722ab63fc674e876a0819b0d8d2",
+    "semantic_hash": "e8d4f722ab63fc674e876a0819b0d8d2"
+  },
+  "docs/BNM-03-authentication-rest-adapter-role-guards.md": {
+    "mtime": 1783437333.598503,
+    "ast_hash": "3996a5a6b5393867ffd9885ae27aab31",
+    "semantic_hash": "3996a5a6b5393867ffd9885ae27aab31"
+  },
+  "docs/BNM-04-dashboard-route-discovery-slice.md": {
+    "mtime": 1783437328.090198,
+    "ast_hash": "39ad77c5e1cf29d110ed95926b62180a",
+    "semantic_hash": "39ad77c5e1cf29d110ed95926b62180a"
+  },
+  "docs/BNM-05-vendor-xmlbif-model-registry.md": {
+    "mtime": 1783438624.4426794,
+    "ast_hash": "b75bfa846bb9d72429dcea946336c020",
+    "semantic_hash": "b75bfa846bb9d72429dcea946336c020"
+  },
+  "docs/adr/0001-preserve-net-round-trip-compatibility.md": {
+    "mtime": 1783434326.2308903,
+    "ast_hash": "72d18547c4f2752eb6fd41adb6e922ea",
+    "semantic_hash": "72d18547c4f2752eb6fd41adb6e922ea"
+  },
+  "docs/adr/0002-freeze-primitive-bn-manager-contract.md": {
+    "mtime": 1783434339.1116264,
+    "ast_hash": "05c3259e7effaca69acd9210329873a3",
+    "semantic_hash": "05c3259e7effaca69acd9210329873a3"
+  },
+  "docs/BNM-06-xmlbif-compiler-with-lxml.md": {
+    "mtime": 1783504596.5887392,
+    "ast_hash": "9223fcb3bc13870548bdfb2ab9ef19ee",
+    "semantic_hash": "9223fcb3bc13870548bdfb2ab9ef19ee"
+  }
+}

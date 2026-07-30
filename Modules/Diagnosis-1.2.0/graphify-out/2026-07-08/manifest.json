@@ -1,0 +1,137 @@
+{
+  "diagnosis/__init__.py": {
+    "mtime": 1783578191.2555864,
+    "ast_hash": "4e4c5ddfba3645ec12ed2cb83601b767",
+    "semantic_hash": ""
+  },
+  "diagnosis/__main__.py": {
+    "mtime": 1783572378.9504309,
+    "ast_hash": "0a6fcf9c11ce56bc7304daf2e93f3e86",
+    "semantic_hash": ""
+  },
+  "diagnosis/api.py": {
+    "mtime": 1783577317.782231,
+    "ast_hash": "66dbafbc4d0455ceea44a4fd7aae82c0",
+    "semantic_hash": ""
+  },
+  "diagnosis/app.py": {
+    "mtime": 1783571402.4770703,
+    "ast_hash": "587c342ffbe5dc123f35394be820a0ba",
+    "semantic_hash": ""
+  },
+  "diagnosis/auth.py": {
+    "mtime": 1783504987.521977,
+    "ast_hash": "78bc253502c7f3920c2c6ab212b61b43",
+    "semantic_hash": "78bc253502c7f3920c2c6ab212b61b43"
+  },
+  "diagnosis/criteria.py": {
+    "mtime": 1783578152.5020454,
+    "ast_hash": "b7977820c883dfff98a85c25d2618446",
+    "semantic_hash": ""
+  },
+  "diagnosis/store.py": {
+    "mtime": 1783500235.5963778,
+    "ast_hash": "3e1e1f35d545c109d79feda5f1fb1d39",
+    "semantic_hash": "3e1e1f35d545c109d79feda5f1fb1d39"
+  },
+  "t.py": {
+    "mtime": 1783483802.210126,
+    "ast_hash": "a2f0562964dcb7787defd9fa0c6e4525",
+    "semantic_hash": "a2f0562964dcb7787defd9fa0c6e4525"
+  },
+  "test_auth.py": {
+    "mtime": 1783562539.8963375,
+    "ast_hash": "df1ac9192d08f16920e7e849be745d04",
+    "semantic_hash": "df1ac9192d08f16920e7e849be745d04"
+  },
+  "HANDOFF.md": {
+    "mtime": 1783578990.5369813,
+    "ast_hash": "bfb92999467fd970290b1b1b83f02a3b",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1783578971.677588,
+    "ast_hash": "2af3ebf5d98966836826358a6ea1fc1c",
+    "semantic_hash": ""
+  },
+  "diagnosis/static/index.html": {
+    "mtime": 1783578235.154338,
+    "ast_hash": "6a43af60926c7c5035868fe6da4a9ead",
+    "semantic_hash": ""
+  },
+  "requirements.txt": {
+    "mtime": 1783568941.8863325,
+    "ast_hash": "3da5da591286e476e5b5293109c56ea1",
+    "semantic_hash": ""
+  },
+  "test_output.txt": {
+    "mtime": 1783504326.165418,
+    "ast_hash": "12630f782610a760e150433648762ed9",
+    "semantic_hash": "12630f782610a760e150433648762ed9"
+  },
+  "diagnosis/csrf.py": {
+    "mtime": 1783562004.1059005,
+    "ast_hash": "ac9c2e75c583e4fad8001aae2c73772d",
+    "semantic_hash": "ac9c2e75c583e4fad8001aae2c73772d"
+  },
+  "test_csrf.py": {
+    "mtime": 1783562331.5221026,
+    "ast_hash": "cc6aa4e5ea634312ca4de50dce133d4a",
+    "semantic_hash": "cc6aa4e5ea634312ca4de50dce133d4a"
+  },
+  "diagnosis/patient.py": {
+    "mtime": 1783565880.47373,
+    "ast_hash": "4e5231f3a3e9d97257aea9d33effbafe",
+    "semantic_hash": ""
+  },
+  "test_patient.py": {
+    "mtime": 1783565820.0914066,
+    "ast_hash": "b4f6f1e1c4ff5adaeeac053868b45816",
+    "semantic_hash": ""
+  },
+  "diagnosis/dashboard.py": {
+    "mtime": 1783578947.7425408,
+    "ast_hash": "c487b385b842fbb5fdba100783fbe58b",
+    "semantic_hash": ""
+  },
+  "diagnosis/deps.py": {
+    "mtime": 1783568385.203135,
+    "ast_hash": "b811ca75fcffccd84f78d709a07d6f86",
+    "semantic_hash": ""
+  },
+  "diagnosis/diagnosis_api.py": {
+    "mtime": 1783567789.9525857,
+    "ast_hash": "3f306980dcc8eed8b8b5f2a71546ed8c",
+    "semantic_hash": ""
+  },
+  "diagnosis/page.py": {
+    "mtime": 1783567706.991517,
+    "ast_hash": "0c5e7bfd71a904b4e15aab2bb33350eb",
+    "semantic_hash": ""
+  },
+  "test_routes.py": {
+    "mtime": 1783571845.4458387,
+    "ast_hash": "b70b3d3aa5cde1e5dac962c4ff463ee2",
+    "semantic_hash": ""
+  },
+  "test_discovery.py": {
+    "mtime": 1783570427.2974079,
+    "ast_hash": "b570e538bcaac83fea065876a5d2bdeb",
+    "semantic_hash": ""
+  },
+  "diagnosis/readiness.py": {
+    "mtime": 1783571589.766317,
+    "ast_hash": "ab3256a0ac3373c72ad08efe1cce80cd",
+    "semantic_hash": ""
+  },
+  "test_readiness.py": {
+    "mtime": 1783571769.3698628,
+    "ast_hash": "7c99eab3251e2bf013fb30feb93e0609",
+    "semantic_hash": ""
+  },
+  "test_unittest.py": {
+    "mtime": 1783578309.631181,
+    "ast_hash": "3fb809d39f21a59257fdb89835dbff6b",
+    "semantic_hash": ""
+  }
+}

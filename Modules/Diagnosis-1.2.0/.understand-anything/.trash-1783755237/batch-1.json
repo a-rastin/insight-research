@@ -1,0 +1,381 @@
+{
+  "batchIndex": 1,
+  "files": [
+    {
+      "path": "diagnosis/__init__.py",
+      "language": "python",
+      "sizeLines": 35,
+      "fileCategory": "code"
+    },
+    {
+      "path": "diagnosis/__main__.py",
+      "language": "python",
+      "sizeLines": 56,
+      "fileCategory": "code"
+    },
+    {
+      "path": "diagnosis/app.py",
+      "language": "python",
+      "sizeLines": 55,
+      "fileCategory": "code"
+    },
+    {
+      "path": "diagnosis/api.py",
+      "language": "python",
+      "sizeLines": 142,
+      "fileCategory": "code"
+    },
+    {
+      "path": "diagnosis/deps.py",
+      "language": "python",
+      "sizeLines": 74,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test_embed.py",
+      "language": "python",
+      "sizeLines": 325,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test_routes.py",
+      "language": "python",
+      "sizeLines": 250,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test_unittest.py",
+      "language": "python",
+      "sizeLines": 1075,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test_auth.py",
+      "language": "python",
+      "sizeLines": 322,
+      "fileCategory": "code"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "file:diagnosis/__init__.py",
+      "type": "file",
+      "name": "diagnosis/__init__.py",
+      "filePath": "diagnosis/__init__.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Package entrypoint. Re-exports router, evaluate, get_criteria, meta_contract, check_readiness, and lazy get_app() so importing criteria alone never pulls in FastAPI.",
+      "tags": [
+        "package-init",
+        "public-api",
+        "lazy-imports",
+        "deep-module"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/__main__.py",
+      "type": "file",
+      "name": "diagnosis/__main__.py",
+      "filePath": "diagnosis/__main__.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Standalone boot shim. Sets DIAGNOSIS_AUTH_BYPASS=1 before any submodule import, runs six self-checks (criteria, store, patient, readiness, config, HTTP), drops bypass, then uvicorn.run(diagnosis.app:app).",
+      "tags": [
+        "entrypoint",
+        "cli",
+        "self-check",
+        "uvicorn"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/app.py",
+      "type": "file",
+      "name": "diagnosis/app.py",
+      "filePath": "diagnosis/app.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Standalone FastAPI app. Adds CORSMiddleware (origins from settings adapter), includes the composed router, serves /health (liveness) and /ready (503 on unhealthy).",
+      "tags": [
+        "fastapi",
+        "standalone-app",
+        "health",
+        "ready"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/api.py",
+      "type": "file",
+      "name": "diagnosis/api.py",
+      "filePath": "diagnosis/api.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Composition root. Flattens three seam routers (page, dashboard, diagnosis_api) into one router preserving literal-before-parameterized route order. Back-compat re-exports store, Submission, RESULT_FIELDS, _dump_for_audit, _read_page, _http_selfcheck.",
+      "tags": [
+        "composition-root",
+        "api-router",
+        "seam-composition",
+        "back-compat"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/deps.py",
+      "type": "file",
+      "name": "diagnosis/deps.py",
+      "filePath": "diagnosis/deps.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Shared wiring for all three route seams. Exports process-wide DiagnosisStore singleton, require_psychiatrist, require_psychiatrist_or_admin, require_csrf. Bypass shim checked at import time.",
+      "tags": [
+        "shared-wiring",
+        "store-singleton",
+        "auth-dep",
+        "csrf-dep"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "module:diagnosis",
+      "type": "module",
+      "name": "diagnosis",
+      "filePath": "",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Deep-module package: a tiny REST interface hiding the complete DSM-5-TR evaluation engine. Clinician-authoritative \u2014 the model never auto-decides.",
+      "tags": [
+        "deep-module",
+        "fastapi",
+        "clinical-decision-support"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/__init__.py:get_app",
+      "type": "function",
+      "name": "get_app",
+      "filePath": "diagnosis/__init__.py",
+      "complexity": "simple",
+      "summary": "Lazy FastAPI app accessor. Imports app only on call so criteria engine can be imported without triggering FastAPI load.",
+      "tags": [
+        "lazy-import",
+        "app-accessor"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/__main__.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "diagnosis/__main__.py",
+      "complexity": "simple",
+      "summary": "CLI entry function. Sets bypass, runs six self-checks, drops bypass, starts uvicorn.",
+      "tags": [
+        "cli-entry",
+        "self-check-runner"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "endpoint:diagnosis/app.py:GET /health",
+      "type": "endpoint",
+      "name": "GET /health",
+      "filePath": "diagnosis/app.py",
+      "complexity": "simple",
+      "summary": "Liveness probe. Returns {ok: true, module: 'diagnosis'}.",
+      "tags": [
+        "liveness",
+        "probe",
+        "get-endpoint"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "endpoint:diagnosis/app.py:GET /ready",
+      "type": "endpoint",
+      "name": "GET /ready",
+      "filePath": "diagnosis/app.py",
+      "complexity": "simple",
+      "summary": "Readiness probe. Calls check_readiness(); returns 200 with state or 503 when any check fails. Never leaks URLs or secrets.",
+      "tags": [
+        "readiness",
+        "probe",
+        "503",
+        "no-leak",
+        "get-endpoint"
+      ],
+      "languageNotes": ""
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:diagnosis/__init__.py",
+      "target": "file:diagnosis/api.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/__init__.py",
+      "target": "file:diagnosis/criteria.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/__init__.py",
+      "target": "file:diagnosis/readiness.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/__init__.py",
+      "target": "module:diagnosis",
+      "type": "defines_schema",
+      "weight": 0.8
+    },
+    {
+      "source": "file:diagnosis/__main__.py",
+      "target": "file:diagnosis/criteria.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/__main__.py",
+      "target": "file:diagnosis/store.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/__main__.py",
+      "target": "file:diagnosis/patient.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/__main__.py",
+      "target": "file:diagnosis/readiness.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/__main__.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/__main__.py",
+      "target": "file:diagnosis/api.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/__main__.py",
+      "target": "file:diagnosis/app.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/app.py",
+      "target": "file:diagnosis/api.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/app.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/app.py",
+      "target": "file:diagnosis/readiness.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/app.py",
+      "target": "file:diagnosis/readiness.py",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "file:diagnosis/app.py",
+      "target": "endpoint:diagnosis/app.py:GET /health",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/app.py",
+      "target": "endpoint:diagnosis/app.py:GET /ready",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/api.py",
+      "target": "file:diagnosis/dashboard.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/api.py",
+      "target": "file:diagnosis/diagnosis_api.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/api.py",
+      "target": "file:diagnosis/page.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/api.py",
+      "target": "file:diagnosis/deps.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/api.py",
+      "target": "module:diagnosis",
+      "type": "defines_schema",
+      "weight": 0.8
+    },
+    {
+      "source": "file:diagnosis/deps.py",
+      "target": "file:diagnosis/store.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/deps.py",
+      "target": "file:diagnosis/auth.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/deps.py",
+      "target": "file:diagnosis/csrf.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/__init__.py",
+      "target": "function:diagnosis/__init__.py:get_app",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/__main__.py",
+      "target": "function:diagnosis/__main__.py:main",
+      "type": "contains",
+      "weight": 1.0
+    }
+  ]
+}

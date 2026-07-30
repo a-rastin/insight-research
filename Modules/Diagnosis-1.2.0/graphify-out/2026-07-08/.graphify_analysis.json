@@ -1,0 +1,223 @@
+{
+  "communities": {
+    "0": [
+      "diagnosis_api_http_selfcheck",
+      "diagnosis_api_rationale_122",
+      "diagnosis_criteria",
+      "diagnosis_criteria_classify",
+      "diagnosis_criteria_demo",
+      "diagnosis_criteria_evaluate",
+      "diagnosis_criteria_evaluation",
+      "diagnosis_criteria_evaluation_to_dict",
+      "diagnosis_criteria_rationale_1",
+      "diagnosis_criteria_rationale_135",
+      "diagnosis_criteria_rationale_80",
+      "diagnosis_main",
+      "diagnosis_main_main",
+      "diagnosis_main_rationale_1"
+    ],
+    "1": [
+      "basemodel",
+      "diagnosis_api",
+      "diagnosis_api_dump_for_audit",
+      "diagnosis_api_get_session",
+      "diagnosis_api_init_session",
+      "diagnosis_api_page",
+      "diagnosis_api_put_session",
+      "diagnosis_api_rationale_1",
+      "diagnosis_api_rationale_116",
+      "diagnosis_api_rationale_59",
+      "diagnosis_api_rationale_79",
+      "diagnosis_api_read_page",
+      "diagnosis_api_submission"
+    ],
+    "2": [
+      "diagnosis_api_meta",
+      "diagnosis_api_rationale_45",
+      "diagnosis_app",
+      "diagnosis_app_health",
+      "diagnosis_app_rationale_1",
+      "diagnosis_criteria_get_criteria",
+      "diagnosis_criteria_rationale_68",
+      "diagnosis_init",
+      "diagnosis_init_get_app",
+      "diagnosis_init_rationale_1"
+    ],
+    "3": [
+      "cursor",
+      "diagnosis_store_diagnosisstore",
+      "diagnosis_store_diagnosisstore_cursor",
+      "diagnosis_store_diagnosisstore_ensure_schema",
+      "diagnosis_store_diagnosisstore_exists",
+      "diagnosis_store_diagnosisstore_init",
+      "diagnosis_store_rationale_57",
+      "diagnosis_store_rationale_97"
+    ],
+    "4": [
+      "diagnosis_store_diagnosisstore_audit_snapshot",
+      "diagnosis_store_diagnosisstore_get",
+      "diagnosis_store_diagnosisstore_list_audits",
+      "diagnosis_store_rationale_183",
+      "diagnosis_store_rationale_210",
+      "diagnosis_store_store_selfcheck"
+    ],
+    "5": [
+      "diagnosis_store",
+      "diagnosis_store_rationale_1",
+      "diagnosis_store_resolve_path"
+    ],
+    "6": [
+      "diagnosis_store_diagnosisstore_put",
+      "diagnosis_store_rationale_142"
+    ],
+    "7": [
+      "diagnosis_store_diagnosisstore_reset",
+      "diagnosis_store_rationale_203"
+    ],
+    "8": [
+      "t"
+    ]
+  },
+  "cohesion": {
+    "0": 0.1978021978021978,
+    "1": 0.1794871794871795,
+    "2": 0.2,
+    "3": 0.39285714285714285,
+    "4": 0.4,
+    "5": 0.6666666666666666,
+    "6": 1.0,
+    "7": 1.0,
+    "8": 1.0
+  },
+  "gods": [
+    {
+      "id": "diagnosis_store_diagnosisstore",
+      "label": "DiagnosisStore",
+      "degree": 14
+    },
+    {
+      "id": "diagnosis_store_store_selfcheck",
+      "label": "_store_selfcheck()",
+      "degree": 10
+    },
+    {
+      "id": "diagnosis_criteria_evaluate",
+      "label": "evaluate()",
+      "degree": 8
+    },
+    {
+      "id": "diagnosis_criteria_demo",
+      "label": "_demo()",
+      "degree": 6
+    },
+    {
+      "id": "diagnosis_api_http_selfcheck",
+      "label": "_http_selfcheck()",
+      "degree": 5
+    },
+    {
+      "id": "diagnosis_criteria_get_criteria",
+      "label": "get_criteria()",
+      "degree": 5
+    },
+    {
+      "id": "diagnosis_main_main",
+      "label": "main()",
+      "degree": 4
+    },
+    {
+      "id": "diagnosis_api_submission",
+      "label": "Submission",
+      "degree": 4
+    },
+    {
+      "id": "diagnosis_api_put_session",
+      "label": "put_session()",
+      "degree": 4
+    },
+    {
+      "id": "diagnosis_api_meta",
+      "label": "meta()",
+      "degree": 3
+    }
+  ],
+  "surprises": [
+    {
+      "source": "Submission",
+      "target": "DiagnosisStore",
+      "source_files": [
+        "diagnosis/api.py",
+        "diagnosis/store.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; bridges separate communities"
+    },
+    {
+      "source": "main()",
+      "target": "_store_selfcheck()",
+      "source_files": [
+        "diagnosis/__main__.py",
+        "diagnosis/store.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
+    },
+    {
+      "source": "get_session()",
+      "target": "evaluate()",
+      "source_files": [
+        "diagnosis/api.py",
+        "diagnosis/criteria.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
+    },
+    {
+      "source": "put_session()",
+      "target": "evaluate()",
+      "source_files": [
+        "diagnosis/api.py",
+        "diagnosis/criteria.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
+    },
+    {
+      "source": "main()",
+      "target": "_http_selfcheck()",
+      "source_files": [
+        "diagnosis/__main__.py",
+        "diagnosis/api.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "cross-file semantic connection"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `DiagnosisStore` connect `Community 3` to `Community 1`, `Community 4`, `Community 5`, `Community 6`, `Community 7`?",
+      "why": "High betweenness centrality (0.359) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `_store_selfcheck()` connect `Community 4` to `Community 0`, `Community 3`, `Community 5`, `Community 6`, `Community 7`?",
+      "why": "High betweenness centrality (0.112) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `evaluate()` connect `Community 0` to `Community 1`, `Community 2`?",
+      "why": "High betweenness centrality (0.090) - this node is a cross-community bridge."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `diagnosis module — DSM-5-TR schizophrenia criteria checklist for Insight.  Deep`, `Boot the diagnosis module as a standalone web app.      python -m diagnosis`, `API seam for the diagnosis module.  Interface (the seam):     GET  /diagnosis/{c` to the rest of the system?",
+      "why": "20 weakly-connected nodes found - possible documentation gaps or missing edges."
+    }
+  ]
+}

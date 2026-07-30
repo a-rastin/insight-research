@@ -1,0 +1,37 @@
+services:
+  treatment-plan:
+    image: ${TP_IMAGE:-insight-treatment-plan:0.1.0}
+    build:
+      context: .
+      dockerfile: Dockerfile.release
+      args:
+        VCS_REF: ${TP_VCS_REF:-unknown}
+      sbom: true
+      provenance: mode=max
+    user: "10001:10001"
+    init: true
+    read_only: true
+    tmpfs: ["/tmp:size=32m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    ports: ["127.0.0.1:${TP_HOST_PORT:-8000}:8000"]
+    environment:
+      TP_ENV: ${TP_ENV:-production}
+      TP_AUTH_STUB_ENABLED: ${TP_AUTH_STUB_ENABLED:-false}
+      TP_DATABASE_PATH: /data/treatment-plan.db
+      TP_AUTHENTICATION_SESSION_URL: ${TP_AUTHENTICATION_SESSION_URL:-}
+      TP_AUTHENTICATION_SESSION_URL_FILE: ${TP_AUTHENTICATION_SESSION_URL_FILE:-}
+      TP_TRUSTED_INTERNAL_ORIGINS: ${TP_TRUSTED_INTERNAL_ORIGINS:-}
+    volumes:
+      - treatment-plan-data:/data
+      - type: bind
+        source: ${TP_SECRETS_DIR:-./deployment/secrets-empty}
+        target: /run/secrets
+        read_only: true
+    restart: unless-stopped
+    stop_grace_period: 35s
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 256
+volumes:
+  treatment-plan-data:

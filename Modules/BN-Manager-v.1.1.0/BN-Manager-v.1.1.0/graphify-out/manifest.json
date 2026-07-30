@@ -1,0 +1,132 @@
+{
+  "bn_manager_backend/__init__.py": {
+    "mtime": 1783436079.9379585,
+    "ast_hash": "44bacfd0f15ec34f9e35d97a7f2c2632",
+    "semantic_hash": "44bacfd0f15ec34f9e35d97a7f2c2632"
+  },
+  "bn_manager_backend/auth_adapter.py": {
+    "mtime": 1783436628.9946935,
+    "ast_hash": "5349b75edaabb7c18cd985ec65be0989",
+    "semantic_hash": "5349b75edaabb7c18cd985ec65be0989"
+  },
+  "bn_manager_backend/config.py": {
+    "mtime": 1783436639.604091,
+    "ast_hash": "1bdf0515cc4752cf8626ab0783e38263",
+    "semantic_hash": "1bdf0515cc4752cf8626ab0783e38263"
+  },
+  "bn_manager_backend/main.py": {
+    "mtime": 1783921408.3820403,
+    "ast_hash": "ec50b9fda3e400844ea5ffed96fea96a",
+    "semantic_hash": "ec50b9fda3e400844ea5ffed96fea96a"
+  },
+  "bn_manager_backend/model_registry.py": {
+    "mtime": 1783920984.4146483,
+    "ast_hash": "bd081c5f319c23f63b0ea026c9fdb55a",
+    "semantic_hash": "bd081c5f319c23f63b0ea026c9fdb55a"
+  },
+  "bn_manager_backend/server.py": {
+    "mtime": 1783436088.2839875,
+    "ast_hash": "f5784e3533af77044b37ba315ddcbb67",
+    "semantic_hash": "f5784e3533af77044b37ba315ddcbb67"
+  },
+  "clinical_graph_models/__init__.py": {
+    "mtime": 1783921190.4555993,
+    "ast_hash": "2730de2e86c37f1d156a07b852c5c4c6",
+    "semantic_hash": "2730de2e86c37f1d156a07b852c5c4c6"
+  },
+  "clinical_graph_models/contract.py": {
+    "mtime": 1783921069.6576602,
+    "ast_hash": "1745dc67d7cb1035583b927c3ed8455e",
+    "semantic_hash": "1745dc67d7cb1035583b927c3ed8455e"
+  },
+  "clinical_graph_models/evaluation.py": {
+    "mtime": 1783249736.0,
+    "ast_hash": "3ce2b47f1e6bd0a9d7cb10c40b3d5ae4",
+    "semantic_hash": "3ce2b47f1e6bd0a9d7cb10c40b3d5ae4"
+  },
+  "clinical_graph_models/model.py": {
+    "mtime": 1783249736.0,
+    "ast_hash": "ddeec5558ebcb03c6adcfeb43619ee12",
+    "semantic_hash": "ddeec5558ebcb03c6adcfeb43619ee12"
+  },
+  "clinical_graph_models/tables.py": {
+    "mtime": 1783249736.0,
+    "ast_hash": "b14faf595a97fc7a68048f87a498e67d",
+    "semantic_hash": "b14faf595a97fc7a68048f87a498e67d"
+  },
+  "clinical_graph_models/validation.py": {
+    "mtime": 1783505992.8983386,
+    "ast_hash": "3b1406e88819ababb307569881410fda",
+    "semantic_hash": "3b1406e88819ababb307569881410fda"
+  },
+  "clinical_graph_models/xmlbif_compiler.py": {
+    "mtime": 1783921371.5979688,
+    "ast_hash": "43186b70b1f05984b41e33073f11d68c",
+    "semantic_hash": "43186b70b1f05984b41e33073f11d68c"
+  },
+  "main.py": {
+    "mtime": 1783436097.2642448,
+    "ast_hash": "bcddc7246af3a0808dc8ffa92131b0a4",
+    "semantic_hash": "bcddc7246af3a0808dc8ffa92131b0a4"
+  },
+  "pyproject.toml": {
+    "mtime": 1783920984.412637,
+    "ast_hash": "591d2a828fa4f8c6ffd0ba5fa1dff90b",
+    "semantic_hash": "591d2a828fa4f8c6ffd0ba5fa1dff90b"
+  },
+  "server.py": {
+    "mtime": 1783436101.420122,
+    "ast_hash": "e3f4af44ea683adb76e99517b08e72a4",
+    "semantic_hash": "e3f4af44ea683adb76e99517b08e72a4"
+  },
+  "tests/test_auth_adapter.py": {
+    "mtime": 1783921333.39065,
+    "ast_hash": "f5f6c71e5abc21c087945ed2f5bddcc8",
+    "semantic_hash": "f5f6c71e5abc21c087945ed2f5bddcc8"
+  },
+  "tests/test_bn_manager_backend.py": {
+    "mtime": 1783921371.6079736,
+    "ast_hash": "dbadbcdbbefcd63f4c0942c046f6be70",
+    "semantic_hash": "dbadbcdbbefcd63f4c0942c046f6be70"
+  },
+  "tests/test_contract.py": {
+    "mtime": 1783921327.4929676,
+    "ast_hash": "f501cf07e738e87db39c068fd6fc8841",
+    "semantic_hash": "f501cf07e738e87db39c068fd6fc8841"
+  },
+  "tests/test_xmlbif_compiler.py": {
+    "mtime": 1783921233.0180948,
+    "ast_hash": "d95815334253b274c7b752e880bc70e6",
+    "semantic_hash": "d95815334253b274c7b752e880bc70e6"
+  },
+  "CONTEXT.md": {
+    "mtime": 1783921477.6540356,
+    "ast_hash": "ea3912eb74a33a5a48cb509a120d6ac9",
+    "semantic_hash": "ea3912eb74a33a5a48cb509a120d6ac9"
+  },
+  "README.md": {
+    "mtime": 1783921477.6520362,
+    "ast_hash": "dccdfe4f7500c0105b13f29b46c13559",
+    "semantic_hash": "dccdfe4f7500c0105b13f29b46c13559"
+  },
+  "UBIQUITOUS_LANGUAGE.md": {
+    "mtime": 1783921477.6550362,
+    "ast_hash": "050535c01ecbda7d058dfeda76934cc8",
+    "semantic_hash": "050535c01ecbda7d058dfeda76934cc8"
+  },
+  "bn_manager_backend/static/index.html": {
+    "mtime": 1783921496.1075568,
+    "ast_hash": "3ef867ae640c57d3dc5bb837b1693713",
+    "semantic_hash": "3ef867ae640c57d3dc5bb837b1693713"
+  },
+  "tests/test_validation.py": {
+    "mtime": 1783506107.0678065,
+    "ast_hash": "d9df3c750dec04caf77db98b62697728",
+    "semantic_hash": "d9df3c750dec04caf77db98b62697728"
+  },
+  "docs/XML-BN-MIGRATION.md": {
+    "mtime": 1783921477.7487445,
+    "ast_hash": "dcda75ec365d5da937427ba90fa824a4",
+    "semantic_hash": "dcda75ec365d5da937427ba90fa824a4"
+  }
+}

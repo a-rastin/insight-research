@@ -1,0 +1,26 @@
+﻿{
+  "module": "Medical History",
+  "datasetVersion": "2.0.0",
+  "storage": { "type": "json", "correlationKey": "code" },
+  "submission": {
+    "code": { "type": "string", "length": 6, "required": true },
+    "pastMedicalHistory": { "type": "string_array", "required": true, "optionsSource": "GET /api/internal/medical-history/options" },
+    "drugs": { "type": "object_array", "required": true, "maxItems": 20, "itemSchema": "drug_entry" },
+    "substantialSuicideRisk": { "type": "boolean", "required": true, "default": false },
+    "priorAntipsychoticTherapy": { "type": "boolean", "required": true, "default": false },
+    "priorAntipsychoticTherapySuccessful": { "type": ["boolean", "null"], "requiredWhen": "priorAntipsychoticTherapy=true" },
+    "antipsychotic": { "type": ["string", "null"], "requiredWhen": "priorAntipsychoticTherapy=true", "optionsSource": "GET /api/internal/medical-history/options" },
+    "clozapineContraindication": { "type": "boolean", "required": true, "default": false },
+    "clozapineContraindications": { "type": "string_array", "required": true, "minItemsWhen": "1 when clozapineContraindication=true", "options": ["Severe neutropenia", "Clozapine-induced myocarditis", "Unmanaged seizure disorder"] },
+    "recurrentNonAdherenceDeterioration": { "type": "boolean", "required": true, "default": false }
+  },
+  "objectSchemas": { "drug_entry": { "name": { "type": "string", "required": true, "maxLength": 160 }, "dose": { "type": "string" }, "route": { "type": "string" }, "frequency": { "type": "string" } } },
+  "internalRestApi": [
+    { "method": "POST", "path": "/api/internal/medical-history/activate" },
+    { "method": "GET", "path": "/api/internal/medical-history/activation/{code}" },
+    { "method": "GET", "path": "/api/internal/medical-history/options" },
+    { "method": "POST", "path": "/api/internal/medical-history/submissions" },
+    { "method": "GET", "path": "/api/internal/medical-history/submissions" },
+    { "method": "GET", "path": "/api/internal/medical-history/schema" }
+  ]
+}

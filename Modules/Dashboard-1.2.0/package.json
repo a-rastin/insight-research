@@ -1,0 +1,11 @@
+{
+  "name": "dashboard-module",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "python -m uvicorn dashboard_backend.main:app --host 127.0.0.1 --port 4173",
+    "test": "python -m unittest && node test_dashboard_frontend.mjs"
+  }
+}
+

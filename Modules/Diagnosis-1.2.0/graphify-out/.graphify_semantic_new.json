@@ -1,0 +1,63 @@
+{
+  "nodes": [
+    {
+      "id": "root_handoff_filedoc",
+      "label": "HANDOFF.md",
+      "file_type": "document",
+      "source_file": "E:\\diagnosis\\HANDOFF.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "root_readme_filedoc",
+      "label": "README.md",
+      "file_type": "document",
+      "source_file": "E:\\diagnosis\\README.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "root_index_filedoc",
+      "label": "index.html",
+      "file_type": "document",
+      "source_file": "E:\\diagnosis\\diagnosis\\static\\index.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "root_requirements_filedoc",
+      "label": "requirements.txt",
+      "file_type": "document",
+      "source_file": "E:\\diagnosis\\requirements.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "root_test_output_filedoc",
+      "label": "test_output.txt",
+      "file_type": "document",
+      "source_file": "E:\\diagnosis\\test_output.txt",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [],
+  "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

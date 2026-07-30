@@ -1,0 +1,32 @@
+services:
+  treatment-plan:
+    image: ${TP_IMAGE:?set TP_IMAGE to the independently verified digest}
+    user: "10001:10001"
+    read_only: true
+    tmpfs: ["/tmp:size=32m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    expose: ["8000"]
+    environment:
+      TP_ENV: production
+      TP_DATABASE_PATH: /data/treatment-plan.db
+      TP_AUTHENTICATION_SESSION_URL_FILE: /run/secrets/authentication-session-url
+      TP_TRUSTED_INTERNAL_ORIGINS: ${TP_TRUSTED_INTERNAL_ORIGINS:?set trusted Authentication origin}
+    volumes:
+      - treatment-plan-data:/data
+    secrets: [authentication-session-url]
+    stop_grace_period: 35s
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 256
+    networks:
+      insight-internal:
+        aliases: [treatment-plan]
+secrets:
+  authentication-session-url:
+    file: ${TP_AUTHENTICATION_SESSION_URL_SECRET:?mount the Authentication URL secret file}
+volumes:
+  treatment-plan-data:
+networks:
+  insight-internal:
+    external: true

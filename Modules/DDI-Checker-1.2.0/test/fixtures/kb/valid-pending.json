@@ -1,0 +1,15 @@
+{
+  "schemaVersion":"1.0.0","version":"ikb-test","status":"draft_parsed_pending_admin_review","activatedAt":null,
+  "clinicalUse":{"allowedForProduction":false},
+  "drugs":[
+    {"id":"rxnorm:1","name":"Alpha","aliases":["A"],"identityStatus":"rxnorm_seeded"},
+    {"id":"rxnorm:2","name":"Beta","aliases":["B"],"identityStatus":"rxnorm_seeded"}
+  ],
+  "interactions":[{
+    "id":"ddi-1","drugAId":"rxnorm:1","drugBId":"rxnorm:2","severity":"major",
+    "mechanism":"Mechanism","clinicalEffect":"Effect","recommendation":"Avoid","monitoring":"Monitor",
+    "evidenceSource":"Source","evidenceExcerpt":"Excerpt","sourceReportPath":"report.txt",
+    "reviewedBy":null,"reviewedAt":null,"reviewStatus":"parsed_pending_review",
+    "parserConfidence":"high","knowledgeBaseVersion":"ikb-test"
+  }]
+}

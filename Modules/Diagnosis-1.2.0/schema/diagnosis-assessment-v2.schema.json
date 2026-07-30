@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://insight.local/schemas/diagnosis-assessment-v2.schema.json",
+  "title": "INSIGHT Diagnosis Assessment v2",
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$"
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["met", "aCount", "coreCount", "failures", "reason", "checkedCriteria", "ruleVersion"],
+      "properties": {
+        "met": {"type": "boolean"},
+        "aCount": {"type": "integer", "minimum": 0},
+        "coreCount": {"type": "integer", "minimum": 0},
+        "failures": {"type": "array", "items": {"type": "string"}},
+        "reason": {"type": "string", "minLength": 1},
+        "checkedCriteria": {"$ref": "#/$defs/checkedCriteria"},
+        "ruleVersion": {"const": "diagnosis-rules-1.0.0"}
+      }
+    },
+    "checkedCriteria": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"enum": ["A1", "A2", "A3", "A4", "A5", "A6", "B1", "C1", "D1"]}
+    },
+    "clinicianDecision": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["type", "actorUserId", "recordedAt"],
+      "properties": {
+        "type": {"enum": ["confirmed", "bypass"]},
+        "actorUserId": {"type": "string", "minLength": 1, "maxLength": 128},
+        "recordedAt": {"$ref": "#/$defs/utcTimestamp"}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceModule", "createdByUserId", "lastUpdatedByUserId"],
+      "properties": {
+        "sourceModule": {"const": "diagnosis"},
+        "createdByUserId": {"type": "string", "minLength": 1, "maxLength": 128},
+        "lastUpdatedByUserId": {"type": "string", "minLength": 1, "maxLength": 128}
+      }
+    },
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assessmentId", "patientId", "encounterId", "checkedCriteria", "evaluation", "clinicianDecision", "ruleVersion", "schemaVersion", "status", "resourceVersion", "createdAt", "updatedAt", "provenance"],
+      "properties": {
+        "assessmentId": {"$ref": "#/$defs/uuid"},
+        "patientId": {"$ref": "#/$defs/uuid"},
+        "encounterId": {"$ref": "#/$defs/uuid"},
+        "checkedCriteria": {"$ref": "#/$defs/checkedCriteria"},
+        "evaluation": {"$ref": "#/$defs/evaluation"},
+        "clinicianDecision": {"$ref": "#/$defs/clinicianDecision"},
+        "ruleVersion": {"const": "diagnosis-rules-1.0.0"},
+        "schemaVersion": {"const": "2.0.0"},
+        "status": {"enum": ["initialized", "in-progress", "decided"]},
+        "resourceVersion": {"type": "integer", "minimum": 1},
+        "createdAt": {"$ref": "#/$defs/utcTimestamp"},
+        "updatedAt": {"$ref": "#/$defs/utcTimestamp"},
+        "provenance": {"$ref": "#/$defs/provenance"}
+      }
+    },
+    "assessmentInitRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["patientId", "encounterId"],
+      "properties": {
+        "patientId": {"$ref": "#/$defs/uuid"},
+        "encounterId": {"$ref": "#/$defs/uuid"}
+      }
+    },
+    "assessmentUpdateRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checkedCriteria", "clinicianDecision"],
+      "properties": {
+        "checkedCriteria": {"$ref": "#/$defs/checkedCriteria"},
+        "clinicianDecision": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": {"type": {"enum": ["confirmed", "bypass"]}}
+        }
+      }
+    },
+    "auditEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sequence", "assessmentId", "eventType", "actorUserId", "occurredAt", "resourceVersion", "snapshot"],
+      "properties": {
+        "sequence": {"type": "integer", "minimum": 1},
+        "assessmentId": {"$ref": "#/$defs/uuid"},
+        "eventType": {"enum": ["initialized", "updated"]},
+        "actorUserId": {"type": "string", "minLength": 1, "maxLength": 128},
+        "occurredAt": {"$ref": "#/$defs/utcTimestamp"},
+        "resourceVersion": {"type": "integer", "minimum": 1},
+        "snapshot": {"$ref": "#/$defs/assessment"}
+      }
+    },
+    "auditTrail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assessmentId", "events"],
+      "properties": {
+        "assessmentId": {"$ref": "#/$defs/uuid"},
+        "events": {"type": "array", "items": {"$ref": "#/$defs/auditEvent"}}
+      }
+    }
+  }
+}

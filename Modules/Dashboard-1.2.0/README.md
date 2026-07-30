@@ -1,0 +1,97 @@
+# Dashboard Module
+
+Dashboard is a standalone web app and embeddable module. Boundary rule: internal REST only. Dashboard never imports Authentication code, decodes JWTs, reads an auth DB, or implements patient/admin module workflows.
+
+Backend is Python FastAPI with SQLite persistence behind a repository/DB adapter layer. Dashboard persists only local session/event rows; Authentication remains source of truth for users, roles, and profile display data. `DASHBOARD_DB_PATH` controls SQLite file location and defaults to `dashboard.sqlite3` in this directory.
+
+## Run
+
+```powershell
+npm start
+```
+
+Equivalent direct command:
+
+```powershell
+python -m uvicorn dashboard_backend.main:app --host 127.0.0.1 --port 4173
+```
+
+Open `http://localhost:4173/dashboard/`.
+
+Without `AUTH_BASE_URL` or `AUTH_SESSION_URL`, Dashboard serves a mock `GET /api/auth/session` endpoint for standalone development. Set `DASHBOARD_MOCK_AUTH=0` in integrated environments if a real auth endpoint is required.
+
+## Test
+
+```powershell
+npm test
+```
+
+## Health
+
+```http
+GET /healthz
+GET /readyz
+```
+
+`/readyz` checks DB connectivity.
+
+## Workspace Rules
+
+- Both roles enter `Workspace`.
+- Workspace responses include `currentDateTime` and `displayName`.
+- Psychiatrist display names use `Dr. {fullName}`.
+- Psychiatrist buttons: `Add New Patient`, `Patient Follow-up`, `List of Patients`, `Setting`.
+- Admin buttons: `Add New User`, `Logs`, `Backup`, `List of Users`.
+- Buttons route through REST-discovered placeholder module routes.
+- Dashboard does not implement patient, treatment, admin log, backup, or user-management module logic.
+
+## Module Interface
+
+Authentication identity is verified through REST:
+
+```http
+GET /api/auth/session
+```
+
+Dashboard activation uses only Dashboard's internal REST endpoint:
+
+```http
+POST /internal/dashboard/session
+```
+
+The caller supplies auth credentials through `Authorization`, `Cookie`, or `X-Auth-Session`. Request body identity fields are ignored; Dashboard calls Authentication to get `user.id`, `role`, and display profile. Dashboard rejects missing, expired, forced-password-change, password-reset-required, and disclaimer-blocked auth sessions.
+
+The UI then reads:
+
+```http
+GET /internal/dashboard/workspace
+```
+
+Buttons discover module placeholders through:
+
+```http
+GET /internal/dashboard/module-routes/{moduleId}
+```
+
+Every protected Dashboard endpoint verifies the local dashboard session and re-checks Authentication through `GET /api/auth/session`.
+
+## Files
+
+| File | Purpose |
+| --- | --- |
+| `dashboard_backend/main.py` | FastAPI routes, static host, dev mock auth, workspace model |
+| `dashboard_backend/repository.py` | Dashboard session/event repository |
+| `dashboard_backend/db.py` | DB adapter protocol plus SQLite adapter/schema |
+| `dashboard_backend/auth.py` | Authentication session REST client |
+| `test_dashboard_backend.py` | Integration tests for auth boundary, workspace buttons, route placeholders, health |
+| `index.html` | Standalone entry page |
+| `dashboard.js` | Workspace UI adapter |
+| `styles.css` | Layout and visual design |
+| `api-contract.md` | Internal REST interface |
+| `dataset-schema.md` | Dashboard-local persistence and workspace strings |
+| `HANDOFF.md` | Module handoff |
+
+## Postgres Upgrade Path
+
+Route handlers depend on `DashboardRepository`, not SQLite directly. SQL access is isolated behind `DatabaseAdapter`; replacing `SQLiteAdapter` with a Postgres adapter should preserve REST behavior and repository method contracts.
+

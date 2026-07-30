@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Insight - Diagnosis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* DESIGN.md tokens, verbatim */
+    :root {
+      --primary: #0A9E8F;
+      --primary-hover: #088A7D;
+      --primary-light: #E6F6F5;
+      --on-primary: #FFFFFF;
+      --ink: #111827;
+      --ink-muted: #6B7280;
+      --ink-subtle: #9CA3AF;
+      --canvas: #FFFFFF;
+      --surface-1: #F9FAFB;
+      --surface-2: #F3F4F6;
+      --border: #E5E7EB;
+      --border-strong: #D1D5DB;
+      --urgent: #DC2626; --urgent-bg: #FEF2F2;
+      --warning: #D97706; --warning-bg: #FFFBEB;
+      --normal: #059669; --normal-bg: #ECFDF5;
+      --follow-up: #7C3AED; --follow-up-bg: #F5F3FF;
+      --info: #0284C7; --info-bg: #F0F9FF;
+
+      --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 16px; --radius-pill: 9999px;
+      --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-elevated: 0 4px 12px rgba(0,0,0,0.08);
+      --duration-fast: 100ms; --duration-base: 180ms; --duration-slow: 300ms;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--ink); line-height: 1.6; letter-spacing: -0.005em;
+      background: var(--canvas);
+    }
+    code, .mono { font-family: 'JetBrains Mono', Menlo, Consolas, monospace; font-size: 13px; }
+
+    /* Embeddable module root wrapper. The host (standalone shell OR the
+       mounted Insight dashboard) supplies a single #diagnosis-root element.
+       This wrapper provides only the layout - no app chrome, no body padding,
+       no host-level topbar, no history mutation. See HANDOFF.md §4. */
+    .diagnosis-module { padding: 24px 40px 48px; }
+    @media (max-width: 980px) { .diagnosis-module { padding: 16px; } }
+
+    /* Host-supplied topbar (only rendered in the standalone shell). Inside
+       the larger Insight app the host renders its own dashboard header. */
+    .dm-topbar { display: flex; align-items: baseline; gap: 16px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .dm-topbar h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+    .dm-topbar .subtle { color: var(--ink-muted); font-size: 13px; }
+    .dm-topbar .session { margin-left: auto; font-size: 12px; color: var(--ink-subtle); font-weight: 600; letter-spacing: 0.02em; }
+
+    /* Patient code entry — shows when no code in URL */
+    .entry {
+      max-width: 560px; margin: 80px auto; padding: 32px 40px;
+      background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+    }
+    .entry h2 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .entry p { color: var(--ink-muted); font-size: 14px; margin-bottom: 24px; max-width: 60ch; }
+    .field { display: flex; flex-direction: column; gap: 8px; }
+    .field label { font-size: 12px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--ink-muted); }
+    .field input {
+      padding: 12px 14px; border: 1px solid var(--border-strong); border-radius: var(--radius-md);
+      font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--ink);
+      transition: border-color var(--duration-base) var(--ease), box-shadow var(--duration-base) var(--ease);
+    }
+    .field input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light); }
+
+    .btn {
+      padding: 10px 20px; border-radius: var(--radius-md); border: 1px solid transparent;
+      font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: background var(--duration-fast) var(--ease), transform var(--duration-fast) var(--ease), border-color var(--duration-fast) var(--ease);
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { background: var(--primary); color: var(--on-primary); }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-primary:disabled { background: var(--border-strong); color: var(--ink-subtle); cursor: not-allowed; }
+    .btn-ghost { background: var(--canvas); color: var(--ink); border-color: var(--border-strong); }
+    .btn-ghost:hover { background: var(--surface-2); }
+    .btn-warning {
+      background: var(--canvas); color: var(--warning);
+      border: 1px solid var(--warning); font-weight: 600;
+    }
+    .btn-warning:hover { background: var(--warning-bg); }
+
+    /* Three-column workspace */
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 380px;
+      gap: 24px; align-items: start;
+    }
+    @media (max-width: 980px) { .workspace { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--canvas); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); box-shadow: var(--shadow-card);
+      padding: 24px 28px;
+    }
+    .card-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+    .card-head h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+    .badge {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+      padding: 4px 10px; border-radius: var(--radius-pill); border: 1px solid var(--border);
+      color: var(--ink-muted); background: var(--surface-1);
+    }
+    .badge.met    { color: var(--normal);     border-color: var(--normal);     background: var(--normal-bg); }
+    .badge.unmet  { color: var(--urgent);     border-color: var(--urgent);     background: var(--urgent-bg); }
+    .badge.warn   { color: var(--warning);    border-color: var(--warning);    background: var(--warning-bg); }
+
+    /* Criteria groups */
+    .group { margin-top: 20px; }
+    .group:first-of-type { margin-top: 0; }
+    .group h3 {
+      font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+      color: var(--ink-muted); margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+    }
+    .crit {
+      display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start;
+      padding: 10px 0; border-bottom: 1px solid var(--surface-2);
+    }
+    .crit:last-child { border-bottom: none; }
+    .crit input[type="checkbox"] {
+      width: 18px; height: 18px; accent-color: var(--primary); margin-top: 2px; cursor: pointer;
+    }
+    .crit label { cursor: pointer; color: var(--ink); font-size: 14px; }
+    .crit .tag {
+      display: inline-block; margin-left: 8px; font-size: 10px; font-weight: 600; letter-spacing: 0.04em;
+      text-transform: uppercase; color: var(--info); background: var(--info-bg);
+      padding: 2px 6px; border-radius: var(--radius-sm); vertical-align: middle;
+    }
+    .crit .tag.core { color: var(--primary); background: var(--primary-light); }
+    .crit .tag.guard { color: var(--follow-up); background: var(--follow-up-bg); }
+    .crit .tag.dur { color: var(--warning); background: var(--warning-bg); }
+
+    /* Real-time conclusion panel (sticky right column) */
+    .conclusion { position: sticky; top: 24px; }
+    .conclusion .panel {
+      background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 20px 22px; margin-bottom: 16px;
+    }
+    .conclusion .panel h2 { font-size: 14px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 12px; }
+    .metric { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; }
+    .metric .k { color: var(--ink); font-size: 14px; }
+    .metric .v { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 15px; color: var(--ink); }
+    .metric .v.ok   { color: var(--normal); }
+    .metric .v.bad  { color: var(--urgent); }
+    .reason {
+      margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+      font-size: 14px; color: var(--ink-muted); line-height: 1.55;
+    }
+    .failures { list-style: none; margin-top: 8px; }
+    .failures li { font-size: 13px; color: var(--urgent); padding: 4px 0; padding-left: 14px; position: relative; }
+    .failures li::before { content: "•"; position: absolute; left: 0; color: var(--urgent); }
+
+    /* Disclaimer banner — clinician authority per DESIGN.md §10 */
+    .disclaimer {
+      display: flex; gap: 12px; align-items: flex-start; padding: 12px 16px;
+      border: 1px solid var(--info); background: var(--info-bg); color: var(--info);
+      border-radius: var(--radius-md); font-size: 12px; margin-bottom: 16px; line-height: 1.5;
+    }
+    .disclaimer strong { font-weight: 600; }
+
+    /* Action bar */
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+    .actions .spacer { flex: 1; }
+
+    /* Toast for save state */
+    .save-state {
+      font-size: 12px; color: var(--ink-subtle); font-weight: 500; letter-spacing: 0.02em;
+      padding: 6px 0;
+    }
+    .save-state.saving { color: var(--info); }
+    .save-state.saved  { color: var(--normal); }
+    .save-state.error  { color: var(--urgent); }
+
+    .hidden { display: none !important; }
+    .meta { font-size: 12px; color: var(--ink-subtle); margin-top: 8px; font-family: 'JetBrains Mono', monospace; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <!--
+    The dominant surface is the embeddable contract createDiagnosisModule.
+
+    Standalone case (python -m diagnosis -> GET /):
+      The page is its own host. The script tag below bootstraps
+      createDiagnosisModule({root: document.body, apiBaseUrl: ""}) on
+      DOMContentLoaded, after rendering the standalone shell chrome
+      (the .dm-topbar header) inline. Same byte-clean CSRF meta injection
+      path the page seam already owns.
+
+    Embedded case (Insight dashboard mounts this file under
+      /modules/diagnosis, or wraps it via an iframe / panel):
+      The host calls createDiagnosisModule({root, apiBaseUrl}) directly
+      against this same script file (via a <script src> import OR by
+      grabbing window.createDiagnosisModule from this file) and passes a
+      HTMLElement. The rendered chrome skips .dm-topbar — the Insight
+      dashboard already shows its own page header — and skips
+      history.replaceState / .search URL mutations on the host URL.
+
+    The DOM below is the host's standalone shell. The module's view is
+    built inside #diagnosis-root by createDiagnosisModule. The module
+    NEVER touches document.body padding, NEVER mutates the host URL,
+    NEVER ships a host-navigation placeholder button — the host owns the
+    return-to-dashboard link.
+  -->
+  <div id="diagnosis-root"></div>
+
+  <script>
+    "use strict";
+
+    /* ===================================================================
+     * createDiagnosisModule — the embeddable UI contract.
+     *
+     * Mirrors the "Add New Patient" pattern: an embeddable module is a
+     * function the host calls with {root, apiBaseUrl} and gets back a
+     * handle with mount()/unmount(). The module NEVER mutates host
+     * chrome (topbar, body background, history), NEVER ships a
+     * host-navigation placeholder button, and isolates its DOM inside
+     * the supplied root. See HANDOFF.md §4.
+     *
+     * Contract:
+     *   {HTMLElement}  opts.root        - mount target (REQUIRED for the
+     *                                    embedded case; the standalone
+     *                                    shell passes document.body).
+     *   {string}       opts.apiBaseUrl  - prefix for every API call.
+     *                                    "" for same-origin root (the
+     *                                    standalone case). "/" → root.
+     *                                    The mounted case passes "" too
+     *                                    and relies on the same-origin
+     *                                    opacity (no CORS). Tolerates a
+     *                                    trailing slash.
+     *   {string}       opts.initialCode - optional pre-load patient code
+     *                                    (the standalone shell reads ?
+     *                                    code=...; the host can pass it).
+     *   {boolean}      opts.embedded    - true inside the larger Insight
+     *                                    app. Removes the standalone
+     *                                    topbar chrome and the
+     *                                    history.replaceState writes so
+     *                                    the host URL is preserved.
+     * Returns:
+     *   { mount(): void, unmount(): void, setPatientCode(code): void }
+     *
+     * All existing safety contracts are preserved:
+     *   - rules from GET /diagnosis/_meta are single source of truth;
+     *     the optimistic display NEVER reimplements the DSM logic in JS
+     *     (HANDOFF §9.12).
+     *   - CSRF header stamped on every PUT/POST via csrfHeaders();
+     *     token read from <meta name="csrf-token"> stamped by the page
+     *     seam on serve (HANDOFF §9.8).
+     *   - Confirm button (decision: "confirmed") is disabled unless
+     *     Criterion A is met; Bypass (decision: "definite") is always
+     *     enabled — clinician authority over the model (HANDOFF §6).
+     * =================================================================== */
+    function createDiagnosisModule(opts) {
+      const root = (opts && opts.root) || document.body;
+      const apiBaseUrl = (opts && typeof opts.apiBaseUrl === "string")
+        ? opts.apiBaseUrl.replace(/\/+$/, "")
+        : "";
+      const embedded = !!(opts && opts.embedded);
+      const initialCode = (opts && opts.initialCode) || "";
+
+      // Module-local state. The closure holds it so a second mount of
+      // this same script against a different root cannot leak state
+      // across instances.
+      let code = "";
+      let criteria = [];
+      // Rule contract served by GET <apiBaseUrl>/diagnosis/_meta
+      // (criteria.meta_contract). The optimistic display below derives
+      // every metric from this dict instead of reimplementing the DSM
+      // rules in JS — the server engine stays the single source of
+      // truth. See HANDOFF.md §4 / §9.12.
+      let rules = { symptom_ids: [], core_ids: [], duration_id: "", guard_ids: [],
+                    symptom_threshold: 2, core_threshold: 1 };
+      let lastDecision = null;
+      let csrfToken = "";
+      let saveTimer = null;
+      let destroyed = false;
+      const listeners = []; // [{node, type, fn}] for clean unmount
+
+      // Id prefix so multiple instances don't collide on element ids.
+      const UID = "dm" + Math.random().toString(36).slice(2, 8) + "-";
+
+      // The module owns only the inside of `root`. Build the wrapper here
+      // (NOT the host body) so body padding / page chrome is untouched.
+      function buildDom() {
+        root.innerHTML = "";
+        const wrap = document.createElement("div");
+        wrap.className = "diagnosis-module";
+        if (!embedded) {
+          const head = document.createElement("header");
+          head.className = "dm-topbar";
+          head.innerHTML =
+            '<h1>Insight</h1>' +
+            '<span class="subtle">Diagnosis · DSM-5-TR Schizophrenia</span>' +
+            '<span class="session" id="' + UID + 'patient-code-display"></span>';
+          wrap.appendChild(head);
+        }
+        // Hidden patient-code session marker still drives the workspace.
+        if (embedded) {
+          const span = document.createElement("span");
+          span.id = UID + "patient-code-display";
+          span.hidden = true;
+          wrap.appendChild(span);
+        }
+
+        // Step 1: enter patient code
+        const entry = document.createElement("section");
+        entry.id = UID + "entry";
+        entry.className = "entry";
+        entry.innerHTML =
+          '<h2>Patient code</h2>' +
+          '<p>Enter the patient-specific code issued for this session. Criteria for the current evaluation are loaded by code.</p>' +
+          '<div class="field">' +
+            '<label for="' + UID + 'code-input">Patient code</label>' +
+            '<input id="' + UID + 'code-input" type="text" autocomplete="off" placeholder="e.g. P-0427-A" />' +
+          '</div>' +
+          '<div style="height:20px"></div>' +
+          '<button class="btn btn-primary" id="' + UID + 'load-btn">Open criteria</button>';
+        wrap.appendChild(entry);
+
+        // Step 2: criteria workspace
+        const ws = document.createElement("section");
+        ws.id = UID + "workspace";
+        ws.className = "workspace hidden";
+        ws.innerHTML =
+          '<div class="card">' +
+            '<div class="card-head">' +
+              '<h2>DSM-5-TR criteria for schizophrenia</h2>' +
+              '<span class="badge" id="' + UID + 'status-badge">Pending</span>' +
+            '</div>' +
+            '<p class="meta">Criterion A: ≥2 characteristic symptoms for ≥1 month, ≥1 from the core triad (A1–A3). B–D: functioning, schizoaffective & substance exclusions.</p>' +
+            '<div class="disclaimer">' +
+              '<strong>Decision-support.</strong> This is a research checklist. The psychiatrist retains diagnostic authority. Model output never becomes the final decision without clinician confirmation.' +
+            '</div>' +
+            '<div id="' + UID + 'criteria-root"></div>' +
+            '<div class="actions">' +
+              '<button class="btn btn-primary" id="' + UID + 'confirm-btn" disabled>Diagnosis is clear</button>' +
+              '<button class="btn btn-warning" id="' + UID + 'bypass-btn">Diagnosis is clear (bypass)</button>' +
+            '</div>' +
+            '<div class="save-state" id="' + UID + 'save-state"></div>' +
+          '</div>' +
+          '<aside class="conclusion">' +
+            '<div class="panel">' +
+              '<h2>Real-time conclusion</h2>' +
+              '<div class="metric"><span class="k">Characteristic symptoms</span> <span class="v" id="' + UID + 'm-symptoms">0</span></div>' +
+              '<div class="metric"><span class="k">Core triad symptoms</span> <span class="v" id="' + UID + 'm-core">0</span></div>' +
+              '<div class="metric"><span class="k">Duration established</span> <span class="v" id="' + UID + 'm-duration">—</span></div>' +
+              '<div class="metric"><span class="k">Criteria A met</span> <span class="v" id="' + UID + 'm-a">—</span></div>' +
+              '<div class="metric"><span class="k">Exclusions satisfied</span> <span class="v" id="' + UID + 'm-guards">—</span></div>' +
+              '<div class="reason" id="' + UID + 'reason">No criteria evaluated yet.</div>' +
+              '<ul class="failures hidden" id="' + UID + 'failures"></ul>' +
+            '</div>' +
+            '<div class="panel">' +
+              '<h2>Final decision</h2>' +
+              '<div class="metric"><span class="k">State</span> <span class="v" id="' + UID + 'decision-state">None</span></div>' +
+              '<div class="metric"><span class="k">Last update</span> <span class="v" id="' + UID + 'updated">—</span></div>' +
+              '<p class="reason" id="' + UID + 'decision-note"></p>' +
+            '</div>' +
+          '</aside>';
+        wrap.appendChild(ws);
+        root.appendChild(wrap);
+      }
+
+      const $ = (suffix) => document.getElementById(UID + suffix);
+
+      function readCsrfToken() {
+        const m = document.querySelector('meta[name="csrf-token"]');
+        if (m) csrfToken = m.getAttribute("content") || "";
+      }
+
+      function csrfHeaders(extra) {
+        const h = Object.assign({}, extra || {});
+        if (csrfToken) h["X-CSRF-Token"] = csrfToken;
+        return h;
+      }
+
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => ({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c]));
+      }
+
+      async function loadMeta() {
+        const r = await fetch(apiBaseUrl + "/diagnosis/_meta");
+        const data = await r.json();
+        criteria = data.criteria;
+        rules = data.rules || rules;
+        renderCriteria();
+      }
+
+      function renderCriteria() {
+        const groups = {};
+        criteria.forEach(c => { (groups[c.group] = groups[c.group] || []).push(c); });
+        const rl = $("criteria-root");
+        rl.innerHTML = "";
+        Object.entries(groups).forEach(([name, items]) => {
+          const g = document.createElement("div"); g.className = "group";
+          g.innerHTML = '<h3>' + escapeHtml(name) + '</h3>';
+          items.forEach(c => {
+            const tag = c.core ? '<span class="tag core">core</span>'
+                      : c.duration ? '<span class="tag dur">duration</span>'
+                      : c.guard ? '<span class="tag guard">exclusion</span>'
+                      : "";
+            const row = document.createElement("div"); row.className = "crit";
+            row.innerHTML =
+              '<input type="checkbox" id="cb-' + UID + c.id + '" data-id="' + c.id + '" />' +
+              '<label for="cb-' + UID + c.id + '">' + escapeHtml(c.text) + ' ' + tag + '</label>';
+            g.appendChild(row);
+          });
+          rl.appendChild(g);
+        });
+        // Re-bind listeners cleanly (unmount-safe).
+        rl.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+          cb.addEventListener("change", onChange);
+          listeners.push({ node: cb, type: "change", fn: onChange });
+        });
+      }
+
+      function checkedIds() {
+        const root2 = $("criteria-root");
+        if (!root2) return [];
+        return [...root2.querySelectorAll('input[type="checkbox"]:checked')]
+          .map(cb => cb.dataset.id);
+      }
+
+      async function onChange() {
+        if (destroyed) return;
+        if (saveTimer) clearTimeout(saveTimer);
+        const ids = checkedIds();
+        renderLocalEvaluation(ids);   // instant feedback, optimistic
+        const ss = $("save-state");
+        if (ss) { ss.textContent = "Saving..."; ss.className = "save-state saving"; }
+        const myTimer = setTimeout(async () => {
+          if (destroyed) return;
+          try {
+            const r = await fetch(apiBaseUrl + "/diagnosis/" + encodeURIComponent(code), {
+              method: "PUT",
+              headers: csrfHeaders({"Content-Type": "application/json"}),
+              body: JSON.stringify({ checked: ids, decision: lastDecision })
+            });
+            if (!r.ok) throw new Error(r.status);
+            const data = await r.json();
+            renderServer(data);
+            const s2 = $("save-state");
+            if (s2) { s2.textContent = "Saved just now"; s2.className = "save-state saved"; }
+          } catch (e) {
+            const s2 = $("save-state");
+            if (s2) { s2.textContent = "Save failed - retrying on next change"; s2.className = "save-state error"; }
+          }
+        }, 350);
+        saveTimer = myTimer;
+      }
+
+      // Optimistic display derived from the server-served `rules` contract
+      // (criteria.meta_contract via /diagnosis/_meta), NOT a second copy
+      // of the DSM logic. Pure projection of `rules` + checked ids —
+      // equivalence with the engine's evaluate() is locked by
+      // test_unittest.test_meta_rules_match_engine_every_subset.
+      function renderLocalEvaluation(ids) {
+        const set = new Set(ids);
+        const symptomCount = rules.symptom_ids.filter(id => set.has(id)).length;
+        const coreCount    = rules.core_ids.filter(id => set.has(id)).length;
+        const durationMet  = set.has(rules.duration_id);
+        const guardsMet    = rules.guard_ids.every(id => set.has(id));
+        const aMet = symptomCount >= rules.symptom_threshold
+                  && coreCount    >= rules.core_threshold
+                  && durationMet;
+
+        const ms = $("m-symptoms");
+        if (ms) {
+          ms.textContent = symptomCount;
+          ms.className = "v" + (symptomCount >= rules.symptom_threshold ? " ok" : " bad");
+        }
+        const mc = $("m-core");
+        if (mc) {
+          mc.textContent = coreCount;
+          mc.className = "v" + (coreCount >= rules.core_threshold ? " ok" : " bad");
+        }
+        const md = $("m-duration");
+        if (md) { md.textContent = durationMet ? "Yes" : "No"; md.className = "v" + (durationMet ? " ok" : " bad"); }
+        const ma = $("m-a");
+        if (ma) { ma.textContent = aMet ? "Yes" : "No"; ma.className = "v" + (aMet ? " ok" : " bad"); }
+        const mg = $("m-guards");
+        if (mg) { mg.textContent = guardsMet ? "Yes" : "No"; mg.className = "v" + (guardsMet ? " ok" : " bad"); }
+
+        const cb = $("confirm-btn");
+        if (cb) cb.disabled = !aMet;
+        updateBadge(aMet, guardsMet);
+      }
+
+      function renderServer(data) {
+        const e = data.evaluation || { failures: [], reason: "", checked: [] };
+        // guardsMet dead-branch (|| e.met === true) is always truthy
+        // here — kept for byte-parity with the prior standalone page;
+        // updateBadge drives the visible badge state (HANDOFF §10).
+        const guardsMet = (e.failures || []).filter(f => /Criterion B|Schizoaffective|Substance/.test(f)).length === 0
+                       && e.met === false || e.met === true;
+        const f = $("failures");
+        if (f) {
+          f.innerHTML = (e.failures || []).map(x => '<li>' + escapeHtml(x) + '</li>').join("");
+          f.classList.toggle("hidden", (e.failures || []).length === 0);
+        }
+        const rs = $("reason");
+        if (rs) rs.textContent = e.reason;
+        const ds = $("decision-state");
+        if (ds) ds.textContent = data.decision || "None";
+        const ud = $("updated");
+        if (ud) ud.textContent = data.updated_at ? new Date(data.updated_at * 1000).toLocaleTimeString() : "—";
+
+        // re-apply checked state from server (in case of reload)
+        const rl = $("criteria-root");
+        if (rl) {
+          rl.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.checked = (e.checked || []).includes(cb.dataset.id);
+          });
+        }
+        lastDecision = data.decision;
+      }
+
+      function updateBadge(aMet, guardsMet) {
+        const b = $("status-badge");
+        if (!b) return;
+        if (aMet && guardsMet) { b.textContent = "Criteria met"; b.className = "badge met"; }
+        else if (aMet)         { b.textContent = "A met - exclusions pending"; b.className = "badge warn"; }
+        else                   { b.textContent = "Pending"; b.className = "badge unmet"; }
+      }
+
+      async function loadSession(c) {
+        code = String(c || "").trim();
+        if (!code) return;
+        const entry = $("entry");
+        const ws = $("workspace");
+        const disp = $("patient-code-display");
+        if (entry) entry.classList.add("hidden");
+        if (ws) ws.classList.remove("hidden");
+        if (disp) disp.textContent = "Patient · " + code;
+        try {
+          await fetch(apiBaseUrl + "/diagnosis/" + encodeURIComponent(code) + "/init", {
+            method: "POST",
+            headers: csrfHeaders()
+          });
+        } catch (_) { /* session may already exist */ }
+        const r = await fetch(apiBaseUrl + "/diagnosis/" + encodeURIComponent(code));
+        const data = r.ok ? await r.json() : { checked: [], decision: null, evaluation: { checked: [] } };
+        renderLocalEvaluation(data.checked || []);
+        data.evaluation = data.evaluation || { failures: [], reason: "No criteria evaluated yet.", checked: [] };
+        renderServer(data);
+        renderLocalEvaluation(data.checked || []);
+      }
+
+      async function sendDecision(decision, note) {
+        const r = await fetch(apiBaseUrl + "/diagnosis/" + encodeURIComponent(code), {
+          method: "PUT",
+          headers: csrfHeaders({"Content-Type": "application/json"}),
+          body: JSON.stringify({ checked: checkedIds(), decision })
+        });
+        if (!r.ok) { alert("Decision save failed."); return; }
+        const data = await r.json();
+        lastDecision = data.decision;
+        const ds = $("decision-state");
+        if (ds) ds.textContent = data.decision || "None";
+        const dn = $("decision-note");
+        if (dn) dn.textContent = note;
+        renderServer(data);
+      }
+
+      function _historyParam(name) {
+        // Only the standalone shell owns the URL. Embedded: never read
+        // or write host location — host owns session+back navigation.
+        if (embedded) return "";
+        try {
+          return new URLSearchParams(location.search).get(name) || "";
+        } catch (_) { return ""; }
+      }
+
+      function _setInitialCode(c) {
+        if (!embedded) {
+          try {
+            const u = new URL(location.href);
+            if (c) u.searchParams.set("code", c); else u.searchParams.delete("code");
+            history.replaceState(null, "", u);
+          } catch (_) { /* sandboxed origin — never non-fatal */ }
+        }
+        loadSession(c);
+      }
+
+      function bindHandlers() {
+        const lb = $("load-btn");
+        if (lb) {
+          const onLoad = () => {
+            const c = ($("code-input") || {}).value || "";
+            const cc = c.trim();
+            if (!cc) return;
+            _setInitialCode(cc);
+          };
+          lb.addEventListener("click", onLoad);
+          listeners.push({ node: lb, type: "click", fn: onLoad });
+        }
+        const ci = $("code-input");
+        if (ci) {
+          const onKey = e => { if (e.key === "Enter") { const lb2 = $("load-btn"); if (lb2) lb2.click(); } };
+          ci.addEventListener("keydown", onKey);
+          listeners.push({ node: ci, type: "keydown", fn: onKey });
+        }
+        const cf = $("confirm-btn");
+        if (cf) {
+          const onConfirm = () => {
+            sendDecision("confirmed", "Diagnosis confirmed by psychiatrist — DSM-5-TR criteria met.");
+          };
+          cf.addEventListener("click", onConfirm);
+          listeners.push({ node: cf, type: "click", fn: onConfirm });
+        }
+        const bp = $("bypass-btn");
+        if (bp) {
+          const onBypass = () => {
+            if (confirm("Confirm clinician bypass: diagnosis is clear regardless of criteria state?")) {
+              sendDecision("definite", "Clinician-confirmed bypass — psychiatrist authority over checklist.");
+              updateBadge(true, true);
+              const cf2 = $("confirm-btn");
+              if (cf2) cf2.disabled = true;
+            }
+          };
+          bp.addEventListener("click", onBypass);
+          listeners.push({ node: bp, type: "click", fn: onBypass });
+        }
+      }
+
+      function mount() {
+        if (destroyed) return;
+        buildDom();
+        bindHandlers();
+        // Read the CSRF token stamped on this document by the page seam
+        // (page.py injects <meta name="csrf-token"> on serve). A host
+        // embedding only the script (no full page serve) must stamp the
+        // meta tag itself OR call /diagnosis/_csrf first; this stays
+        // read-only here.
+        readCsrfToken();
+        // No top-level await — kick off the meta fetch and code preload.
+        loadMeta().then(() => {
+          const pre = initialCode || _historyParam("code");
+          if (pre) {
+            const ci = $("code-input");
+            if (ci) ci.value = pre;
+            loadSession(pre);
+          }
+        }).catch(err => {
+          // fetch errors are non-fatal for the shell: the workspace tiles
+          // show the default pending state. Don't crash the host page.
+          if (typeof console !== "undefined" && console.warn) console.warn("diagnosis: _meta fetch failed", err);
+        });
+      }
+
+      function unmount() {
+        destroyed = true;
+        if (saveTimer) clearTimeout(saveTimer);
+        listeners.forEach(({ node, type, fn }) => {
+          try { node.removeEventListener(type, fn); } catch (_) { /* noop */ }
+        });
+        listeners.length = 0;
+        if (root) root.innerHTML = "";
+      }
+
+      function setPatientCode(c) {
+        _setInitialCode(String(c || "").trim());
+      }
+
+      return { mount, unmount, setPatientCode };
+    }
+
+    // Expose for non-module hosts (Insight dashboard loads this file
+    // via a <script src> import from the standalone-served page, OR
+    // from inside an iframe — both reach window.createDiagnosisModule).
+    window.createDiagnosisModule = createDiagnosisModule;
+
+    /* ---- Standalone-shell bootstrap (GET /) ---------------------------
+     * Boot the embedded contract against the standalone shell. The host
+     * document is this page; root is document.body. The .dm-topbar chrome
+     * inside buildDom() is the standalone shell UI; inside the larger
+     * Insight dashboard the host passes `embedded: true` and supplies
+     * its own root + header.
+     */
+    document.addEventListener("DOMContentLoaded", function bootstrapStandalone() {
+      if (window.__diagnosisModuleBooted) return;
+      window.__diagnosisModuleBooted = true;
+      // The page shell provides one mount point for the standalone case.
+      const root = document.getElementById("diagnosis-root") || document.body;
+      const instance = createDiagnosisModule({
+        root: root,
+        apiBaseUrl: "",
+        embedded: false,
+      });
+      instance.mount();
+      // Keep a handle for the standalone case so the host shell can
+      // tear it down (e.g. on a SPA route change away from diagnosis).
+      window.__diagnosisModuleInstance = instance;
+    });
+  </script>
+</body>
+</html>

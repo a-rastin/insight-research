@@ -1,0 +1,23 @@
+{
+  "0": "Diagnosis API Router",
+  "1": "CSRF Test Suite",
+  "2": "Auth Enforcement Tests",
+  "3": "SQLite Persistence Layer",
+  "4": "CSRF Module",
+  "5": "Auth Adapter",
+  "6": "API Self-Check",
+  "7": "Fake Auth HTTP Handler",
+  "8": "HTTP Server",
+  "9": "HANDOFF Doc",
+  "10": "Web Page",
+  "11": "test_discovery.py",
+  "12": "Requirements File",
+  "13": "Test Output Capture",
+  "14": "t.py Scratch",
+  "15": "test_readiness.py",
+  "16": "TestCSRF",
+  "17": "TestPersistence",
+  "18": "TestRestContract",
+  "19": "test_routes.py",
+  "20": "TestRestContract"
+}

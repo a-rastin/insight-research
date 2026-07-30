@@ -1,0 +1,620 @@
+{
+  "communities": {
+    "0": [
+      "bn_manager_backend_auth_adapter",
+      "bn_manager_backend_auth_adapter_as_dict",
+      "bn_manager_backend_auth_adapter_assert_csrf_token",
+      "bn_manager_backend_auth_adapter_authenticationrestadapter",
+      "bn_manager_backend_auth_adapter_authenticationrestadapter_fetch_session",
+      "bn_manager_backend_auth_adapter_authenticationrestadapter_init",
+      "bn_manager_backend_auth_adapter_blocked_reason",
+      "bn_manager_backend_auth_adapter_collect_roles",
+      "bn_manager_backend_auth_adapter_csrferror",
+      "bn_manager_backend_auth_adapter_first_text",
+      "bn_manager_backend_auth_adapter_is_active",
+      "bn_manager_backend_auth_adapter_is_expired",
+      "bn_manager_backend_auth_adapter_normalize_role",
+      "bn_manager_backend_auth_adapter_py_any",
+      "bn_manager_backend_auth_adapter_py_request",
+      "bn_manager_backend_auth_adapter_session_from_payload",
+      "bn_manager_backend_auth_adapter_sessionadapter",
+      "bn_manager_backend_auth_adapter_sessionadapter_fetch_session",
+      "bn_manager_backend_auth_adapter_sessionstate",
+      "bn_manager_backend_auth_adapter_unwrap_session_payload",
+      "bn_manager_backend_config",
+      "bn_manager_backend_config_bnmanagersettings",
+      "bn_manager_backend_config_bnmanagersettings_from_env",
+      "bn_manager_backend_config_get_settings",
+      "bn_manager_backend_init",
+      "bn_manager_backend_main",
+      "bn_manager_backend_main_bnmanagerhttperror",
+      "bn_manager_backend_main_bnmanagerhttperror_init",
+      "bn_manager_backend_main_create_app",
+      "bn_manager_backend_main_evaluate_payload",
+      "bn_manager_backend_main_json_safe",
+      "bn_manager_backend_main_load_legacy_net_model",
+      "bn_manager_backend_main_load_model",
+      "bn_manager_backend_main_py_any",
+      "bn_manager_backend_main_target_node",
+      "bn_manager_backend_server",
+      "bn_manager_backend_server_main",
+      "exception",
+      "fastapi",
+      "main",
+      "protocol",
+      "server",
+      "testclient",
+      "tests_test_auth_adapter",
+      "tests_test_auth_adapter_authenticationguardtests",
+      "tests_test_auth_adapter_authenticationguardtests_client",
+      "tests_test_auth_adapter_authenticationguardtests_test_csrf_rejection_blocks_write_route",
+      "tests_test_auth_adapter_authenticationguardtests_test_disclaimer_and_forced_password_sessions_are_blocked",
+      "tests_test_auth_adapter_authenticationguardtests_test_expired_session_is_rejected",
+      "tests_test_auth_adapter_authenticationguardtests_test_valid_admin_can_use_model_management_route",
+      "tests_test_auth_adapter_authenticationguardtests_test_valid_psychiatrist_can_evaluate_dashboard_route",
+      "tests_test_auth_adapter_fakesessionadapter",
+      "tests_test_auth_adapter_fakesessionadapter_fetch_session",
+      "tests_test_auth_adapter_fakesessionadapter_init",
+      "tests_test_auth_adapter_py_request"
+    ],
+    "1": [
+      "bn_manager_backend_main_model_to_xmlbif",
+      "clinical_graph_models_evaluation",
+      "clinical_graph_models_evaluation_enumerate_chance_assignments",
+      "clinical_graph_models_evaluation_evaluate_expected_utilities",
+      "clinical_graph_models_evaluation_evaluate_posterior",
+      "clinical_graph_models_evaluation_evaluationresult",
+      "clinical_graph_models_evaluation_evidence_weight",
+      "clinical_graph_models_model",
+      "clinical_graph_models_model_clinicalgraphmodel",
+      "clinical_graph_models_model_clinicalgraphmodel_name",
+      "clinical_graph_models_model_clinicalgraphmodel_node_map",
+      "clinical_graph_models_model_clinicalgraphmodel_potential_map",
+      "clinical_graph_models_model_node",
+      "clinical_graph_models_model_node_label",
+      "clinical_graph_models_model_node_position",
+      "clinical_graph_models_model_node_states",
+      "clinical_graph_models_model_potential",
+      "clinical_graph_models_model_potential_data",
+      "clinical_graph_models_model_py_any",
+      "clinical_graph_models_net_parser",
+      "clinical_graph_models_net_parser_atom_kind",
+      "clinical_graph_models_net_parser_model_from_dict",
+      "clinical_graph_models_net_parser_netparseerror",
+      "clinical_graph_models_net_parser_read_string",
+      "clinical_graph_models_net_parser_token",
+      "clinical_graph_models_net_parser_tokenize",
+      "clinical_graph_models_tables",
+      "clinical_graph_models_tables_expected_probability_value_count",
+      "clinical_graph_models_tables_flat_table_cache",
+      "clinical_graph_models_tables_flatten_numbers",
+      "clinical_graph_models_tables_parent_cardinality",
+      "clinical_graph_models_tables_probability_rows",
+      "clinical_graph_models_tables_py_any",
+      "clinical_graph_models_tables_table_value",
+      "clinical_graph_models_validation",
+      "clinical_graph_models_validation_py_any",
+      "clinical_graph_models_validation_validate_model",
+      "clinical_graph_models_validation_validate_probability_table",
+      "clinical_graph_models_validation_validate_utility_table",
+      "clinical_graph_models_workbench_workbenchhandler_handle_evaluate",
+      "evidence",
+      "valueerror"
+    ],
+    "2": [
+      "bnm_06_xmlbif_compiler_with_lxml_module_isolation_rationale",
+      "context_bnm_01",
+      "context_bnm_05",
+      "context_bnm_06",
+      "context_clinical_graph_model",
+      "context_clinical_model_evaluation",
+      "context_evaluation_engine_adapter",
+      "context_graph_first_editing",
+      "context_net_format",
+      "context_round_trip_compatibility",
+      "context_structured_model_editing",
+      "context_uncertain_evidence",
+      "context_xmlbif_0_3",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_akathisia_model",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_bif_element",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_bn_manager_http_error",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_clinical_graph_model",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_compile_xmlbif",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_definition_element",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_legacy_opt_in_only_rationale",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_load_legacy_net_model",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_load_model",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_lxml",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_models_convert_route",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_network_element",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_node",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_outcome_element",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_parkinsonism_model",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_potential",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_resolve_owned_registry_file",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_structured_errors_rationale",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_table_element",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_test_bn_manager_backend_py",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_test_xmlbif_compiler_py",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_validate_model",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_validation_message",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_variable_element",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_xml_bif_compile_error",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_xmlbif_compiler_py",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_xmlbif_replaces_net_rationale",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_xmlbif_xsd",
+      "docs_bnm_06_xmlbif_compiler_with_lxml_xsd_before_eval_rationale"
+    ],
+    "3": [
+      "docs_bnm_02_standalone_fastapi_module_shell",
+      "docs_bnm_02_standalone_fastapi_module_shell_bnm_02_standalone_fastapi_module_shell",
+      "docs_bnm_02_standalone_fastapi_module_shell_module_layout",
+      "docs_bnm_02_standalone_fastapi_module_shell_purpose",
+      "docs_bnm_02_standalone_fastapi_module_shell_routes",
+      "docs_bnm_02_standalone_fastapi_module_shell_run",
+      "docs_bnm_02_standalone_fastapi_module_shell_status",
+      "docs_bnm_02_standalone_fastapi_module_shell_test",
+      "docs_bnm_03_authentication_rest_adapter_role_guards",
+      "docs_bnm_03_authentication_rest_adapter_role_guards_bnm_03_authentication_rest_adapter_and_role_guards",
+      "docs_bnm_03_authentication_rest_adapter_role_guards_csrf",
+      "docs_bnm_03_authentication_rest_adapter_role_guards_guards",
+      "docs_bnm_03_authentication_rest_adapter_role_guards_purpose",
+      "docs_bnm_03_authentication_rest_adapter_role_guards_session_adapter",
+      "docs_bnm_03_authentication_rest_adapter_role_guards_status",
+      "docs_bnm_03_authentication_rest_adapter_role_guards_test_coverage",
+      "docs_bnm_04_dashboard_route_discovery_slice",
+      "docs_bnm_04_dashboard_route_discovery_slice_bnm_04_dashboard_route_discovery_slice",
+      "docs_bnm_04_dashboard_route_discovery_slice_protection",
+      "docs_bnm_04_dashboard_route_discovery_slice_purpose",
+      "docs_bnm_04_dashboard_route_discovery_slice_routes",
+      "docs_bnm_04_dashboard_route_discovery_slice_status",
+      "docs_bnm_04_dashboard_route_discovery_slice_test_coverage",
+      "docs_bnm_05_vendor_xmlbif_model_registry",
+      "docs_bnm_05_vendor_xmlbif_model_registry_bnm_05_vendor_xmlbif_model_registry",
+      "docs_bnm_05_vendor_xmlbif_model_registry_bundled_assets",
+      "docs_bnm_05_vendor_xmlbif_model_registry_path_safety",
+      "docs_bnm_05_vendor_xmlbif_model_registry_purpose",
+      "docs_bnm_05_vendor_xmlbif_model_registry_registry_metadata",
+      "docs_bnm_05_vendor_xmlbif_model_registry_routes",
+      "docs_bnm_05_vendor_xmlbif_model_registry_status",
+      "docs_bnm_05_vendor_xmlbif_model_registry_test_coverage",
+      "readme",
+      "readme_bn_manager_contract",
+      "readme_clinical_graph_models",
+      "readme_run_standalone_bn_manager_api",
+      "readme_run_standalone_workbench",
+      "readme_test",
+      "readme_use_as_module"
+    ],
+    "4": [
+      "bn_manager_backend_model_registry",
+      "bn_manager_backend_model_registry_get_registry_entry",
+      "bn_manager_backend_model_registry_list_registry_entries",
+      "bn_manager_backend_model_registry_modelregistryentry",
+      "bn_manager_backend_model_registry_modelregistryentry_payload",
+      "bn_manager_backend_model_registry_py_path",
+      "bn_manager_backend_model_registry_read_owned_registry_file",
+      "bn_manager_backend_model_registry_read_registry_model",
+      "bn_manager_backend_model_registry_read_registry_schema",
+      "bn_manager_backend_model_registry_resolve_owned_registry_file",
+      "clinical_graph_models_model_validationmessage",
+      "clinical_graph_models_xmlbif_compiler",
+      "clinical_graph_models_xmlbif_compiler_compile_definition",
+      "clinical_graph_models_xmlbif_compiler_compile_variable",
+      "clinical_graph_models_xmlbif_compiler_compile_xmlbif",
+      "clinical_graph_models_xmlbif_compiler_node_kind",
+      "clinical_graph_models_xmlbif_compiler_parse_table",
+      "clinical_graph_models_xmlbif_compiler_parse_xml_document",
+      "clinical_graph_models_xmlbif_compiler_properties",
+      "clinical_graph_models_xmlbif_compiler_py_path",
+      "clinical_graph_models_xmlbif_compiler_single",
+      "clinical_graph_models_xmlbif_compiler_text",
+      "clinical_graph_models_xmlbif_compiler_validate_xsd",
+      "clinical_graph_models_xmlbif_compiler_xmlbifcompileerror",
+      "clinical_graph_models_xmlbif_compiler_xmlbifcompileerror_details",
+      "clinical_graph_models_xmlbif_compiler_xmlbifcompileerror_init",
+      "element",
+      "tests_test_xmlbif_compiler",
+      "tests_test_xmlbif_compiler_xmlbifcompilertests",
+      "tests_test_xmlbif_compiler_xmlbifcompilertests_test_compiled_parkinsonism_model_passes_internal_validation",
+      "tests_test_xmlbif_compiler_xmlbifcompilertests_test_compiles_all_supplied_registry_xmlbif_files",
+      "tests_test_xmlbif_compiler_xmlbifcompilertests_test_malformed_xml_returns_structured_error_messages",
+      "tests_test_xmlbif_compiler_xmlbifcompilertests_test_xsd_validation_returns_structured_error_messages"
+    ],
+    "5": [
+      "basehttprequesthandler",
+      "clinical_graph_models_net_parser_model_to_dict",
+      "clinical_graph_models_net_parser_parse_net",
+      "clinical_graph_models_net_parser_serialize_net",
+      "clinical_graph_models_workbench",
+      "clinical_graph_models_workbench_escape_html",
+      "clinical_graph_models_workbench_escape_json_attr",
+      "clinical_graph_models_workbench_main",
+      "clinical_graph_models_workbench_validation_payload",
+      "clinical_graph_models_workbench_workbenchhandler",
+      "clinical_graph_models_workbench_workbenchhandler_do_get",
+      "clinical_graph_models_workbench_workbenchhandler_do_post",
+      "clinical_graph_models_workbench_workbenchhandler_handle_parse",
+      "clinical_graph_models_workbench_workbenchhandler_json",
+      "clinical_graph_models_workbench_workbenchhandler_log_message",
+      "clinical_graph_models_workbench_workbenchhandler_send",
+      "httpstatus",
+      "tests_test_net_parser",
+      "tests_test_net_parser_netparsertests",
+      "tests_test_net_parser_netparsertests_test_model_from_dict_rejects_unknown_node_kind",
+      "tests_test_net_parser_netparsertests_test_parser_handles_escaped_quotes_and_backslashes",
+      "tests_test_net_parser_netparsertests_test_parses_diagnosis_sample",
+      "tests_test_net_parser_netparsertests_test_parses_influence_diagram_and_expected_utilities",
+      "tests_test_net_parser_netparsertests_test_posterior_supports_hard_and_uncertain_evidence",
+      "tests_test_net_parser_netparsertests_test_serialized_model_reparses",
+      "tests_test_net_parser_netparsertests_test_workbench_escapes_html_and_json_attributes",
+      "tests_test_net_parser_netparsertests_test_workbench_includes_structured_probability_editor"
+    ],
+    "6": [
+      "clinical_graph_models_contract",
+      "clinical_graph_models_contract_contract_payload",
+      "clinical_graph_models_contract_error_response",
+      "clinical_graph_models_contract_meta",
+      "clinical_graph_models_contract_ok_response",
+      "clinical_graph_models_contract_py_any",
+      "clinical_graph_models_contract_routecontract",
+      "clinical_graph_models_contract_targetnodecontract",
+      "clinical_graph_models_contract_xmlbiftarget",
+      "clinical_graph_models_init",
+      "tests_test_contract",
+      "tests_test_contract_bnmanagercontracttests",
+      "tests_test_contract_bnmanagercontracttests_test_contract_payload_is_dashboard_compatible",
+      "tests_test_contract_bnmanagercontracttests_test_decision_ids_and_target_nodes_are_frozen",
+      "tests_test_contract_bnmanagercontracttests_test_module_identity_and_xmlbif_target_are_frozen",
+      "tests_test_contract_bnmanagercontracttests_test_package_has_no_cross_surface_or_database_imports",
+      "tests_test_contract_bnmanagercontracttests_test_response_envelope_and_errors_are_stable",
+      "tests_test_contract_bnmanagercontracttests_test_role_permissions_cover_user_facing_routes",
+      "tests_test_contract_bnmanagercontracttests_test_surfaces_have_owned_routes_and_permissions"
+    ],
+    "7": [
+      "docs_adr_0001_preserve_net_round_trip_compatibility",
+      "docs_adr_0001_preserve_net_round_trip_compatibility_preserve_net_round_trip_compatibility",
+      "docs_adr_0002_freeze_primitive_bn_manager_contract",
+      "docs_adr_0002_freeze_primitive_bn_manager_contract_consequences",
+      "docs_adr_0002_freeze_primitive_bn_manager_contract_context",
+      "docs_adr_0002_freeze_primitive_bn_manager_contract_decision",
+      "docs_adr_0002_freeze_primitive_bn_manager_contract_freeze_primitive_bn_manager_contract",
+      "docs_bnm_01_primitive_contract",
+      "docs_bnm_01_primitive_contract_bnm_01_primitive_bn_manager_contract",
+      "docs_bnm_01_primitive_contract_boundary",
+      "docs_bnm_01_primitive_contract_clinical_safety_wording",
+      "docs_bnm_01_primitive_contract_decisions_and_target_nodes",
+      "docs_bnm_01_primitive_contract_error_codes",
+      "docs_bnm_01_primitive_contract_identity",
+      "docs_bnm_01_primitive_contract_request_payload",
+      "docs_bnm_01_primitive_contract_response_envelope",
+      "docs_bnm_01_primitive_contract_role_permissions",
+      "docs_bnm_01_primitive_contract_routes",
+      "docs_bnm_01_primitive_contract_xmlbif_target"
+    ],
+    "8": [
+      "clinical_graph_models_net_parser_contains_nested",
+      "clinical_graph_models_net_parser_format_attributes",
+      "clinical_graph_models_net_parser_format_value",
+      "clinical_graph_models_net_parser_parser",
+      "clinical_graph_models_net_parser_parser_advance",
+      "clinical_graph_models_net_parser_parser_check",
+      "clinical_graph_models_net_parser_parser_consume",
+      "clinical_graph_models_net_parser_parser_error",
+      "clinical_graph_models_net_parser_parser_init",
+      "clinical_graph_models_net_parser_parser_match",
+      "clinical_graph_models_net_parser_parser_parse",
+      "clinical_graph_models_net_parser_parser_parse_attributes",
+      "clinical_graph_models_net_parser_parser_parse_potential",
+      "clinical_graph_models_net_parser_parser_parse_value",
+      "clinical_graph_models_net_parser_parser_peek",
+      "clinical_graph_models_net_parser_py_any"
+    ],
+    "9": [
+      "tests_test_bn_manager_backend",
+      "tests_test_bn_manager_backend_bnmanagerbackendtests",
+      "tests_test_bn_manager_backend_bnmanagerbackendtests_setup",
+      "tests_test_bn_manager_backend_bnmanagerbackendtests_test_contract_endpoint_returns_frozen_contract",
+      "tests_test_bn_manager_backend_bnmanagerbackendtests_test_dashboard_route_discovery_payload_shape",
+      "tests_test_bn_manager_backend_bnmanagerbackendtests_test_health_endpoint_reports_module_id",
+      "tests_test_bn_manager_backend_bnmanagerbackendtests_test_model_detail_loads_parseable_xmlbif",
+      "tests_test_bn_manager_backend_bnmanagerbackendtests_test_model_detail_returns_404_for_unknown_stable_id",
+      "tests_test_bn_manager_backend_bnmanagerbackendtests_test_models_list_includes_parkinsonism_and_akathisia",
+      "tests_test_bn_manager_backend_bnmanagerbackendtests_test_models_schema_endpoint_returns_xsd_text",
+      "tests_test_bn_manager_backend_bnmanagerbackendtests_test_ready_endpoint_reports_static_ui_and_contract",
+      "tests_test_bn_manager_backend_bnmanagerbackendtests_test_registered_xmlbif_files_contain_declared_target_node",
+      "tests_test_bn_manager_backend_bnmanagerbackendtests_test_registry_resolver_rejects_absolute_paths",
+      "tests_test_bn_manager_backend_bnmanagerbackendtests_test_registry_resolver_rejects_traversal_paths",
+      "tests_test_bn_manager_backend_bnmanagerbackendtests_test_traversal_like_stable_ids_return_404"
+    ],
+    "10": [
+      "ubiquitous_language",
+      "ubiquitous_language_core_concepts",
+      "ubiquitous_language_editing_and_validation",
+      "ubiquitous_language_evidence_and_evaluation",
+      "ubiquitous_language_model_elements",
+      "ubiquitous_language_ubiquitous_language",
+      "ubiquitous_language_version_1_agreements"
+    ],
+    "11": [
+      "bn_manager_backend_static_index_bn_manager_static_ui",
+      "ubiquitous_language_bn_manager",
+      "ubiquitous_language_clinical_graph_model"
+    ],
+    "12": [
+      "context_bnm_02",
+      "context_standalone_bn_manager_api",
+      "context_standalone_workbench"
+    ],
+    "13": [
+      "bn_manager_backend_static_index_module_status_panels",
+      "readme_standalone_routes"
+    ],
+    "14": [
+      "context_bnm_03"
+    ],
+    "15": [
+      "context_bnm_04"
+    ],
+    "16": [
+      "docs_adr_0001_preserve_net_round_trip_compatibility_legacy_net_adapter_policy"
+    ],
+    "17": [
+      "docs_adr_0002_freeze_primitive_bn_manager_contract_stable_human_in_the_loop_boundary"
+    ],
+    "18": [
+      "docs_bnm_01_primitive_contract_inter_module_route_contract"
+    ],
+    "19": [
+      "docs_bnm_02_standalone_fastapi_module_shell_liveness_readiness_contract_access"
+    ],
+    "20": [
+      "docs_bnm_02_standalone_fastapi_module_shell_standalone_fastapi_module_shell"
+    ],
+    "21": [
+      "docs_bnm_03_authentication_rest_adapter_role_guards_authentication_rest_adapter"
+    ],
+    "22": [
+      "docs_bnm_03_authentication_rest_adapter_role_guards_csrf_protection"
+    ],
+    "23": [
+      "docs_bnm_03_authentication_rest_adapter_role_guards_role_guards"
+    ],
+    "24": [
+      "docs_bnm_04_dashboard_route_discovery_slice_dashboard_route_discovery_slice"
+    ],
+    "25": [
+      "docs_bnm_04_dashboard_route_discovery_slice_protected_embeddable_ui"
+    ],
+    "26": [
+      "docs_bnm_04_dashboard_route_discovery_slice_public_discovery_route"
+    ],
+    "27": [
+      "docs_bnm_05_vendor_xmlbif_model_registry_akathisia_model"
+    ],
+    "28": [
+      "docs_bnm_05_vendor_xmlbif_model_registry_parkinsonism_model"
+    ],
+    "29": [
+      "docs_bnm_05_vendor_xmlbif_model_registry_vendor_xmlbif_model_registry"
+    ],
+    "30": [
+      "pkg_clinical_graph_models"
+    ],
+    "31": [
+      "readme_authentication_environment_overrides"
+    ],
+    "32": [
+      "readme_module_boundary"
+    ],
+    "33": [
+      "ubiquitous_language_bayesian_network"
+    ],
+    "34": [
+      "ubiquitous_language_clinical_model_evaluation"
+    ],
+    "35": [
+      "ubiquitous_language_graph_first_editing"
+    ],
+    "36": [
+      "ubiquitous_language_influence_diagram"
+    ],
+    "37": [
+      "ubiquitous_language_model_validation"
+    ],
+    "38": [
+      "ubiquitous_language_structured_model_editing"
+    ],
+    "39": [
+      "ubiquitous_language_uncertain_evidence"
+    ]
+  },
+  "cohesion": {
+    "0": 0.09225589225589226,
+    "1": 0.140534262485482,
+    "2": 0.0545876887340302,
+    "3": 0.05128205128205128,
+    "4": 0.16856060606060605,
+    "5": 0.14814814814814814,
+    "6": 0.19883040935672514,
+    "7": 0.10526315789473684,
+    "8": 0.36666666666666664,
+    "9": 0.13333333333333333,
+    "10": 0.2857142857142857,
+    "11": 0.6666666666666666,
+    "12": 0.6666666666666666,
+    "13": 1.0,
+    "14": 1.0,
+    "15": 1.0,
+    "16": 1.0,
+    "17": 1.0,
+    "18": 1.0,
+    "19": 1.0,
+    "20": 1.0,
+    "21": 1.0,
+    "22": 1.0,
+    "23": 1.0,
+    "24": 1.0,
+    "25": 1.0,
+    "26": 1.0,
+    "27": 1.0,
+    "28": 1.0,
+    "29": 1.0,
+    "30": 1.0,
+    "31": 1.0,
+    "32": 1.0,
+    "33": 1.0,
+    "34": 1.0,
+    "35": 1.0,
+    "36": 1.0,
+    "37": 1.0,
+    "38": 1.0,
+    "39": 1.0
+  },
+  "gods": [
+    {
+      "id": "clinical_graph_models_model_clinicalgraphmodel",
+      "label": "ClinicalGraphModel",
+      "degree": 36
+    },
+    {
+      "id": "clinical_graph_models_model_node",
+      "label": "Node",
+      "degree": 22
+    },
+    {
+      "id": "bn_manager_backend_main_create_app",
+      "label": "create_app()",
+      "degree": 19
+    },
+    {
+      "id": "clinical_graph_models_xmlbif_compiler_xmlbifcompileerror",
+      "label": "XmlBifCompileError",
+      "degree": 18
+    },
+    {
+      "id": "clinical_graph_models_xmlbif_compiler_compile_xmlbif",
+      "label": "compile_xmlbif()",
+      "degree": 18
+    },
+    {
+      "id": "clinical_graph_models_net_parser_parse_net",
+      "label": "parse_net()",
+      "degree": 17
+    },
+    {
+      "id": "clinical_graph_models_validation_validate_model",
+      "label": "validate_model()",
+      "degree": 17
+    },
+    {
+      "id": "clinical_graph_models_evaluation_evaluate_expected_utilities",
+      "label": "evaluate_expected_utilities()",
+      "degree": 16
+    },
+    {
+      "id": "clinical_graph_models_net_parser_parser",
+      "label": "_Parser",
+      "degree": 16
+    },
+    {
+      "id": "clinical_graph_models_model_potential",
+      "label": "Potential",
+      "degree": 15
+    }
+  ],
+  "surprises": [
+    {
+      "source": "Clinical Graph Model",
+      "target": "ClinicalGraphModel (internal model)",
+      "source_files": [
+        "CONTEXT.md",
+        "docs/BNM-06-xmlbif-compiler-with-lxml.md"
+      ],
+      "confidence": "INFERRED",
+      "relation": "semantically_similar_to",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; semantically similar concepts with no structural link"
+    },
+    {
+      "source": "XMLBIF 0.3",
+      "target": "xmlbif-0.3-bn-manager.xsd (bundled XSD)",
+      "source_files": [
+        "CONTEXT.md",
+        "docs/BNM-06-xmlbif-compiler-with-lxml.md"
+      ],
+      "confidence": "INFERRED",
+      "relation": "semantically_similar_to",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; semantically similar concepts with no structural link"
+    },
+    {
+      "source": "BnManagerHttpError",
+      "target": "ClinicalGraphModel",
+      "source_files": [
+        "bn_manager_backend/main.py",
+        "clinical_graph_models/model.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "AuthenticationGuardTests",
+      "target": "SessionState",
+      "source_files": [
+        "tests/test_auth_adapter.py",
+        "bn_manager_backend/auth_adapter.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories"
+    },
+    {
+      "source": "FakeSessionAdapter",
+      "target": "SessionState",
+      "source_files": [
+        "tests/test_auth_adapter.py",
+        "bn_manager_backend/auth_adapter.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `ClinicalGraphModel` connect `Community 1` to `Community 0`, `Community 4`, `Community 5`, `Community 6`, `Community 8`?",
+      "why": "High betweenness centrality (0.058) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `parse_net()` connect `Community 5` to `Community 0`, `Community 1`, `Community 6`, `Community 8`?",
+      "why": "High betweenness centrality (0.031) - this node is a cross-community bridge."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 6 inferred relationships involving `ClinicalGraphModel` (e.g. with `BnManagerHttpError` and `EvaluationResult`) actually correct?",
+      "why": "`ClinicalGraphModel` has 6 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 4 inferred relationships involving `Node` (e.g. with `NetParseError` and `_Parser`) actually correct?",
+      "why": "`Node` has 4 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 6 inferred relationships involving `XmlBifCompileError` (e.g. with `ClinicalGraphModel` and `Node`) actually correct?",
+      "why": "`XmlBifCompileError` has 6 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `clinical-graph-models`, `Run Standalone BN Manager API`, `Run Standalone Workbench` to the rest of the system?",
+      "why": "100 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 0` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.09225589225589226 - nodes in this community are weakly interconnected."
+    }
+  ]
+}

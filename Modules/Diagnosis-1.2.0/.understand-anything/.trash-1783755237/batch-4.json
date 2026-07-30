@@ -1,0 +1,398 @@
+{
+  "batchIndex": 4,
+  "files": [
+    {
+      "path": "diagnosis/page.py",
+      "language": "python",
+      "sizeLines": 58,
+      "fileCategory": "code"
+    },
+    {
+      "path": "diagnosis/dashboard.py",
+      "language": "python",
+      "sizeLines": 197,
+      "fileCategory": "code"
+    },
+    {
+      "path": "diagnosis/diagnosis_api.py",
+      "language": "python",
+      "sizeLines": 136,
+      "fileCategory": "code"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "file:diagnosis/page.py",
+      "type": "file",
+      "name": "diagnosis/page.py",
+      "filePath": "diagnosis/page.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Browser page seam. GET / serves static/index.html and stamps a fresh signed CSRF token into meta name='csrf-token' plus the csrf cookie. Auth-gated (psychiatrist or admin). Under bypass shim the injection is skipped for byte-clean test asserts.",
+      "tags": [
+        "browser-page",
+        "spa",
+        "csrf-stamp",
+        "auth-gated"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/dashboard.py",
+      "type": "file",
+      "name": "diagnosis/dashboard.py",
+      "filePath": "diagnosis/dashboard.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Dashboard discovery seam. Serves GET /diagnosis/_meta (criteria tree + meta_contract), GET /diagnosis/_csrf (mint token), GET /internal/dashboard/module-routes/{moduleId} (launch descriptor), and GET /internal/diagnosis/audit/{code} (audit trail). Read-only, auth-gated.",
+      "tags": [
+        "dashboard-discovery",
+        "module-routes",
+        "audit",
+        "discovery-seam"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/diagnosis_api.py",
+      "type": "file",
+      "name": "diagnosis/diagnosis_api.py",
+      "filePath": "diagnosis/diagnosis_api.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Protected per-patient REST seam. POST /diagnosis/{code}/init (create session), GET /diagnosis/{code} (get session + evaluation), PUT /diagnosis/{code} (persist checked + decision, call audit hook). Writes require psychiatrist plus CSRF; reads accept psychiatrist or admin.",
+      "tags": [
+        "rest-seam",
+        "diagnosis-api",
+        "write-protected",
+        "per-patient"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "endpoint:diagnosis/dashboard.py:GET /diagnosis/_meta",
+      "type": "endpoint",
+      "name": "GET /diagnosis/_meta",
+      "filePath": "diagnosis/dashboard.py",
+      "complexity": "simple",
+      "summary": "Returns {criteria, rules}. criteria is the DSM-5-TR tree; rules is the meta_contract driving the UI optimistic display. No patient data.",
+      "tags": [
+        "get-endpoint",
+        "criteria-tree",
+        "rules-contract"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "endpoint:diagnosis/dashboard.py:GET /diagnosis/_csrf",
+      "type": "endpoint",
+      "name": "GET /diagnosis/_csrf",
+      "filePath": "diagnosis/dashboard.py",
+      "complexity": "simple",
+      "summary": "Mints a signed CSRF token, sets the csrf cookie, returns {token}. Read-only.",
+      "tags": [
+        "get-endpoint",
+        "csrf",
+        "token-mint"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "endpoint:diagnosis/dashboard.py:GET /internal/dashboard/module-routes/{moduleId}",
+      "type": "endpoint",
+      "name": "GET /internal/dashboard/module-routes/{moduleId}",
+      "filePath": "diagnosis/dashboard.py",
+      "complexity": "simple",
+      "summary": "Dashboard module-route discovery. Returns {moduleId, title, description, launch: {href}, routes: {self, csrf, session}} for moduleId==diagnosis, 404 otherwise.",
+      "tags": [
+        "get-endpoint",
+        "dashboard-discovery",
+        "module-routes"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "endpoint:diagnosis/dashboard.py:GET /internal/diagnosis/audit/{code}",
+      "type": "endpoint",
+      "name": "GET /internal/diagnosis/audit/{code}",
+      "filePath": "diagnosis/dashboard.py",
+      "complexity": "simple",
+      "summary": "Audit-log seam. Returns {code, snapshots: [...]} with the chronological persisted audit trail. Unknown code returns empty snapshots list, not 404.",
+      "tags": [
+        "get-endpoint",
+        "audit",
+        "read-only"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "endpoint:diagnosis/diagnosis_api.py:POST /diagnosis/{code}/init",
+      "type": "endpoint",
+      "name": "POST /diagnosis/{code}/init",
+      "filePath": "diagnosis/diagnosis_api.py",
+      "complexity": "simple",
+      "summary": "Create an empty session for a patient code. Resolves patient identity (canonical id), calls store.init, returns {created, patient_id}. CSRF plus psychiatrist required.",
+      "tags": [
+        "post-endpoint",
+        "session-init",
+        "csrf-gated",
+        "psychiatrist-required"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "endpoint:diagnosis/diagnosis_api.py:GET /diagnosis/{code}",
+      "type": "endpoint",
+      "name": "GET /diagnosis/{code}",
+      "filePath": "diagnosis/diagnosis_api.py",
+      "complexity": "simple",
+      "summary": "Return session state plus live evaluation for a patient code. 404 if never seen. No patient data mutation.",
+      "tags": [
+        "get-endpoint",
+        "session-get",
+        "evaluation"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "endpoint:diagnosis/diagnosis_api.py:PUT /diagnosis/{code}",
+      "type": "endpoint",
+      "name": "PUT /diagnosis/{code}",
+      "filePath": "diagnosis/diagnosis_api.py",
+      "complexity": "simple",
+      "summary": "Persist checked criteria ids plus clinician decision ('confirmed' or 'definite'). Returns updated session plus evaluation. Calls _dump_for_audit on every PUT. CSRF plus psychiatrist required.",
+      "tags": [
+        "put-endpoint",
+        "session-put",
+        "csrf-gated",
+        "psychiatrist-required",
+        "audit-hook"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/page.py:_read_page",
+      "type": "function",
+      "name": "_read_page",
+      "filePath": "diagnosis/page.py",
+      "complexity": "simple",
+      "summary": "Reads static/index.html from disk once per request. No build step.",
+      "tags": [
+        "file-read",
+        "static-html"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/dashboard.py:_dump_for_audit",
+      "type": "function",
+      "name": "_dump_for_audit",
+      "filePath": "diagnosis/dashboard.py",
+      "complexity": "simple",
+      "summary": "Calls store.audit_snapshot and returns the JSON snapshot string. Called by put_session on every decision-bearing PUT so the local audit table accumulates without waiting for the Logs module.",
+      "tags": [
+        "audit-hook",
+        "snapshot"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "class:diagnosis/diagnosis_api.py:Submission",
+      "type": "class",
+      "name": "Submission",
+      "filePath": "diagnosis/diagnosis_api.py",
+      "complexity": "simple",
+      "summary": "Pydantic model for PUT body: {checked: list[str], decision: 'confirmed' or 'definite' or null}.",
+      "tags": [
+        "pydantic",
+        "request-body"
+      ],
+      "languageNotes": ""
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:diagnosis/page.py",
+      "target": "function:diagnosis/page.py:_read_page",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "endpoint:diagnosis/dashboard.py:GET /diagnosis/_meta",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "endpoint:diagnosis/dashboard.py:GET /diagnosis/_csrf",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "endpoint:diagnosis/dashboard.py:GET /internal/dashboard/module-routes/{moduleId}",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "endpoint:diagnosis/dashboard.py:GET /internal/diagnosis/audit/{code}",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "function:diagnosis/dashboard.py:_dump_for_audit",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "class:diagnosis/diagnosis_api.py:Submission",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "endpoint:diagnosis/diagnosis_api.py:POST /diagnosis/{code}/init",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "endpoint:diagnosis/diagnosis_api.py:GET /diagnosis/{code}",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "endpoint:diagnosis/diagnosis_api.py:PUT /diagnosis/{code}",
+      "type": "contains",
+      "weight": 1.0
+    },
+    {
+      "source": "file:diagnosis/page.py",
+      "target": "file:diagnosis/auth.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/page.py",
+      "target": "file:diagnosis/csrf.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/page.py",
+      "target": "file:diagnosis/deps.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "file:diagnosis/auth.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "file:diagnosis/csrf.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "file:diagnosis/criteria.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "file:diagnosis/deps.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/auth.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/criteria.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/dashboard.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/deps.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/patient.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/store.py",
+      "type": "imports",
+      "weight": 0.7
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/criteria.py",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/dashboard.py",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/deps.py",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/patient.py",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/store.py",
+      "type": "calls",
+      "weight": 0.8
+    },
+    {
+      "source": "file:diagnosis/page.py",
+      "target": "file:diagnosis/static/index.html",
+      "type": "reads_from",
+      "weight": 0.5
+    }
+  ]
+}

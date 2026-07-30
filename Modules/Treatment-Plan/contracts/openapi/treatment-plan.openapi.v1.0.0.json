@@ -1,0 +1,30 @@
+{
+  "openapi": "3.1.0",
+  "info": {"title": "INSIGHT Treatment Plan", "version": "1.0.0", "description": "Versioned contract only; no runtime is implemented by TP-05."},
+  "servers": [{"url": "/api/treatment-plan/v1"}],
+  "paths": {
+    "/contract": {"get": {"operationId": "getContract", "responses": {"200": {"description": "Published contract registry", "content": {"application/json": {"schema": {"type": "object"}}}}}}},
+    "/schemas/{name}/{version}": {"get": {"operationId": "getSchema", "parameters": [{"name": "name", "in": "path", "required": true, "schema": {"type": "string"}}, {"name": "version", "in": "path", "required": true, "schema": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"}}], "responses": {"200": {"description": "Normative JSON Schema", "content": {"application/schema+json": {"schema": {"type": "object"}}}}, "404": {"$ref": "#/components/responses/Problem"}}}},
+    "/recommendation-runs": {"post": {"operationId": "createRecommendationRun", "parameters": [{"$ref": "#/components/parameters/SchemaVersion"}, {"$ref": "#/components/parameters/IdempotencyKey"}], "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "../schemas/1.0.0/clinical-input-snapshot.schema.json"}}}}, "responses": {"202": {"description": "Recommendation run accepted", "headers": {"X-Schema-Version": {"$ref": "#/components/headers/SchemaVersion"}}, "content": {"application/json": {"schema": {"$ref": "../schemas/1.0.0/recommendation-run.schema.json"}}}}, "422": {"$ref": "#/components/responses/Problem"}}}},
+    "/recommendation-runs/{runId}": {"get": {"operationId": "getRecommendationRun", "parameters": [{"$ref": "#/components/parameters/RunId"}], "responses": {"200": {"description": "Recommendation run", "content": {"application/json": {"schema": {"$ref": "../schemas/1.0.0/recommendation-run.schema.json"}}}}, "404": {"$ref": "#/components/responses/Problem"}}}},
+    "/plans/{planId}": {"get": {"operationId": "getPlan", "parameters": [{"$ref": "#/components/parameters/PlanId"}], "responses": {"200": {"description": "Plan", "headers": {"ETag": {"schema": {"type": "string"}}}, "content": {"application/json": {"schema": {"oneOf": [{"$ref": "../schemas/1.0.0/primary-plan.schema.json"}, {"$ref": "../schemas/1.0.0/final-plan.schema.json"}]}}}}, "404": {"$ref": "#/components/responses/Problem"}}}},
+    "/plans/{planId}/draft": {"patch": {"operationId": "editDraftPlan", "parameters": [{"$ref": "#/components/parameters/PlanId"}, {"$ref": "#/components/parameters/IfMatch"}, {"$ref": "#/components/parameters/SchemaVersion"}], "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "../schemas/1.0.0/plan-edit.schema.json"}}}}, "responses": {"200": {"description": "Updated draft", "content": {"application/json": {"schema": {"$ref": "../schemas/1.0.0/primary-plan.schema.json"}}}}, "412": {"$ref": "#/components/responses/Problem"}, "428": {"$ref": "#/components/responses/Problem"}}}},
+    "/plans/{planId}/finalize": {"post": {"operationId": "finalizePlan", "parameters": [{"$ref": "#/components/parameters/PlanId"}, {"$ref": "#/components/parameters/IfMatch"}], "responses": {"201": {"description": "Immutable final plan", "content": {"application/json": {"schema": {"$ref": "../schemas/1.0.0/final-plan.schema.json"}}}}, "409": {"$ref": "#/components/responses/Problem"}}}},
+    "/plans/{planId}/supersede": {"post": {"operationId": "supersedePlan", "parameters": [{"$ref": "#/components/parameters/PlanId"}, {"$ref": "#/components/parameters/IdempotencyKey"}], "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "../schemas/1.0.0/follow-up-delta.schema.json"}}}}, "responses": {"202": {"description": "Successor workflow accepted", "content": {"application/json": {"schema": {"$ref": "../schemas/1.0.0/recommendation-run.schema.json"}}}}, "422": {"$ref": "#/components/responses/Problem"}}}},
+    "/plans/{planId}/provenance": {"get":{"operationId":"getPlanProvenance","parameters":[{"$ref":"#/components/parameters/PlanId"}],"responses":{"200":{"description":"Clinical provenance records","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"../schemas/1.0.0/audit-provenance.schema.json"}}}}},"403":{"$ref":"#/components/responses/Problem"}}}},
+    "/plans/{planId}/audit": {"get":{"operationId":"getPlanSecurityAudit","parameters":[{"$ref":"#/components/parameters/PlanId"}],"responses":{"200":{"description":"Authorized security AuditEvent records without clinical provenance","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"../schemas/1.0.0/audit-event.schema.json"}}}}},"403":{"$ref":"#/components/responses/Problem"}}}},
+    "/observability/dashboard": {"get":{"operationId":"getObservabilityDashboard","responses":{"200":{"description":"Operational health metrics and active alerts","content":{"application/json":{"schema":{"type":"object"}}}},"403":{"$ref":"#/components/responses/Problem"}}}},
+    "/metrics": {"get":{"operationId":"getPrometheusMetrics","responses":{"200":{"description":"Prometheus text metrics","content":{"text/plain":{"schema":{"type":"string"}}}},"403":{"$ref":"#/components/responses/Problem"}}}}
+  },
+  "components": {
+    "parameters": {
+      "RunId": {"name": "runId", "in": "path", "required": true, "schema": {"type": "string", "format": "uuid"}},
+      "PlanId": {"name": "planId", "in": "path", "required": true, "schema": {"type": "string", "format": "uuid"}},
+      "SchemaVersion": {"name": "X-Schema-Version", "in": "header", "required": true, "schema": {"type": "string"}},
+      "IdempotencyKey": {"name": "Idempotency-Key", "in": "header", "required": true, "schema": {"type": "string", "minLength": 1}},
+      "IfMatch": {"name": "If-Match", "in": "header", "required": true, "schema": {"type": "string", "minLength": 1}}
+    },
+    "headers": {"SchemaVersion": {"schema": {"type": "string"}}},
+    "responses": {"Problem": {"description": "RFC 9457 problem details", "content": {"application/problem+json": {"schema": {"$ref": "../schemas/1.0.0/problem-details.schema.json"}}}}}
+  }
+}

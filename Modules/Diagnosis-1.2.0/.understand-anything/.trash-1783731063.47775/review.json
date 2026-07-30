@@ -1,0 +1,36 @@
+{
+  "issues": [],
+  "warnings": [
+    "Orphan node (no edges): 'file:.understand-anything/.understandignore'",
+    "Scan file 'docs/api-contract.md' (category='docs') expected node id 'document:docs/api-contract.md' but found as 'file:docs/api-contract.md' - prefix mismatch",
+    "Scan file 'HANDOFF.md' (category='docs') expected node id 'document:HANDOFF.md' but found as 'file:HANDOFF.md' - prefix mismatch",
+    "Scan file 'README.md' (category='docs') expected node id 'document:README.md' but found as 'file:README.md' - prefix mismatch",
+    "Scan file 'requirements.txt' (category='docs') expected node id 'document:requirements.txt' but found as 'file:requirements.txt' - prefix mismatch",
+    "Graph node 'file:.understand-anything/.understandignore' filePath '.understand-anything/.understandignore' not in scan inventory (stale or mis-scoped)"
+  ],
+  "stats": {
+    "totalNodes": 75,
+    "totalEdges": 149,
+    "totalLayers": 6,
+    "tourSteps": 8,
+    "nodeTypes": {
+      "file": 25,
+      "module": 1,
+      "function": 28,
+      "endpoint": 9,
+      "class": 7,
+      "document": 3,
+      "config": 2
+    },
+    "edgeTypes": {
+      "imports": 89,
+      "defines_schema": 2,
+      "calls": 6,
+      "contains": 44,
+      "exports": 2,
+      "reads_from": 1,
+      "serves": 1,
+      "documents": 4
+    }
+  }
+}

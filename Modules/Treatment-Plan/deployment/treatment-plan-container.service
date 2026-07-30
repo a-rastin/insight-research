@@ -1,0 +1,17 @@
+[Unit]
+Description=INSIGHT Treatment Plan container
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/insight/treatment-plan/container.env
+ExecStartPre=-/usr/bin/docker rm -f insight-treatment-plan
+ExecStart=/usr/bin/docker run --name insight-treatment-plan --user 10001:10001 --read-only --tmpfs /tmp:size=32m,mode=1777 --cap-drop ALL --security-opt no-new-privileges --memory 512m --cpus 1 --pids-limit 256 --stop-timeout 35 --publish 127.0.0.1:8000:8000 --volume insight-treatment-plan-data:/data --volume /etc/insight/treatment-plan/secrets:/run/secrets:ro --env-file /etc/insight/treatment-plan/container.env ${TP_IMAGE}
+ExecStop=/usr/bin/docker stop --time 35 insight-treatment-plan
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=45
+
+[Install]
+WantedBy=multi-user.target

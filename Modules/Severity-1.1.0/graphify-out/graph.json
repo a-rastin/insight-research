@@ -1,0 +1,461 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "label": "package.json",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "package",
+      "community": 0,
+      "norm_label": "package.json"
+    },
+    {
+      "label": "name",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L2",
+      "_origin": "ast",
+      "id": "package_name",
+      "community": 0,
+      "norm_label": "name"
+    },
+    {
+      "label": "version",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "package_version",
+      "community": 0,
+      "norm_label": "version"
+    },
+    {
+      "label": "description",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "package_description",
+      "community": 0,
+      "norm_label": "description"
+    },
+    {
+      "label": "type",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "package_type",
+      "community": 0,
+      "norm_label": "type"
+    },
+    {
+      "label": "main",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "package_main",
+      "community": 0,
+      "norm_label": "main"
+    },
+    {
+      "label": "scripts",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "package_scripts",
+      "community": 3,
+      "norm_label": "scripts"
+    },
+    {
+      "label": "start",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "package_scripts_start",
+      "community": 3,
+      "norm_label": "start"
+    },
+    {
+      "label": "dependencies",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "package_dependencies",
+      "community": 2,
+      "norm_label": "dependencies"
+    },
+    {
+      "label": "express",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "package_dependencies_express",
+      "community": 2,
+      "norm_label": "express"
+    },
+    {
+      "label": "express",
+      "file_type": "concept",
+      "source_file": "package.json",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "express",
+      "community": 2,
+      "norm_label": "express"
+    },
+    {
+      "label": "keywords",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "package_keywords",
+      "community": 0,
+      "norm_label": "keywords"
+    },
+    {
+      "label": "author",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "package_author",
+      "community": 0,
+      "norm_label": "author"
+    },
+    {
+      "label": "license",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "package_license",
+      "community": 0,
+      "norm_label": "license"
+    },
+    {
+      "label": "server.js",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "server",
+      "community": 1,
+      "norm_label": "server.js"
+    },
+    {
+      "label": "__filename",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "server_filename",
+      "community": 1,
+      "norm_label": "__filename"
+    },
+    {
+      "label": "__dirname",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "server_dirname",
+      "community": 1,
+      "norm_label": "__dirname"
+    },
+    {
+      "label": "app",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L9",
+      "_origin": "ast",
+      "id": "server_app",
+      "community": 1,
+      "norm_label": "app"
+    },
+    {
+      "label": "DATA_DIR",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "server_data_dir",
+      "community": 1,
+      "norm_label": "data_dir"
+    },
+    {
+      "label": "DATA_FILE",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "server_data_file",
+      "community": 1,
+      "norm_label": "data_file"
+    },
+    {
+      "label": "readAssessments()",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L38",
+      "_origin": "ast",
+      "id": "server_readassessments",
+      "community": 1,
+      "norm_label": "readassessments()"
+    },
+    {
+      "label": "writeAssessments()",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L49",
+      "_origin": "ast",
+      "id": "server_writeassessments",
+      "community": 1,
+      "norm_label": "writeassessments()"
+    },
+    {
+      "label": "test_api.js",
+      "file_type": "code",
+      "source_file": "test_api.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "test_api",
+      "community": 4,
+      "norm_label": "test_api.js"
+    },
+    {
+      "label": "runTests()",
+      "file_type": "code",
+      "source_file": "test_api.js",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "test_api_runtests",
+      "community": 4,
+      "norm_label": "runtests()"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_author",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_dependencies",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_description",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_keywords",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_license",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_name",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_scripts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_type",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "package",
+      "target": "package_version",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "package_scripts",
+      "target": "package_scripts_start",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "package_dependencies",
+      "target": "package_dependencies_express",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L11",
+      "weight": 1.0,
+      "context": "import",
+      "source": "package_dependencies_express",
+      "target": "express",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_app",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_data_dir",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_data_file",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_dirname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_filename",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_readassessments",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L49",
+      "weight": 1.0,
+      "source": "server",
+      "target": "server_writeassessments",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "test_api.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "test_api",
+      "target": "test_api_runtests",
+      "confidence_score": 1.0
+    }
+  ],
+  "hyperedges": []
+}

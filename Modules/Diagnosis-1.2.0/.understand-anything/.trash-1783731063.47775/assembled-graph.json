@@ -1,0 +1,2412 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "diagnosis",
+    "languages": [
+      "python",
+      "html",
+      "markdown",
+      "txt"
+    ],
+    "frameworks": [
+      "FastAPI",
+      "uvicorn",
+      "sqlite3",
+      "stdlib unittest",
+      "httpx"
+    ],
+    "description": "DSM-5-TR schizophrenia criteria checklist (Insight diagnosis module). A FastAPI router exposing a minimalist REST seam over a pure-function DSM-5-TR evaluation, backed by a SQLite repository adapter. Clinician-authoritative -- the model never auto-decides.",
+    "analyzedAt": "2026-07-11T07:29:19.475502Z",
+    "gitCommitHash": "2ad29b87e9f0c13940f7c3809ee28929547bf49f"
+  },
+  "nodes": [
+    {
+      "id": "file:diagnosis/__init__.py",
+      "type": "file",
+      "name": "diagnosis/__init__.py",
+      "filePath": "diagnosis/__init__.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Package entrypoint. Re-exports router, evaluate, get_criteria, meta_contract, check_readiness, and lazy get_app() so importing criteria alone never pulls in FastAPI.",
+      "tags": [
+        "package-init",
+        "public-api",
+        "lazy-imports",
+        "deep-module"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/__main__.py",
+      "type": "file",
+      "name": "diagnosis/__main__.py",
+      "filePath": "diagnosis/__main__.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Standalone boot shim. Sets DIAGNOSIS_AUTH_BYPASS=1 before any submodule import, runs six self-checks (criteria, store, patient, readiness, config, HTTP), drops bypass, then uvicorn.run(diagnosis.app:app).",
+      "tags": [
+        "entrypoint",
+        "cli",
+        "self-check",
+        "uvicorn"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/app.py",
+      "type": "file",
+      "name": "diagnosis/app.py",
+      "filePath": "diagnosis/app.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Standalone FastAPI app. Adds CORSMiddleware (origins from settings adapter), includes the composed router, serves /health (liveness) and /ready (503 on unhealthy).",
+      "tags": [
+        "fastapi",
+        "standalone-app",
+        "health",
+        "ready"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/api.py",
+      "type": "file",
+      "name": "diagnosis/api.py",
+      "filePath": "diagnosis/api.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Composition root. Flattens three seam routers (page, dashboard, diagnosis_api) into one router preserving literal-before-parameterized route order. Back-compat re-exports store, Submission, RESULT_FIELDS, _dump_for_audit, _read_page, _http_selfcheck.",
+      "tags": [
+        "composition-root",
+        "api-router",
+        "seam-composition",
+        "back-compat"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/deps.py",
+      "type": "file",
+      "name": "diagnosis/deps.py",
+      "filePath": "diagnosis/deps.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Shared wiring for all three route seams. Exports process-wide DiagnosisStore singleton, require_psychiatrist, require_psychiatrist_or_admin, require_csrf. Bypass shim checked at import time.",
+      "tags": [
+        "shared-wiring",
+        "store-singleton",
+        "auth-dep",
+        "csrf-dep"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "module:diagnosis",
+      "type": "module",
+      "name": "diagnosis",
+      "filePath": "",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Deep-module package: a tiny REST interface hiding the complete DSM-5-TR evaluation engine. Clinician-authoritative \u00e2\u20ac\u201d the model never auto-decides.",
+      "tags": [
+        "deep-module",
+        "fastapi",
+        "clinical-decision-support"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/__init__.py:get_app",
+      "type": "function",
+      "name": "get_app",
+      "filePath": "diagnosis/__init__.py",
+      "complexity": "simple",
+      "summary": "Lazy FastAPI app accessor. Imports app only on call so criteria engine can be imported without triggering FastAPI load.",
+      "tags": [
+        "lazy-import",
+        "app-accessor"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/__main__.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "diagnosis/__main__.py",
+      "complexity": "simple",
+      "summary": "CLI entry function. Sets bypass, runs six self-checks, drops bypass, starts uvicorn.",
+      "tags": [
+        "cli-entry",
+        "self-check-runner"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "endpoint:diagnosis/app.py:GET /health",
+      "type": "endpoint",
+      "name": "GET /health",
+      "filePath": "diagnosis/app.py",
+      "complexity": "simple",
+      "summary": "Liveness probe. Returns {ok: true, module: 'diagnosis'}.",
+      "tags": [
+        "liveness",
+        "probe",
+        "get-endpoint"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "endpoint:diagnosis/app.py:GET /ready",
+      "type": "endpoint",
+      "name": "GET /ready",
+      "filePath": "diagnosis/app.py",
+      "complexity": "simple",
+      "summary": "Readiness probe. Calls check_readiness(); returns 200 with state or 503 when any check fails. Never leaks URLs or secrets.",
+      "tags": [
+        "readiness",
+        "probe",
+        "503",
+        "no-leak",
+        "get-endpoint"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/criteria.py",
+      "type": "file",
+      "name": "diagnosis/criteria.py",
+      "filePath": "diagnosis/criteria.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Pure-function DSM-5-TR evaluation engine. CRITERIA list holds 9 criterion dicts (A1-A6, B1, C1, D1). evaluate(checked_ids) returns an Evaluation with no side effects. meta_contract() exposes rule primitives the browser page uses for optimistic display. Locked by test_unittest.TestCriteriaRules.",
+      "tags": [
+        "clinical-logic",
+        "pure-function",
+        "dsm-5-tr",
+        "criteria-engine"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/config.py",
+      "type": "file",
+      "name": "diagnosis/config.py",
+      "filePath": "diagnosis/config.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Settings adapter: single source of truth for every integration knob (db_path, auth_url, patient_url, cors_origins, mock_auth, csrf_secret, module_base_path, host, port). Frozen Settings dataclass read once at import. Only place to add a new env knob.",
+      "tags": [
+        "settings",
+        "config-adapter",
+        "frozen-dataclass",
+        "env-knobs"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/patient.py",
+      "type": "file",
+      "name": "diagnosis/patient.py",
+      "filePath": "diagnosis/patient.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Patient identity adapter. Aligns free-text {code} path param with canonical INSIGHT patient.id via internal REST lookup (GET /api/patients/lookup). Opt-in via DIAGNOSIS_PATIENT_LOOKUP=1; default disabled preserves prior diagnosis-local identity for self-check and offline tests.",
+      "tags": [
+        "patient-identity",
+        "adapter",
+        "canonical-id",
+        "opt-in"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/readiness.py",
+      "type": "file",
+      "name": "diagnosis/readiness.py",
+      "filePath": "diagnosis/readiness.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Module-local readiness probe. Pure check_readiness() aggregates DB (SELECT 1), Auth (configured + not bypassed), and Patient (configured when enabled) checks. Never calls live services or leaks URLs. Route in app.py maps ok to 200/503.",
+      "tags": [
+        "readiness",
+        "probe",
+        "no-leak",
+        "module-local"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "class:diagnosis/criteria.py:Evaluation",
+      "type": "class",
+      "name": "Evaluation",
+      "filePath": "diagnosis/criteria.py",
+      "complexity": "simple",
+      "summary": "Dataclass holding evaluation result: met (bool), checked_ids, a_count, core_count, failures list, reason string. No decision field \u00e2\u20ac\u201d clinician authority is a tested contract at the REST layer.",
+      "tags": [
+        "dataclass",
+        "evaluation-result",
+        "clinical-logic"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "class:diagnosis/config.py:Settings",
+      "type": "class",
+      "name": "Settings",
+      "filePath": "diagnosis/config.py",
+      "complexity": "simple",
+      "summary": "Frozen dataclass snapshot of every integration knob. Properties module_id and launch_href are derived from module_base_path.",
+      "tags": [
+        "frozen-dataclass",
+        "settings",
+        "config"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "class:diagnosis/patient.py:Patient",
+      "type": "class",
+      "name": "Patient",
+      "filePath": "diagnosis/patient.py",
+      "complexity": "simple",
+      "summary": "Frozen dataclass for canonical patient identity consumed by store.put. Fields: id (INSIGHT registry pk), patient_code (free-text), display_name.",
+      "tags": [
+        "patient-identity",
+        "frozen-dataclass"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/criteria.py:evaluate",
+      "type": "function",
+      "name": "evaluate",
+      "filePath": "diagnosis/criteria.py",
+      "complexity": "moderate",
+      "summary": "Pure function: given checked criterion ids returns an Evaluation. Rules: >=2 A symptoms, >=1 from core triad (A1-A3), duration (A6) required, guards B/C/D must be checked. No side effects.",
+      "tags": [
+        "pure-function",
+        "criteria-evaluation"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/criteria.py:get_criteria",
+      "type": "function",
+      "name": "get_criteria",
+      "filePath": "diagnosis/criteria.py",
+      "complexity": "simple",
+      "summary": "Returns a copy of the CRITERIA list for the UI criteria tree. Caller must not mutate.",
+      "tags": [
+        "criteria-tree",
+        "ui-bootstrap"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/criteria.py:meta_contract",
+      "type": "function",
+      "name": "meta_contract",
+      "filePath": "diagnosis/criteria.py",
+      "complexity": "simple",
+      "summary": "Returns the rule contract dict the browser page uses for optimistic display (symptom_ids, core_ids, duration_id, guard_ids, thresholds). Single source of truth \u00e2\u20ac\u201d server rules drive the UI, not JS mirroring.",
+      "tags": [
+        "rule-contract",
+        "ui-optimistic-display",
+        "single-source-of-truth"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/criteria.py:_demo",
+      "type": "function",
+      "name": "_demo",
+      "filePath": "diagnosis/criteria.py",
+      "complexity": "simple",
+      "summary": "Boot-time self-check shim: runs test_unittest.TestCriteriaRules via stdlib unittest and exits non-zero on failure.",
+      "tags": [
+        "self-check",
+        "boot-fail-fast"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/config.py:_env_truthy",
+      "type": "function",
+      "name": "_env_truthy",
+      "filePath": "diagnosis/config.py",
+      "complexity": "simple",
+      "summary": "Returns True when env var equals '1', False otherwise.",
+      "tags": [
+        "env-helper"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/config.py:_env_list",
+      "type": "function",
+      "name": "_env_list",
+      "filePath": "diagnosis/config.py",
+      "complexity": "simple",
+      "summary": "Parses comma-separated env list; bare asterisk returns default list verbatim.",
+      "tags": [
+        "env-helper",
+        "comma-list"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/config.py:_load",
+      "type": "function",
+      "name": "_load",
+      "filePath": "diagnosis/config.py",
+      "complexity": "simple",
+      "summary": "Builds a Settings instance from env vars with prior hard-coded defaults. Pure, never raises on missing values.",
+      "tags": [
+        "settings-loader",
+        "env-adapter"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/config.py:_config_selfcheck",
+      "type": "function",
+      "name": "_config_selfcheck",
+      "filePath": "diagnosis/config.py",
+      "complexity": "simple",
+      "summary": "Self-verify the settings adapter: blank env returns prior defaults, custom env is honoured, Settings is frozen.",
+      "tags": [
+        "self-check",
+        "settings"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/patient.py:resolve_patient",
+      "type": "function",
+      "name": "resolve_patient",
+      "filePath": "diagnosis/patient.py",
+      "complexity": "moderate",
+      "summary": "Resolves free-text code to Patient. When DIAGNOSIS_PATIENT_LOOKUP is not '1' (default): returns self-consistent Patient(id=code). When enabled: calls registry, maps 404/transport/id-missing to 422.",
+      "tags": [
+        "patient-resolution",
+        "registry-lookup",
+        "422-map"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/patient.py:reset_patient_for_tests",
+      "type": "function",
+      "name": "reset_patient_for_tests",
+      "filePath": "diagnosis/patient.py",
+      "complexity": "simple",
+      "summary": "Test-only hook: rebinds PATIENT_BASE_URL module global for fake-registry tests.",
+      "tags": [
+        "test-hook",
+        "fake-registry"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/patient.py:_patient_selfcheck",
+      "type": "function",
+      "name": "_patient_selfcheck",
+      "filePath": "diagnosis/patient.py",
+      "complexity": "simple",
+      "summary": "Self-verify patient adapter: empty code returns 400, lookup-disabled falls back to free-text, _build_patient fails closed on missing canonical id.",
+      "tags": [
+        "self-check",
+        "patient-adapter"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/readiness.py:check_readiness",
+      "type": "function",
+      "name": "check_readiness",
+      "filePath": "diagnosis/readiness.py",
+      "complexity": "simple",
+      "summary": "Pure function returning {ok, module, checks: {db, auth, patient}}. Never raises, never calls live services.",
+      "tags": [
+        "readiness",
+        "pure-function"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/readiness.py:_check_db",
+      "type": "function",
+      "name": "_check_db",
+      "filePath": "diagnosis/readiness.py",
+      "complexity": "simple",
+      "summary": "Probes DiagnosisStore with SELECT 1. Catches all SQLite faults and returns ok=False without leaking the error.",
+      "tags": [
+        "db-check",
+        "select-1"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/readiness.py:_check_auth",
+      "type": "function",
+      "name": "_check_auth",
+      "filePath": "diagnosis/readiness.py",
+      "complexity": "simple",
+      "summary": "Checks AUTH_BASE_URL is non-empty and bypass shim is off. Never calls the auth service.",
+      "tags": [
+        "auth-config-check",
+        "no-service-call"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/readiness.py:_check_patient",
+      "type": "function",
+      "name": "_check_patient",
+      "filePath": "diagnosis/readiness.py",
+      "complexity": "simple",
+      "summary": "When DIAGNOSIS_PATIENT_LOOKUP=1: checks PATIENT_BASE_URL non-empty. Otherwise returns {ok:true, enabled:False, configured:true} (skipped is a healthy state).",
+      "tags": [
+        "patient-config-check",
+        "opt-in"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/readiness.py:_readiness_selfcheck",
+      "type": "function",
+      "name": "_readiness_selfcheck",
+      "filePath": "diagnosis/readiness.py",
+      "complexity": "moderate",
+      "summary": "Self-verify readiness probe: default env is ready, bypass on fails readiness, patient-enabled+URL-set ready, patient-enabled+blank-URL fails, DB fault returns False without raising.",
+      "tags": [
+        "self-check",
+        "readiness"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/auth.py",
+      "type": "file",
+      "name": "diagnosis/auth.py",
+      "filePath": "diagnosis/auth.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Auth adapter delegating trust to the central Insight auth service. Calls GET {AUTH_BASE_URL}/api/auth/session with the Cookie header and reads the JSON response (authenticated, user_id, roles, session_id). Never decodes JWTs or reads the auth DB.",
+      "tags": [
+        "auth-delegation",
+        "session",
+        "role-enforcement",
+        "insight-service"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/csrf.py",
+      "type": "file",
+      "name": "diagnosis/csrf.py",
+      "filePath": "diagnosis/csrf.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Signed double-submit CSRF token (HMAC-SHA256). mint() creates a fresh token set as cookie plus JSON body. require_csrf FastAPI dependency fails closed on any cookie/header mismatch or invalid signature. Pinned secret via DIAGNOSIS_CSRF_SECRET; per-process random fallback.",
+      "tags": [
+        "csrf",
+        "hmac-sha256",
+        "double-submit",
+        "owasp"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/store.py",
+      "type": "file",
+      "name": "diagnosis/store.py",
+      "filePath": "diagnosis/store.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "SQLite-backed repository adapter. DiagnosisStore wraps sessions (code PK, patient_id, checked JSON, decision) and audit (id, code, snapshot JSON, created_at) tables. WAL journal, thread-safe via process lock. Methods: init, exists, get, put, audit_snapshot, list_audits, reset.",
+      "tags": [
+        "persistence",
+        "sqlite",
+        "repository",
+        "wal-journal"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "class:diagnosis/auth.py:Session",
+      "type": "class",
+      "name": "Session",
+      "filePath": "diagnosis/auth.py",
+      "complexity": "simple",
+      "summary": "Frozen dataclass: user_id, roles (frozenset), session_id. Built from the auth service JSON response. has_any() checks role membership.",
+      "tags": [
+        "session",
+        "frozen-dataclass",
+        "role"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "class:diagnosis/auth.py:_AuthUnavailable",
+      "type": "class",
+      "name": "_AuthUnavailable",
+      "filePath": "diagnosis/auth.py",
+      "complexity": "simple",
+      "summary": "Exception raised on auth service transport or parse failure. Route maps to 401 without leaking infra details.",
+      "tags": [
+        "auth-exception",
+        "transport-error"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "class:diagnosis/store.py:DiagnosisStore",
+      "type": "class",
+      "name": "DiagnosisStore",
+      "filePath": "diagnosis/store.py",
+      "complexity": "moderate",
+      "summary": "SQLite repository. Methods: init, exists, get, put, audit_snapshot, list_audits, reset. Thread-safe via threading.Lock. Lazy connection with WAL journal.",
+      "tags": [
+        "persistence",
+        "sqlite",
+        "thread-safe"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/auth.py:require_role",
+      "type": "function",
+      "name": "require_role",
+      "filePath": "diagnosis/auth.py",
+      "complexity": "moderate",
+      "summary": "FastAPI dependency factory. Returns a dependency that enforces role membership. Reads cookie, calls auth service, returns Session or raises 401/403.",
+      "tags": [
+        "fastapi-dependency",
+        "role-enforcement"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/auth.py:reset_auth_for_tests",
+      "type": "function",
+      "name": "reset_auth_for_tests",
+      "filePath": "diagnosis/auth.py",
+      "complexity": "simple",
+      "summary": "Test-only hook: rebinds AUTH_BASE_URL module global for fake auth server tests.",
+      "tags": [
+        "test-hook",
+        "fake-auth"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/csrf.py:mint",
+      "type": "function",
+      "name": "mint",
+      "filePath": "diagnosis/csrf.py",
+      "complexity": "simple",
+      "summary": "Creates a fresh signed CSRF token: 32 random hex bytes signed with HMAC-SHA256. Returns token string.",
+      "tags": [
+        "csrf-token",
+        "mint"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/csrf.py:set_cookie",
+      "type": "function",
+      "name": "set_cookie",
+      "filePath": "diagnosis/csrf.py",
+      "complexity": "simple",
+      "summary": "Stamps the csrf cookie on a FastAPI response. HttpOnly=False so JS can read it; Secure flag from settings.",
+      "tags": [
+        "csrf",
+        "cookie"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/csrf.py:require_csrf",
+      "type": "function",
+      "name": "require_csrf",
+      "filePath": "diagnosis/csrf.py",
+      "complexity": "moderate",
+      "summary": "FastAPI dependency. Fails closed (403) if cookie/header missing, mismatched, or invalid HMAC. Bypassed when DIAGNOSIS_AUTH_BYPASS=1.",
+      "tags": [
+        "csrf-dependency",
+        "fastapi-dependency"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/csrf.py:reset_secret_for_tests",
+      "type": "function",
+      "name": "reset_secret_for_tests",
+      "filePath": "diagnosis/csrf.py",
+      "complexity": "simple",
+      "summary": "Test-only hook: pins the CSRF secret so tests can mint predictable tokens. Pass None to reset to fresh random.",
+      "tags": [
+        "test-hook",
+        "csrf-secret"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/store.py:_resolve_path",
+      "type": "function",
+      "name": "_resolve_path",
+      "filePath": "diagnosis/store.py",
+      "complexity": "simple",
+      "summary": "Resolves the SQLite DB path. Honours DIAGNOSIS_DB_PATH env var at call time (not import time) so mid-process flips work.",
+      "tags": [
+        "db-path",
+        "env-resolve"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/store.py:_store_selfcheck",
+      "type": "function",
+      "name": "_store_selfcheck",
+      "filePath": "diagnosis/store.py",
+      "complexity": "moderate",
+      "summary": "Self-verify persistence adapter end-to-end with a temp DB: init-once, timestamps monotonic, put plus get round-trip, bypass decision, audit snapshot recorded and durable across store restarts.",
+      "tags": [
+        "self-check",
+        "persistence"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/page.py",
+      "type": "file",
+      "name": "diagnosis/page.py",
+      "filePath": "diagnosis/page.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Browser page seam. GET / serves static/index.html and stamps a fresh signed CSRF token into meta name='csrf-token' plus the csrf cookie. Auth-gated (psychiatrist or admin). Under bypass shim the injection is skipped for byte-clean test asserts.",
+      "tags": [
+        "browser-page",
+        "spa",
+        "csrf-stamp",
+        "auth-gated"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/dashboard.py",
+      "type": "file",
+      "name": "diagnosis/dashboard.py",
+      "filePath": "diagnosis/dashboard.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Dashboard discovery seam. Serves GET /diagnosis/_meta (criteria tree + meta_contract), GET /diagnosis/_csrf (mint token), GET /internal/dashboard/module-routes/{moduleId} (launch descriptor), and GET /internal/diagnosis/audit/{code} (audit trail). Read-only, auth-gated.",
+      "tags": [
+        "dashboard-discovery",
+        "module-routes",
+        "audit",
+        "discovery-seam"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/diagnosis_api.py",
+      "type": "file",
+      "name": "diagnosis/diagnosis_api.py",
+      "filePath": "diagnosis/diagnosis_api.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Protected per-patient REST seam. POST /diagnosis/{code}/init (create session), GET /diagnosis/{code} (get session + evaluation), PUT /diagnosis/{code} (persist checked + decision, call audit hook). Writes require psychiatrist plus CSRF; reads accept psychiatrist or admin.",
+      "tags": [
+        "rest-seam",
+        "diagnosis-api",
+        "write-protected",
+        "per-patient"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "endpoint:diagnosis/dashboard.py:GET /diagnosis/_meta",
+      "type": "endpoint",
+      "name": "GET /diagnosis/_meta",
+      "filePath": "diagnosis/dashboard.py",
+      "complexity": "simple",
+      "summary": "Returns {criteria, rules}. criteria is the DSM-5-TR tree; rules is the meta_contract driving the UI optimistic display. No patient data.",
+      "tags": [
+        "get-endpoint",
+        "criteria-tree",
+        "rules-contract"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "endpoint:diagnosis/dashboard.py:GET /diagnosis/_csrf",
+      "type": "endpoint",
+      "name": "GET /diagnosis/_csrf",
+      "filePath": "diagnosis/dashboard.py",
+      "complexity": "simple",
+      "summary": "Mints a signed CSRF token, sets the csrf cookie, returns {token}. Read-only.",
+      "tags": [
+        "get-endpoint",
+        "csrf",
+        "token-mint"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "endpoint:diagnosis/dashboard.py:GET /internal/dashboard/module-routes/{moduleId}",
+      "type": "endpoint",
+      "name": "GET /internal/dashboard/module-routes/{moduleId}",
+      "filePath": "diagnosis/dashboard.py",
+      "complexity": "simple",
+      "summary": "Dashboard module-route discovery. Returns {moduleId, title, description, launch: {href}, routes: {self, csrf, session}} for moduleId==diagnosis, 404 otherwise.",
+      "tags": [
+        "get-endpoint",
+        "dashboard-discovery",
+        "module-routes"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "endpoint:diagnosis/dashboard.py:GET /internal/diagnosis/audit/{code}",
+      "type": "endpoint",
+      "name": "GET /internal/diagnosis/audit/{code}",
+      "filePath": "diagnosis/dashboard.py",
+      "complexity": "simple",
+      "summary": "Audit-log seam. Returns {code, snapshots: [...]} with the chronological persisted audit trail. Unknown code returns empty snapshots list, not 404.",
+      "tags": [
+        "get-endpoint",
+        "audit",
+        "read-only"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "endpoint:diagnosis/diagnosis_api.py:POST /diagnosis/{code}/init",
+      "type": "endpoint",
+      "name": "POST /diagnosis/{code}/init",
+      "filePath": "diagnosis/diagnosis_api.py",
+      "complexity": "simple",
+      "summary": "Create an empty session for a patient code. Resolves patient identity (canonical id), calls store.init, returns {created, patient_id}. CSRF plus psychiatrist required.",
+      "tags": [
+        "post-endpoint",
+        "session-init",
+        "csrf-gated",
+        "psychiatrist-required"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "endpoint:diagnosis/diagnosis_api.py:GET /diagnosis/{code}",
+      "type": "endpoint",
+      "name": "GET /diagnosis/{code}",
+      "filePath": "diagnosis/diagnosis_api.py",
+      "complexity": "simple",
+      "summary": "Return session state plus live evaluation for a patient code. 404 if never seen. No patient data mutation.",
+      "tags": [
+        "get-endpoint",
+        "session-get",
+        "evaluation"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "endpoint:diagnosis/diagnosis_api.py:PUT /diagnosis/{code}",
+      "type": "endpoint",
+      "name": "PUT /diagnosis/{code}",
+      "filePath": "diagnosis/diagnosis_api.py",
+      "complexity": "simple",
+      "summary": "Persist checked criteria ids plus clinician decision ('confirmed' or 'definite'). Returns updated session plus evaluation. Calls _dump_for_audit on every PUT. CSRF plus psychiatrist required.",
+      "tags": [
+        "put-endpoint",
+        "session-put",
+        "csrf-gated",
+        "psychiatrist-required",
+        "audit-hook"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/page.py:_read_page",
+      "type": "function",
+      "name": "_read_page",
+      "filePath": "diagnosis/page.py",
+      "complexity": "simple",
+      "summary": "Reads static/index.html from disk once per request. No build step.",
+      "tags": [
+        "file-read",
+        "static-html"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "function:diagnosis/dashboard.py:_dump_for_audit",
+      "type": "function",
+      "name": "_dump_for_audit",
+      "filePath": "diagnosis/dashboard.py",
+      "complexity": "simple",
+      "summary": "Calls store.audit_snapshot and returns the JSON snapshot string. Called by put_session on every decision-bearing PUT so the local audit table accumulates without waiting for the Logs module.",
+      "tags": [
+        "audit-hook",
+        "snapshot"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "class:diagnosis/diagnosis_api.py:Submission",
+      "type": "class",
+      "name": "Submission",
+      "filePath": "diagnosis/diagnosis_api.py",
+      "complexity": "simple",
+      "summary": "Pydantic model for PUT body: {checked: list[str], decision: 'confirmed' or 'definite' or null}.",
+      "tags": [
+        "pydantic",
+        "request-body"
+      ],
+      "languageNotes": ""
+    },
+    {
+      "id": "file:test_csrf.py",
+      "type": "file",
+      "name": "test_csrf.py",
+      "filePath": "test_csrf.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "CSRF tests for write routes. Covers missing header, missing cookie, mismatch, bad signature, valid token allows write, token route sets cookie, HTML page carries meta tag, bypass env skips CSRF.",
+      "tags": [
+        "csrf-tests",
+        "double-submit",
+        "fake-http-server"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:test_discovery.py",
+      "type": "file",
+      "name": "test_discovery.py",
+      "filePath": "test_discovery.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Dashboard module-route discovery tests: descriptor shape and launch href, admin can read, unknown moduleId returns 404, nurse role returns 403, no cookie returns 401.",
+      "tags": [
+        "discovery-tests",
+        "dashboard",
+        "module-routes"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:test_patient.py",
+      "type": "file",
+      "name": "test_patient.py",
+      "filePath": "test_patient.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Patient identity adapter tests: init and put bind canonical patient id, unknown code returns 422, registry 404 maps to 422, empty code returns 400, missing canonical id returns 422, bad JSON returns 422, registry 500 returns 422, registry down returns 422, lookup disabled falls back to free-text.",
+      "tags": [
+        "patient-tests",
+        "identity-adapter",
+        "registry-mock"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:test_readiness.py",
+      "type": "file",
+      "name": "test_readiness.py",
+      "filePath": "test_readiness.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Readiness probe tests: default env is ready, bypass shim fails readiness, auth URL blank fails, patient lookup enabled and URL set is ready, patient lookup enabled with blank URL fails, DB fault returns False without raising, HTTP 200 and 503 responses, response never leaks URLs.",
+      "tags": [
+        "readiness-tests",
+        "probe",
+        "no-leak"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:diagnosis/static/index.html",
+      "type": "file",
+      "name": "diagnosis/static/index.html",
+      "filePath": "diagnosis/static/index.html",
+      "language": "html",
+      "complexity": "moderate",
+      "summary": "Single-page DSM-5-TR criteria checklist UI. No build step. Exposes window.createDiagnosisModule({root, apiBaseUrl, embedded, initialCode}) returning {mount(), unmount(), setPatientCode()}. Derives all display from GET /diagnosis/_meta rules contract \u00e2\u20ac\u201d JS never reimplements DSM logic. Stamps CSRF token from meta tag on every write.",
+      "tags": [
+        "spa",
+        "vanilla-js",
+        "embeddable",
+        "criteria-ui",
+        "no-build-step"
+      ],
+      "fileCategory": "markup",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:docs/api-contract.md",
+      "type": "document",
+      "name": "docs/api-contract.md",
+      "filePath": "docs/api-contract.md",
+      "language": "markdown",
+      "complexity": "moderate",
+      "summary": "Canonical REST API contract: route shapes, request/response bodies, error codes, auth, CSRF, route discovery, invariants. Locked against the live router by test_unittest.TestRestContract.test_api_contract_doc_lists_every_live_route. If code and document disagree, the code wins.",
+      "tags": [
+        "api-contract",
+        "canonical-spec",
+        "insight-integrator"
+      ],
+      "fileCategory": "docs",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:HANDOFF.md",
+      "type": "document",
+      "name": "HANDOFF.md",
+      "filePath": "HANDOFF.md",
+      "language": "markdown",
+      "complexity": "moderate",
+      "summary": "Deep-module handoff guide for future LLMs or humans. Maps the codebase architecture, design decisions, seam layout, env knobs, self-check chain, and the clinician-authority invariant.",
+      "tags": [
+        "handoff",
+        "architecture",
+        "design-decisions",
+        "llm-guide"
+      ],
+      "fileCategory": "docs",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "language": "markdown",
+      "complexity": "simple",
+      "summary": "User-facing module overview: DSM-5-TR schizophrenia criteria checklist for Insight. Interface table, CSRF protocol, patient identity, readiness probe, standalone and mounted deployment, embeddable UI contract.",
+      "tags": [
+        "readme",
+        "user-facing",
+        "overview"
+      ],
+      "fileCategory": "docs",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:requirements.txt",
+      "type": "config",
+      "name": "requirements.txt",
+      "filePath": "requirements.txt",
+      "language": "txt",
+      "complexity": "simple",
+      "summary": "Python dependencies: fastapi>=0.110, uvicorn[standard]>=0.27, pydantic>=2.5, httpx2>=1.0, httpcore.",
+      "tags": [
+        "dependencies",
+        "python",
+        "fastapi",
+        "uvicorn"
+      ],
+      "fileCategory": "config",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:.understand-anything/.understandignore",
+      "type": "config",
+      "name": ".understand-anything/.understandignore",
+      "filePath": ".understand-anything/.understandignore",
+      "language": "unknown",
+      "complexity": "simple",
+      "summary": "Understand-anything ignore patterns: excludes .venv, __pycache__, graphify-out, .understand-anything, *.db, diagnosis_store.db, notebooks, and scratch files.",
+      "tags": [
+        "understandignore",
+        "exclusions"
+      ],
+      "fileCategory": "config",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:test_unittest.py",
+      "type": "file",
+      "name": "test_unittest.py",
+      "filePath": "test_unittest.py",
+      "language": "python",
+      "complexity": "moderate",
+      "summary": "Unittest suite locking clinical contracts: TestCriteriaRules (pure rule engine), TestRestContract (route/persistence contract), TestAuditSeam (audit hook on every PUT), TestClinicianAuthority (model-never-auto-decides invariant), TestAuthRejection, TestCSRF, TestPersistence, TestPatientIdentity. Loaded by _http_selfcheck and _demo at boot time.",
+      "tags": [
+        "unittest",
+        "clinical-contracts",
+        "criteria-rules",
+        "audit",
+        "authority-invariant"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:test_auth.py",
+      "type": "file",
+      "name": "test_auth.py",
+      "filePath": "test_auth.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Role-enforcement tests. In-process fake HTTP server exercising all protected paths with no-cookie, unauthenticated, nurse-role, psychiatrist-role, and admin-role requests. No external framework \u00e2\u20ac\u201d stdlib unittest plus threading HTTP server.",
+      "tags": [
+        "auth-tests",
+        "role-enforcement",
+        "fake-http-server",
+        "ponytail-harness"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:test_config.py",
+      "type": "file",
+      "name": "test_config.py",
+      "filePath": "test_config.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Settings adapter tests: blank env returns prior defaults, custom env is honoured, Settings is frozen, module_id derives from mount prefix, CORS parses comma list, mock_auth and patient_lookup are truthy gates, host/port override.",
+      "tags": [
+        "config-tests",
+        "settings-adapter",
+        "env-snapshot"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:test_embed.py",
+      "type": "file",
+      "name": "test_embed.py",
+      "filePath": "test_embed.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Embeddable module UI tests: page is standalone shell, exposes createDiagnosisModule, contract takes root+apiBaseUrl, drops dashboard placeholder, no standalone topbar, embedded flag skips chrome, mount/unmount handle, CSRF meta tag still read, route layer unchanged, bypass serve byte-clean.",
+      "tags": [
+        "embed-tests",
+        "ui-contract",
+        "createDiagnosisModule"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    },
+    {
+      "id": "file:test_routes.py",
+      "type": "file",
+      "name": "test_routes.py",
+      "filePath": "test_routes.py",
+      "language": "python",
+      "complexity": "simple",
+      "summary": "Route-seam split tests: page seam owns only browser page, dashboard seam owns only discovery routes, diagnosis seam owns only per-patient REST, composed router has all paths, literal routes precede parameterized, audit seam is in dashboard only, discovery moduleId constant, back-compat re-exports, each seam shares one store and policy.",
+      "tags": [
+        "route-tests",
+        "seam-split",
+        "route-invariants"
+      ],
+      "fileCategory": "code",
+      "languageNotes": ""
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:diagnosis/__init__.py",
+      "target": "file:diagnosis/api.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/__init__.py",
+      "target": "file:diagnosis/criteria.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/__init__.py",
+      "target": "file:diagnosis/readiness.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/__init__.py",
+      "target": "module:diagnosis",
+      "type": "defines_schema",
+      "weight": 0.8,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/__main__.py",
+      "target": "file:diagnosis/criteria.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/__main__.py",
+      "target": "file:diagnosis/store.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/__main__.py",
+      "target": "file:diagnosis/patient.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/__main__.py",
+      "target": "file:diagnosis/readiness.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/__main__.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/__main__.py",
+      "target": "file:diagnosis/api.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/__main__.py",
+      "target": "file:diagnosis/app.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/app.py",
+      "target": "file:diagnosis/api.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/app.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/app.py",
+      "target": "file:diagnosis/readiness.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/app.py",
+      "target": "file:diagnosis/readiness.py",
+      "type": "calls",
+      "weight": 0.8,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/app.py",
+      "target": "endpoint:diagnosis/app.py:GET /health",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/app.py",
+      "target": "endpoint:diagnosis/app.py:GET /ready",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/api.py",
+      "target": "file:diagnosis/dashboard.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/api.py",
+      "target": "file:diagnosis/diagnosis_api.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/api.py",
+      "target": "file:diagnosis/page.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/api.py",
+      "target": "file:diagnosis/deps.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/api.py",
+      "target": "module:diagnosis",
+      "type": "defines_schema",
+      "weight": 0.8,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/deps.py",
+      "target": "file:diagnosis/store.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/deps.py",
+      "target": "file:diagnosis/auth.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/deps.py",
+      "target": "file:diagnosis/csrf.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/__init__.py",
+      "target": "function:diagnosis/__init__.py:get_app",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/__main__.py",
+      "target": "function:diagnosis/__main__.py:main",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/criteria.py",
+      "target": "class:diagnosis/criteria.py:Evaluation",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/criteria.py",
+      "target": "function:diagnosis/criteria.py:evaluate",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/criteria.py",
+      "target": "function:diagnosis/criteria.py:get_criteria",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/criteria.py",
+      "target": "function:diagnosis/criteria.py:meta_contract",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/criteria.py",
+      "target": "function:diagnosis/criteria.py:_demo",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/config.py",
+      "target": "class:diagnosis/config.py:Settings",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/config.py",
+      "target": "function:diagnosis/config.py:_env_truthy",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/config.py",
+      "target": "function:diagnosis/config.py:_env_list",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/config.py",
+      "target": "function:diagnosis/config.py:_load",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/config.py",
+      "target": "function:diagnosis/config.py:_config_selfcheck",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/patient.py",
+      "target": "class:diagnosis/patient.py:Patient",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/patient.py",
+      "target": "function:diagnosis/patient.py:resolve_patient",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/patient.py",
+      "target": "function:diagnosis/patient.py:reset_patient_for_tests",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/patient.py",
+      "target": "function:diagnosis/patient.py:_patient_selfcheck",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/readiness.py",
+      "target": "function:diagnosis/readiness.py:check_readiness",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/readiness.py",
+      "target": "function:diagnosis/readiness.py:_check_db",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/readiness.py",
+      "target": "function:diagnosis/readiness.py:_check_auth",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/readiness.py",
+      "target": "function:diagnosis/readiness.py:_check_patient",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/readiness.py",
+      "target": "function:diagnosis/readiness.py:_readiness_selfcheck",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/deps.py",
+      "target": "file:diagnosis/criteria.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/deps.py",
+      "target": "file:diagnosis/patient.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/deps.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/readiness.py",
+      "target": "file:diagnosis/deps.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/readiness.py",
+      "target": "file:diagnosis/store.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/patient.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/patient.py",
+      "target": "file:diagnosis/auth.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/criteria.py",
+      "target": "file:diagnosis/__init__.py",
+      "type": "exports",
+      "weight": 0.8,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/readiness.py",
+      "target": "file:diagnosis/__init__.py",
+      "type": "exports",
+      "weight": 0.8,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/auth.py",
+      "target": "class:diagnosis/auth.py:Session",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/auth.py",
+      "target": "class:diagnosis/auth.py:_AuthUnavailable",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/auth.py",
+      "target": "function:diagnosis/auth.py:require_role",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/auth.py",
+      "target": "function:diagnosis/auth.py:reset_auth_for_tests",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/csrf.py",
+      "target": "function:diagnosis/csrf.py:mint",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/csrf.py",
+      "target": "function:diagnosis/csrf.py:set_cookie",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/csrf.py",
+      "target": "function:diagnosis/csrf.py:require_csrf",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/csrf.py",
+      "target": "function:diagnosis/csrf.py:reset_secret_for_tests",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/store.py",
+      "target": "class:diagnosis/store.py:DiagnosisStore",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/store.py",
+      "target": "function:diagnosis/store.py:_resolve_path",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/store.py",
+      "target": "function:diagnosis/store.py:_store_selfcheck",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/auth.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/csrf.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/store.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/store.py",
+      "target": "file:diagnosis/deps.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/page.py",
+      "target": "function:diagnosis/page.py:_read_page",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "endpoint:diagnosis/dashboard.py:GET /diagnosis/_meta",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "endpoint:diagnosis/dashboard.py:GET /diagnosis/_csrf",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "endpoint:diagnosis/dashboard.py:GET /internal/dashboard/module-routes/{moduleId}",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "endpoint:diagnosis/dashboard.py:GET /internal/diagnosis/audit/{code}",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "function:diagnosis/dashboard.py:_dump_for_audit",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "class:diagnosis/diagnosis_api.py:Submission",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "endpoint:diagnosis/diagnosis_api.py:POST /diagnosis/{code}/init",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "endpoint:diagnosis/diagnosis_api.py:GET /diagnosis/{code}",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "endpoint:diagnosis/diagnosis_api.py:PUT /diagnosis/{code}",
+      "type": "contains",
+      "weight": 1.0,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/page.py",
+      "target": "file:diagnosis/auth.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/page.py",
+      "target": "file:diagnosis/csrf.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/page.py",
+      "target": "file:diagnosis/deps.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "file:diagnosis/auth.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "file:diagnosis/csrf.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "file:diagnosis/criteria.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "file:diagnosis/deps.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/dashboard.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/auth.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/criteria.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/dashboard.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/deps.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/patient.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/store.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/criteria.py",
+      "type": "calls",
+      "weight": 0.8,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/dashboard.py",
+      "type": "calls",
+      "weight": 0.8,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/deps.py",
+      "type": "calls",
+      "weight": 0.8,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/patient.py",
+      "type": "calls",
+      "weight": 0.8,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/diagnosis_api.py",
+      "target": "file:diagnosis/store.py",
+      "type": "calls",
+      "weight": 0.8,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/page.py",
+      "target": "file:diagnosis/static/index.html",
+      "type": "reads_from",
+      "weight": 0.5,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_csrf.py",
+      "target": "file:diagnosis/api.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_csrf.py",
+      "target": "file:diagnosis/csrf.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_csrf.py",
+      "target": "file:diagnosis/page.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_discovery.py",
+      "target": "file:diagnosis/api.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_discovery.py",
+      "target": "file:diagnosis/dashboard.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_patient.py",
+      "target": "file:diagnosis/diagnosis_api.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_patient.py",
+      "target": "file:diagnosis/patient.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_patient.py",
+      "target": "file:diagnosis/auth.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_readiness.py",
+      "target": "file:diagnosis/app.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_readiness.py",
+      "target": "file:diagnosis/readiness.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:diagnosis/page.py",
+      "target": "file:diagnosis/static/index.html",
+      "type": "serves",
+      "weight": 0.5,
+      "direction": "forward"
+    },
+    {
+      "source": "file:docs/api-contract.md",
+      "target": "file:README.md",
+      "type": "documents",
+      "weight": 0.5,
+      "direction": "forward"
+    },
+    {
+      "source": "file:HANDOFF.md",
+      "target": "file:diagnosis/api.py",
+      "type": "documents",
+      "weight": 0.5,
+      "direction": "forward"
+    },
+    {
+      "source": "file:HANDOFF.md",
+      "target": "file:diagnosis/criteria.py",
+      "type": "documents",
+      "weight": 0.5,
+      "direction": "forward"
+    },
+    {
+      "source": "file:requirements.txt",
+      "target": "file:diagnosis/app.py",
+      "type": "documents",
+      "weight": 0.5,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_unittest.py",
+      "target": "file:diagnosis/criteria.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_unittest.py",
+      "target": "file:diagnosis/api.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_unittest.py",
+      "target": "file:diagnosis/store.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_unittest.py",
+      "target": "file:diagnosis/patient.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_unittest.py",
+      "target": "file:diagnosis/readiness.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_unittest.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_unittest.py",
+      "target": "file:diagnosis/auth.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_unittest.py",
+      "target": "file:diagnosis/csrf.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_auth.py",
+      "target": "file:diagnosis/api.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_auth.py",
+      "target": "file:diagnosis/auth.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_auth.py",
+      "target": "file:diagnosis/deps.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_config.py",
+      "target": "file:diagnosis/config.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_config.py",
+      "target": "file:diagnosis/app.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_config.py",
+      "target": "file:diagnosis/__main__.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_embed.py",
+      "target": "file:diagnosis/api.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_embed.py",
+      "target": "file:diagnosis/page.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_routes.py",
+      "target": "file:diagnosis/api.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_routes.py",
+      "target": "file:diagnosis/page.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_routes.py",
+      "target": "file:diagnosis/dashboard.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_routes.py",
+      "target": "file:diagnosis/diagnosis_api.py",
+      "type": "imports",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:test_auth.py",
+      "target": "file:diagnosis/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:test_auth.py",
+      "target": "file:diagnosis/app.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:test_csrf.py",
+      "target": "file:diagnosis/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:test_csrf.py",
+      "target": "file:diagnosis/app.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:test_discovery.py",
+      "target": "file:diagnosis/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:test_discovery.py",
+      "target": "file:diagnosis/app.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:test_embed.py",
+      "target": "file:diagnosis/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:test_patient.py",
+      "target": "file:diagnosis/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:test_patient.py",
+      "target": "file:diagnosis/app.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:test_readiness.py",
+      "target": "file:diagnosis/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:test_readiness.py",
+      "target": "file:diagnosis/store.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:test_routes.py",
+      "target": "file:diagnosis/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:test_unittest.py",
+      "target": "file:diagnosis/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:test_unittest.py",
+      "target": "file:diagnosis/app.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7,
+      "recoveredFromImportMap": true
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:static-ui",
+      "name": "Static UI",
+      "description": "Embeddable single-page DSM-5-TR checklist UI. Vanilla JS, no build step. Exposes createDiagnosisModule() for the Insight Dashboard. Reads meta_contract from /diagnosis/_meta for optimistic display, never reimplements DSM logic in JS.",
+      "nodeIds": [
+        "file:diagnosis/static/index.html"
+      ]
+    },
+    {
+      "id": "layer:api-surface",
+      "name": "API Surface",
+      "description": "FastAPI composition root, three route seams, and standalone app wiring. Tiny REST interface hiding the clinical logic. Eight routes total: health, ready, browser page, _meta, _csrf, module discovery, audit, and per-patient REST. Clinician-authoritative \u00e2\u20ac\u201d model never auto-decides.",
+      "nodeIds": [
+        "file:diagnosis/app.py",
+        "file:diagnosis/api.py",
+        "file:diagnosis/page.py",
+        "file:diagnosis/dashboard.py",
+        "file:diagnosis/diagnosis_api.py",
+        "file:diagnosis/deps.py",
+        "file:diagnosis/__init__.py",
+        "file:diagnosis/__main__.py",
+        "endpoint:diagnosis/app.py:GET /health",
+        "endpoint:diagnosis/app.py:GET /ready",
+        "endpoint:diagnosis/dashboard.py:GET /diagnosis/_meta",
+        "endpoint:diagnosis/dashboard.py:GET /diagnosis/_csrf",
+        "endpoint:diagnosis/dashboard.py:GET /internal/dashboard/module-routes/{moduleId}",
+        "endpoint:diagnosis/dashboard.py:GET /internal/diagnosis/audit/{code}",
+        "endpoint:diagnosis/diagnosis_api.py:POST /diagnosis/{code}/init",
+        "endpoint:diagnosis/diagnosis_api.py:GET /diagnosis/{code}",
+        "endpoint:diagnosis/diagnosis_api.py:PUT /diagnosis/{code}",
+        "function:diagnosis/__init__.py:get_app",
+        "function:diagnosis/__main__.py:main",
+        "function:diagnosis/page.py:_read_page",
+        "function:diagnosis/dashboard.py:_dump_for_audit",
+        "class:diagnosis/diagnosis_api.py:Submission"
+      ]
+    },
+    {
+      "id": "layer:clinical-domain",
+      "name": "Clinical Domain",
+      "description": "Pure DSM-5-TR evaluation engine. CRITERIA list (9 items: A1-A6, B1, C1, D1), evaluate() pure function, and meta_contract() rule primitives. Zero I/O, zero side effects. The module-local readiness probe also lives here since it is a pure function with no external service calls.",
+      "nodeIds": [
+        "file:diagnosis/criteria.py",
+        "file:diagnosis/readiness.py",
+        "class:diagnosis/criteria.py:Evaluation",
+        "function:diagnosis/criteria.py:evaluate",
+        "function:diagnosis/criteria.py:get_criteria",
+        "function:diagnosis/criteria.py:meta_contract",
+        "function:diagnosis/criteria.py:_demo",
+        "function:diagnosis/readiness.py:check_readiness",
+        "function:diagnosis/readiness.py:_check_db",
+        "function:diagnosis/readiness.py:_check_auth",
+        "function:diagnosis/readiness.py:_check_patient",
+        "function:diagnosis/readiness.py:_readiness_selfcheck",
+        "module:diagnosis"
+      ]
+    },
+    {
+      "id": "layer:data-infrastructure",
+      "name": "Data & Infrastructure",
+      "description": "SQLite repository (WAL journal, thread-safe DiagnosisStore), patient identity adapter (canonical INSIGHT registry lookup), HMAC-SHA256 CSRF token, auth service delegation (Insight session + role enforcement), and the frozen settings adapter (only place to add a new env knob).",
+      "nodeIds": [
+        "file:diagnosis/store.py",
+        "file:diagnosis/patient.py",
+        "file:diagnosis/auth.py",
+        "file:diagnosis/csrf.py",
+        "file:diagnosis/config.py",
+        "class:diagnosis/store.py:DiagnosisStore",
+        "class:diagnosis/patient.py:Patient",
+        "class:diagnosis/auth.py:Session",
+        "class:diagnosis/auth.py:_AuthUnavailable",
+        "class:diagnosis/config.py:Settings",
+        "function:diagnosis/store.py:_resolve_path",
+        "function:diagnosis/store.py:_store_selfcheck",
+        "function:diagnosis/patient.py:resolve_patient",
+        "function:diagnosis/patient.py:reset_patient_for_tests",
+        "function:diagnosis/patient.py:_patient_selfcheck",
+        "function:diagnosis/auth.py:require_role",
+        "function:diagnosis/auth.py:reset_auth_for_tests",
+        "function:diagnosis/csrf.py:mint",
+        "function:diagnosis/csrf.py:set_cookie",
+        "function:diagnosis/csrf.py:require_csrf",
+        "function:diagnosis/csrf.py:reset_secret_for_tests",
+        "function:diagnosis/config.py:_env_truthy",
+        "function:diagnosis/config.py:_env_list",
+        "function:diagnosis/config.py:_load",
+        "function:diagnosis/config.py:_config_selfcheck",
+        "file:requirements.txt",
+        "file:.understand-anything/.understandignore"
+      ]
+    },
+    {
+      "id": "layer:tests",
+      "name": "Tests",
+      "description": "Ponytail-style test suite using stdlib unittest plus threading HTTP server harnesses. No external test framework. Covers: criteria rules, REST contract, audit seam, clinician-authority invariant, auth rejection, CSRF, persistence, patient identity, route-seam split, module discovery, embeddable UI, readiness probe, and settings adapter.",
+      "nodeIds": [
+        "file:test_unittest.py",
+        "file:test_auth.py",
+        "file:test_config.py",
+        "file:test_csrf.py",
+        "file:test_discovery.py",
+        "file:test_embed.py",
+        "file:test_patient.py",
+        "file:test_readiness.py",
+        "file:test_routes.py"
+      ]
+    },
+    {
+      "id": "layer:documentation",
+      "name": "Documentation",
+      "description": "Canonical REST API contract (locked against live router), deep-module handoff guide for future LLMs/humans, and user-facing README.",
+      "nodeIds": [
+        "file:docs/api-contract.md",
+        "file:HANDOFF.md",
+        "file:README.md"
+      ]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "Project Overview",
+      "description": "Start with the README to understand the project: a DSM-5-TR schizophrenia criteria checklist for the Insight clinical decision support tool. Clinician-controlled \u00e2\u20ac\u201d the psychiatrist confirms or bypasses; the model never decides. Read HANDOFF.md for the architectural narrative and design decisions.",
+      "nodeIds": [
+        "file:README.md",
+        "file:HANDOFF.md"
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Entry Point and Standalone Boot",
+      "description": "python -m diagnosis runs __main__.py:main(). It sets DIAGNOSIS_AUTH_BYPASS=1, runs six self-checks (criteria, store, patient, readiness, config, HTTP), drops the bypass, then starts uvicorn on diagnosis.app:app. The app includes the composed router and serves /health and /ready probes.",
+      "nodeIds": [
+        "file:diagnosis/__main__.py",
+        "file:diagnosis/app.py",
+        "endpoint:diagnosis/app.py:GET /health",
+        "endpoint:diagnosis/app.py:GET /ready"
+      ]
+    },
+    {
+      "order": 3,
+      "title": "Clinical Logic \u00e2\u20ac\u201d The Pure Evaluation Engine",
+      "description": "criteria.py is the heart of the module. CRITERIA list holds 9 DSM-5-TR items (A1-A6, B1, C1, D1). evaluate(checked_ids) is a pure function returning Evaluation with no side effects and no I/O. meta_contract() exposes the rule primitives the browser UI uses for optimistic display \u00e2\u20ac\u201d the JS never reimplements the DSM logic. The clinician-authority invariant (model never auto-decides) is a tested contract locked by TestClinicianAuthority.",
+      "nodeIds": [
+        "file:diagnosis/criteria.py",
+        "class:diagnosis/criteria.py:Evaluation",
+        "function:diagnosis/criteria.py:evaluate",
+        "function:diagnosis/criteria.py:meta_contract",
+        "function:diagnosis/criteria.py:get_criteria"
+      ]
+    },
+    {
+      "order": 4,
+      "title": "API Composition \u00e2\u20ac\u201d Three Route Seams",
+      "description": "api.py is the composition root. It builds a single router by extending routes from three focused seams in literal-before-parameterized order (required invariant). page.py serves the SPA at GET /. dashboard.py serves GET /diagnosis/_meta, /diagnosis/_csrf, /internal/dashboard/module-routes/{moduleId}, and /internal/diagnosis/audit/{code}. diagnosis_api.py serves the per-patient REST: POST /diagnosis/{code}/init, GET /diagnosis/{code}, PUT /diagnosis/{code}. All seams share the process-wide DiagnosisStore and auth/CSRF policy from deps.py.",
+      "nodeIds": [
+        "file:diagnosis/api.py",
+        "file:diagnosis/page.py",
+        "file:diagnosis/dashboard.py",
+        "file:diagnosis/diagnosis_api.py",
+        "file:diagnosis/deps.py",
+        "endpoint:diagnosis/dashboard.py:GET /diagnosis/_meta",
+        "endpoint:diagnosis/diagnosis_api.py:POST /diagnosis/{code}/init",
+        "endpoint:diagnosis/diagnosis_api.py:GET /diagnosis/{code}",
+        "endpoint:diagnosis/diagnosis_api.py:PUT /diagnosis/{code}"
+      ]
+    },
+    {
+      "order": 5,
+      "title": "Persistence and Patient Identity",
+      "description": "store.py: DiagnosisStore wraps SQLite sessions (code, patient_id, checked JSON, decision) and audit (id, code, snapshot, created_at) tables. WAL journal, thread-safe via process lock. patient.py: the identity adapter aligns the free-text {code} with the canonical INSIGHT patient.id via internal REST lookup. Opt-in via DIAGNOSIS_PATIENT_LOOKUP=1; default disabled preserves prior diagnosis-local identity for self-check and offline tests.",
+      "nodeIds": [
+        "file:diagnosis/store.py",
+        "file:diagnosis/patient.py",
+        "class:diagnosis/store.py:DiagnosisStore",
+        "class:diagnosis/patient.py:Patient",
+        "function:diagnosis/store.py:_store_selfcheck",
+        "function:diagnosis/patient.py:resolve_patient"
+      ]
+    },
+    {
+      "order": 6,
+      "title": "Auth, CSRF, and Config",
+      "description": "auth.py delegates trust to the central Insight auth service (GET /api/auth/session with Cookie). CSRF protection uses HMAC-SHA256 signed double-submit tokens. config.py is the single settings adapter \u00e2\u20ac\u201d frozen Settings dataclass read once at import, only place to add a new env knob. Every consumer reads settings.* instead of scattering os.environ.get calls.",
+      "nodeIds": [
+        "file:diagnosis/auth.py",
+        "file:diagnosis/csrf.py",
+        "file:diagnosis/config.py",
+        "class:diagnosis/auth.py:Session",
+        "class:diagnosis/config.py:Settings",
+        "function:diagnosis/auth.py:require_role",
+        "function:diagnosis/csrf.py:require_csrf"
+      ]
+    },
+    {
+      "order": 7,
+      "title": "The Test Surface and Self-Check Chain",
+      "description": "All tests use stdlib unittest plus threading HTTP server harnesses \u00e2\u20ac\u201d no external framework. The boot chain runs six self-checks before uvicorn binds: criteria._demo (TestCriteriaRules), store._store_selfcheck, patient._patient_selfcheck, readiness._readiness_selfcheck, config._config_selfcheck, api._http_selfcheck (TestRestContract + TestClinicianAuthority + TestAuditSeam). Any failure raises SystemExit(1). The clinician-authority invariant (model never auto-decides) is tested at both the pure-rule layer and the REST layer.",
+      "nodeIds": [
+        "file:test_unittest.py",
+        "file:test_config.py",
+        "file:test_readiness.py",
+        "file:test_patient.py",
+        "file:test_csrf.py",
+        "file:test_auth.py",
+        "file:test_embed.py",
+        "file:test_routes.py",
+        "file:test_discovery.py"
+      ]
+    },
+    {
+      "order": 8,
+      "title": "The Embeddable Module UI",
+      "description": "The browser page (diagnosis/static/index.html) is a vanilla JS SPA with no build step. It exposes window.createDiagnosisModule({root, apiBaseUrl, embedded, initialCode}) returning {mount(), unmount(), setPatientCode()}. All display is derived from the GET /diagnosis/_meta meta_contract \u00e2\u20ac\u201d the JS never reimplements DSM logic. Under the bypass shim the CSRF token injection is skipped so the served page is byte-clean for test asserts. The module never mutates the host URL or ships a host topbar.",
+      "nodeIds": [
+        "file:diagnosis/static/index.html",
+        "file:diagnosis/page.py",
+        "file:test_embed.py"
+      ]
+    }
+  ]
+}

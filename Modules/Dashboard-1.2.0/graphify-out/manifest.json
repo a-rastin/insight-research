@@ -1,0 +1,87 @@
+{
+  "dashboard.js": {
+    "mtime": 1783399507.9718044,
+    "ast_hash": "1791c5a2468b68c50df987c5669534ac",
+    "semantic_hash": "1791c5a2468b68c50df987c5669534ac"
+  },
+  "dashboard_backend/__init__.py": {
+    "mtime": 1783396345.8679807,
+    "ast_hash": "1456fc7dbe36aeca614d25e3cfcab6e2",
+    "semantic_hash": "1456fc7dbe36aeca614d25e3cfcab6e2"
+  },
+  "dashboard_backend/auth.py": {
+    "mtime": 1783398042.497711,
+    "ast_hash": "44609ae5583ab847161bf195c1513585",
+    "semantic_hash": "44609ae5583ab847161bf195c1513585"
+  },
+  "dashboard_backend/config.py": {
+    "mtime": 1783396345.871981,
+    "ast_hash": "7b7454bdd3c0879c502a7095b3529f9c",
+    "semantic_hash": "7b7454bdd3c0879c502a7095b3529f9c"
+  },
+  "dashboard_backend/db.py": {
+    "mtime": 1783402997.3255618,
+    "ast_hash": "d572974e23aea49a8421166e8305b558",
+    "semantic_hash": "d572974e23aea49a8421166e8305b558"
+  },
+  "dashboard_backend/main.py": {
+    "mtime": 1783403075.8120537,
+    "ast_hash": "94f3eb5f9248de04948e1aee8a51e17f",
+    "semantic_hash": "94f3eb5f9248de04948e1aee8a51e17f"
+  },
+  "dashboard_backend/repository.py": {
+    "mtime": 1783403017.343852,
+    "ast_hash": "0a2e55e9a40cf5e6dd8276aaf88e4945",
+    "semantic_hash": "0a2e55e9a40cf5e6dd8276aaf88e4945"
+  },
+  "package.json": {
+    "mtime": 1783403290.620242,
+    "ast_hash": "983a769dd6fcd3ebb60568f6634a943c",
+    "semantic_hash": "983a769dd6fcd3ebb60568f6634a943c"
+  },
+  "server.py": {
+    "mtime": 1783396345.8749828,
+    "ast_hash": "332e334f1a88dc4a5a60a57d47f454d7",
+    "semantic_hash": "332e334f1a88dc4a5a60a57d47f454d7"
+  },
+  "test_dashboard_backend.py": {
+    "mtime": 1783403426.1719482,
+    "ast_hash": "c875df0a8084a2cf84118327d57f1e89",
+    "semantic_hash": "c875df0a8084a2cf84118327d57f1e89"
+  },
+  "test_dashboard_frontend.mjs": {
+    "mtime": 1783403280.0608642,
+    "ast_hash": "508d4683456510d19f1cdf19e3fd6bde",
+    "semantic_hash": "508d4683456510d19f1cdf19e3fd6bde"
+  },
+  "HANDOFF.md": {
+    "mtime": 1783404358.704687,
+    "ast_hash": "3f31acb209cf14e59d64874d88c92ae0",
+    "semantic_hash": "3f31acb209cf14e59d64874d88c92ae0"
+  },
+  "README.md": {
+    "mtime": 1783403327.4139721,
+    "ast_hash": "694d600eaef599b8eb8ee94689ec850e",
+    "semantic_hash": "694d600eaef599b8eb8ee94689ec850e"
+  },
+  "api-contract.md": {
+    "mtime": 1783403344.2452488,
+    "ast_hash": "7dedf864d47b8722bc1d90021bcdca78",
+    "semantic_hash": "7dedf864d47b8722bc1d90021bcdca78"
+  },
+  "dataset-schema.md": {
+    "mtime": 1783403306.953684,
+    "ast_hash": "41271cddae324cb1f99b5a044bdb37c8",
+    "semantic_hash": "41271cddae324cb1f99b5a044bdb37c8"
+  },
+  "index.html": {
+    "mtime": 1783399507.969804,
+    "ast_hash": "d95b1982644092c37db3a610381aa88f",
+    "semantic_hash": "d95b1982644092c37db3a610381aa88f"
+  },
+  "requirements.txt": {
+    "mtime": 1783396654.5669582,
+    "ast_hash": "4c87e5da46d75a75137aeb3d2e678bf6",
+    "semantic_hash": "4c87e5da46d75a75137aeb3d2e678bf6"
+  }
+}
