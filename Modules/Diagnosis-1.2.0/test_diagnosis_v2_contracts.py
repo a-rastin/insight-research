@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 os.environ["DIAGNOSIS_AUTH_BYPASS"] = "1"
 os.environ.pop("DIAGNOSIS_PATIENT_LOOKUP", None)
@@ -101,6 +101,20 @@ class DiagnosisV2ContractTest(unittest.TestCase):
         self.assertEqual(changed.status_code, 409, changed.text)
         self.assertEqual(changed.json()["code"], "COMMON_IDEMPOTENCY_KEY_REUSED")
 
+    def test_idempotent_create_replays_original_version_after_update(self) -> None:
+        created = self.create("diagnosis-v2-key-exact-replay")
+        updated = self.client.put(
+            f"{PREFIX}/assessments/{created.json()['assessmentId']}",
+            headers={"X-Schema-Version": "2.0.0", "If-Match": created.headers["ETag"]},
+            json={"checkedCriteria": ["A1"], "clinicianDecision": {"type": "bypass"}},
+        )
+        self.assertEqual(updated.status_code, 200, updated.text)
+        replay = self.create("diagnosis-v2-key-exact-replay")
+        self.assertEqual(replay.status_code, 201, replay.text)
+        self.assertEqual(replay.json(), created.json())
+        self.assertEqual(replay.headers["ETag"], created.headers["ETag"])
+        self.assertEqual(replay.headers["Idempotency-Replayed"], "true")
+
     def test_update_requires_if_match(self) -> None:
         created = self.create("diagnosis-v2-key-if-match")
         assessment_id = created.json()["assessmentId"]
@@ -174,6 +188,84 @@ class DiagnosisV2ContractTest(unittest.TestCase):
         audit = self.client.get(f"{PREFIX}/assessments/{assessment_id}/audit").json()["events"]
         self.assertEqual([event["eventType"] for event in audit], ["initialized", "updated", "updated"])
         self.assertEqual([event["resourceVersion"] for event in audit], [1, 2, 3])
+
+    def test_latest_route_delegates_without_mutation_and_traces_request(self) -> None:
+        request_id = str(uuid4())
+        created = self.create("diagnosis-v2-key-latest")
+        latest = self.client.get(
+            f"{PREFIX}/encounters/{self.encounter_id}/assessments/latest",
+            headers={"X-Request-ID": request_id},
+        )
+        snapshot = self.client.get(f"{PREFIX}/encounters/{self.encounter_id}/assessment-snapshot")
+        self.assertEqual(latest.status_code, 200, latest.text)
+        self.assertEqual(latest.json(), created.json())
+        self.assertEqual(snapshot.json(), latest.json())
+        self.assertEqual(latest.headers["ETag"], created.headers["ETag"])
+        self.assertNotEqual(latest.headers["X-Request-ID"], request_id)
+        UUID(latest.headers["X-Request-ID"])
+        self.assertEqual(latest.headers["X-Correlation-ID"], request_id)
+
+    def test_legacy_upgrade_quarantines_then_resolves_explicit_references(self) -> None:
+        self.store.put(
+            "LEGACY-MIGRATION",
+            patient_id="legacy-alias",
+            checked=["A1"],
+            decision="definite",
+        )
+        self.assertEqual(self.store.stage_legacy_sessions(), 1)
+        quarantine = self.store.list_legacy_quarantine()
+        self.assertEqual(len(quarantine), 1)
+        self.assertEqual(quarantine[0]["reasonCode"], "DIAGNOSIS_LEGACY_ENCOUNTER_UNRESOLVED")
+        self.assertEqual(quarantine[0]["sourceSnapshot"]["decision"], "definite")
+
+        result = self.store.migrate_legacy_sessions(
+            lambda code, source: (self.patient_id, self.encounter_id),
+            "migration-actor",
+        )
+        self.assertEqual(result, {"resolved": 1, "quarantined": 0})
+        migrated = self.store.get_legacy_assessment("LEGACY-MIGRATION")
+        self.assertEqual(migrated["patientId"], self.patient_id)
+        self.assertEqual(migrated["encounterId"], self.encounter_id)
+        self.assertEqual(migrated["clinicianDecision"]["type"], "bypass")
+        self.assertEqual(self.store.list_legacy_quarantine(), [])
+        self.assertEqual(self.store.stage_legacy_sessions(), 0)
+        self.assertEqual(
+            self.store.resolve_legacy_session(
+                "LEGACY-MIGRATION", self.patient_id, self.encounter_id, "migration-actor"
+            )["assessmentId"],
+            migrated["assessmentId"],
+        )
+        self.assertEqual(self.store.list_assessment_audits(migrated["assessmentId"])[0]["eventType"], "migrated")
+
+    def test_legacy_resolver_failure_preserves_quarantined_source(self) -> None:
+        self.store.put("LEGACY-UNAVAILABLE", patient_id="legacy-alias", checked=["A2"], decision=None)
+
+        def unavailable(code, source):
+            raise TimeoutError("resolver unavailable")
+
+        result = self.store.migrate_legacy_sessions(unavailable, "migration-actor")
+        self.assertEqual(result, {"resolved": 0, "quarantined": 1})
+        quarantine = self.store.list_legacy_quarantine()
+        self.assertEqual(quarantine[0]["reasonCode"], "DIAGNOSIS_LEGACY_RESOLVER_UNAVAILABLE")
+        self.assertEqual(quarantine[0]["sourceSnapshot"]["checked"], ["A2"])
+        self.assertIsNotNone(self.store.get("LEGACY-UNAVAILABLE"))
+
+    def test_resolved_legacy_route_updates_canonical_assessment(self) -> None:
+        self.store.put("LEGACY-LINK", patient_id="legacy-alias", checked=[], decision=None)
+        migrated = self.store.resolve_legacy_session(
+            "LEGACY-LINK", self.patient_id, self.encounter_id, "migration-actor"
+        )
+        checked = ["A1", "A5", "A6", "B1", "C1", "D1"]
+        legacy = self.client.put(
+            "/diagnosis/LEGACY-LINK",
+            json={"checked": checked, "decision": "confirmed"},
+        )
+        self.assertEqual(legacy.status_code, 200, legacy.text)
+        canonical = self.client.get(f"{PREFIX}/assessments/{migrated['assessmentId']}")
+        self.assertEqual(canonical.status_code, 200, canonical.text)
+        self.assertEqual(canonical.json()["checkedCriteria"], checked)
+        self.assertEqual(canonical.json()["clinicianDecision"]["type"], "confirmed")
+        self.assertEqual(canonical.json()["resourceVersion"], 2)
 
     def test_legacy_adapter_evaluation_and_decision_equivalence(self) -> None:
         checked = ["A1", "A5", "A6", "B1", "C1", "D1"]

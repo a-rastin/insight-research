@@ -78,6 +78,7 @@ the parent Insight app's composed router (HANDOFF §3 — `app.py`).
 | PUT    | `/api/diagnosis/v2/assessments/{assessmentId}` | `v2.py`         | Replace checked criteria and explicit clinician decision using `If-Match`. | `psychiatrist` | **required** |
 | GET    | `/api/diagnosis/v2/assessments/{assessmentId}/audit` | `v2.py`   | Fetch chronological assessment provenance. | `psychiatrist` \| `admin` | — |
 | GET    | `/api/diagnosis/v2/encounters/{encounterId}/assessment-snapshot` | `v2.py` | Fetch Treatment Plan's encounter-bound source snapshot. | `psychiatrist` \| `admin` | — |
+| GET    | `/api/diagnosis/v2/encounters/{encounterId}/assessments/latest` | `v2.py` | Fetch the latest version of the encounter-bound assessment. | `psychiatrist` \| `admin` | — |
 
 **Route-order invariant (HANDOFF §9.4)**: literal paths (`/diagnosis/_meta`,
 `/diagnosis/_csrf`, and the `/internal/...` discovery + audit routes) MUST
@@ -128,6 +129,24 @@ write increments `resourceVersion` and appends an attributable audit snapshot.
 The audit endpoint returns events oldest first. The encounter snapshot endpoint
 returns the same schema-versioned resource and ETag for Treatment Plan without
 copying or mutating Diagnosis state.
+
+`GET /api/diagnosis/v2/encounters/{encounterId}/assessments/latest` is the
+canonical latest-read route. Because Diagnosis permits one assessment per
+Encounter in interface 2.0.0, it returns that assessment's current version and
+strong ETag without mutation. The older `assessment-snapshot` route delegates
+to the same read operation and remains the Treatment Plan compatibility name.
+
+On upgrade, the ordered `diagnosis-assessment-v2` storage migration stages every
+previously unseen code-keyed session in a module-owned quarantine table. A
+legacy code cannot supply an Encounter UUID, so the migration never guesses one
+from patient code, timestamps, or row order. An explicit resolver must provide
+canonical Patient and Encounter UUIDs; successful resolution atomically creates
+the assessment, a versioned `migrated` audit snapshot, and a legacy compatibility
+link. Invalid, missing, conflicting, or unavailable identity remains quarantined
+with the original source snapshot and a typed reason. Source `sessions` rows are
+retained for rollback and unresolved legacy compatibility; linked legacy routes
+read and write only the canonical assessment. Rerunning staging or resolution is
+idempotent.
 
 V2 uses RFC 9457 problem bodies without patient identifiers. Full route and
 schema definitions are published in

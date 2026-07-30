@@ -65,11 +65,12 @@ diagnosis/                      <- repo root (git: one commit "Innit")
     ├── page.py                 <- BROWSER PAGE seam: `GET /` (serves the SPA, stamps CSRF meta+cookie).
     ├── dashboard.py            <- DASHBOARD DISCOVERY seam: `GET /diagnosis/_meta` (criteria tree + ``rules`` contract for the UI's optimistic display), `GET /diagnosis/_csrf`, `GET /internal/dashboard/module-routes/{moduleId}` (Dashboard module-route discovery -> launch href `/modules/diagnosis`), `GET /internal/diagnosis/audit/{code}` (audit-log seam exposing the persisted local audit trail for the future Logs module — read-only, never writes a snapshot on demand), the `_dump_for_audit` audit-snapshot hook (also invoked from `diagnosis_api.put_session` on every decision-bearing PUT to persist a local audit event). Read-only, no patient-state mutation.
     ├── diagnosis_api.py        <- PROTECTED DIAGNOSIS REST seam: `POST /diagnosis/{code}/init`, `GET /diagnosis/{code}`, `PUT /diagnosis/{code}`. Owns `Submission` + `RESULT_FIELDS`.
+    ├── assessment_service.py   <- one criteria-evaluation/presentation path shared by v2 and legacy adapters
     ├── auth.py                 <- role enforcement via the Insight auth service (delegated; no JWT decode)
     ├── csrf.py                 <- signed double-submit CSRF for PUT + POST /init. HMAC-SHA256, per-process secret.
     ├── config.py               <- settings adapter: one ``Settings`` frozen dataclass + ``settings`` singleton sourced from the env (DB path, auth URL, patient URL, CORS origins, mock-auth flag, CSRF secret/secure, module base path, host/port). The only place to add a new integration knob; every other module reads ``settings.*`` rather than scattering ``os.environ.get``. ``_config_selfcheck`` is run by the boot chain.
     ├── patient.py              <- patient identity adapter: free-text code -> canonical INSIGHT patient.id via internal REST
-    ├── store.py                <- SQLite repository adapter (DiagnosisStore) + _store_selfcheck
+    ├── store.py                <- SQLite repository adapter, v2 migration/quarantine/resolver, versioned audit + _store_selfcheck
     ├── criteria.py             <- DSM-5-TR rules. Pure function evaluate() + _demo() self-check
     └── static/
         └── index.html          <- single-file vanilla-JS web page (no build step)

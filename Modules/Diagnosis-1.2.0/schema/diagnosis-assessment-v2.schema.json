@@ -102,7 +102,7 @@
       "properties": {
         "sequence": {"type": "integer", "minimum": 1},
         "assessmentId": {"$ref": "#/$defs/uuid"},
-        "eventType": {"enum": ["initialized", "updated"]},
+        "eventType": {"enum": ["initialized", "migrated", "updated"]},
         "actorUserId": {"type": "string", "minLength": 1, "maxLength": 128},
         "occurredAt": {"$ref": "#/$defs/utcTimestamp"},
         "resourceVersion": {"type": "integer", "minimum": 1},

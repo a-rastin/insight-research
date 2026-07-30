@@ -46,6 +46,7 @@ SCENARIOS = {
         "session": {"id": "11111111-1111-4111-8111-111111111111", "active": True, "expiresAt": "2999-01-01T00:00:00Z"},
         "user": {"id": "22222222-2222-4222-8222-222222222222", "username": "psy", "role": "psychiatrist"},
         "gates": {"passwordChangeRequired": False, "disclaimerRequired": False, "disclaimerVersion": "test-v1"},
+        "compatibility": {"legacyUserId": 1, "legacyRole": "user"},
     },
     "admin": {
         "authenticated": True,
@@ -53,6 +54,7 @@ SCENARIOS = {
         "session": {"id": "33333333-3333-4333-8333-333333333333", "active": True, "expiresAt": "2999-01-01T00:00:00Z"},
         "user": {"id": "44444444-4444-4444-8444-444444444444", "username": "admin", "role": "admin"},
         "gates": {"passwordChangeRequired": False, "disclaimerRequired": False, "disclaimerVersion": "test-v1"},
+        "compatibility": {"legacyUserId": 2, "legacyRole": None},
     },
     "nurse": {
         "authenticated": True,
@@ -60,6 +62,7 @@ SCENARIOS = {
         "session": {"id": "55555555-5555-4555-8555-555555555555", "active": True, "expiresAt": "2999-01-01T00:00:00Z"},
         "user": {"id": "66666666-6666-4666-8666-666666666666", "username": "nurse", "role": "nurse"},
         "gates": {"passwordChangeRequired": False, "disclaimerRequired": False, "disclaimerVersion": "test-v1"},
+        "compatibility": {"legacyUserId": 3, "legacyRole": None},
     },
 }
 

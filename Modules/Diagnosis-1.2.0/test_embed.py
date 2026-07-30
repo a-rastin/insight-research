@@ -251,6 +251,7 @@ def test_route_layer_unchanged():
         "/api/diagnosis/v2/assessments/{assessmentId}/audit",
         "/api/diagnosis/v2/assessments/{assessmentId}",
         "/api/diagnosis/v2/encounters/{encounterId}/assessment-snapshot",
+        "/api/diagnosis/v2/encounters/{encounterId}/assessments/latest",
         "/diagnosis/{code}/init",
         "/diagnosis/{code}",
         "/health",

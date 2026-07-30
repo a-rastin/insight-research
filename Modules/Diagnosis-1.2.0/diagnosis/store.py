@@ -18,12 +18,13 @@ import sqlite3
 import threading
 import time
 from contextlib import contextmanager
-from typing import Iterator
+from typing import Callable, Iterator
 from datetime import UTC, datetime, timedelta
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 
 from .config import settings
+from .assessment_service import present_assessment
 
 
 def _resolve_path() -> str:
@@ -90,6 +91,26 @@ CREATE TABLE IF NOT EXISTS diagnosis_idempotency (
     created_at TEXT NOT NULL,
     PRIMARY KEY (actor_user_id, operation, idempotency_key)
 )
+""", """
+CREATE TABLE IF NOT EXISTS diagnosis_schema_migrations (
+    migration_id TEXT PRIMARY KEY,
+    applied_at TEXT NOT NULL
+)
+""", """
+CREATE TABLE IF NOT EXISTS diagnosis_legacy_quarantine (
+    code TEXT PRIMARY KEY,
+    source_snapshot TEXT NOT NULL,
+    reason_code TEXT NOT NULL,
+    quarantined_at TEXT NOT NULL
+)
+""", """
+CREATE TABLE IF NOT EXISTS diagnosis_legacy_links (
+    code TEXT PRIMARY KEY,
+    assessment_id TEXT NOT NULL UNIQUE,
+    patient_id TEXT NOT NULL,
+    encounter_id TEXT NOT NULL UNIQUE,
+    resolved_at TEXT NOT NULL
+)
 """)
 
 
@@ -131,12 +152,208 @@ class DiagnosisStore:
                 for statement in _CREATE_V2:
                     cur.execute(statement)
                 cur.execute("PRAGMA table_info(diagnosis_idempotency)")
-                if "created_at" not in {row[1] for row in cur.fetchall()}:
+                idempotency_columns = {row[1] for row in cur.fetchall()}
+                if "created_at" not in idempotency_columns:
                     cur.execute("ALTER TABLE diagnosis_idempotency ADD COLUMN created_at TEXT")
+                if "response_snapshot" not in idempotency_columns:
+                    cur.execute("ALTER TABLE diagnosis_idempotency ADD COLUMN response_snapshot TEXT")
+                now = self._utc_now()
+                cur.execute(
+                    "INSERT OR IGNORE INTO diagnosis_schema_migrations (migration_id, applied_at) VALUES (?, ?)",
+                    ("diagnosis-assessment-v2", now),
+                )
+                self._stage_legacy_sessions(cur, now)
                 cur.execute("COMMIT")
             except Exception:
                 cur.execute("ROLLBACK")
                 raise
+
+    @staticmethod
+    def _utc_now() -> str:
+        return datetime.now(UTC).isoformat().replace("+00:00", "Z")
+
+    @staticmethod
+    def _canonical_uuid(value: str) -> str:
+        try:
+            canonical = str(UUID(value))
+        except ValueError as error:
+            raise ValueError("canonical UUID required") from error
+        if canonical != value:
+            raise ValueError("canonical UUID required")
+        return canonical
+
+    @staticmethod
+    def _legacy_snapshot(row: tuple) -> str:
+        return json.dumps(
+            {
+                "code": row[0],
+                "patient_id": row[1],
+                "checked": json.loads(row[2]) if row[2] else [],
+                "decision": row[3],
+                "created_at": row[4],
+                "updated_at": row[5],
+            },
+            sort_keys=True,
+        )
+
+    def _stage_legacy_sessions(self, cur: sqlite3.Cursor, now: str) -> int:
+        cur.execute(
+            "SELECT code, patient_id, checked, decision, created_at, updated_at FROM sessions "
+            "WHERE code NOT IN (SELECT code FROM diagnosis_legacy_links) "
+            "AND code NOT IN (SELECT code FROM diagnosis_legacy_quarantine) ORDER BY code"
+        )
+        rows = cur.fetchall()
+        for row in rows:
+            cur.execute(
+                "INSERT INTO diagnosis_legacy_quarantine "
+                "(code, source_snapshot, reason_code, quarantined_at) VALUES (?, ?, ?, ?)",
+                (
+                    row[0],
+                    self._legacy_snapshot(row),
+                    "DIAGNOSIS_LEGACY_ENCOUNTER_UNRESOLVED",
+                    now,
+                ),
+            )
+        return len(rows)
+
+    def stage_legacy_sessions(self) -> int:
+        """Quarantine unmapped code-keyed rows without guessing UUID links."""
+        with self._lock, self._cursor() as cur:
+            cur.execute("BEGIN IMMEDIATE")
+            try:
+                staged = self._stage_legacy_sessions(cur, self._utc_now())
+                cur.execute("COMMIT")
+                return staged
+            except Exception:
+                cur.execute("ROLLBACK")
+                raise
+
+    def list_legacy_quarantine(self) -> list[dict]:
+        with self._cursor() as cur:
+            cur.execute(
+                "SELECT code, source_snapshot, reason_code, quarantined_at "
+                "FROM diagnosis_legacy_quarantine ORDER BY code"
+            )
+            rows = cur.fetchall()
+        return [
+            {
+                "code": row[0],
+                "sourceSnapshot": json.loads(row[1]),
+                "reasonCode": row[2],
+                "quarantinedAt": row[3],
+            }
+            for row in rows
+        ]
+
+    def migrate_legacy_sessions(
+        self,
+        resolver: Callable[[str, dict], tuple[str, str] | None],
+        actor: str,
+    ) -> dict[str, int]:
+        """Run the explicit resolver over quarantine without guessing links."""
+        self.stage_legacy_sessions()
+        result = {"resolved": 0, "quarantined": 0}
+        for item in self.list_legacy_quarantine():
+            code = item["code"]
+            reason = "DIAGNOSIS_LEGACY_ENCOUNTER_UNRESOLVED"
+            try:
+                resolved = resolver(code, item["sourceSnapshot"])
+                if resolved is None:
+                    result["quarantined"] += 1
+                    continue
+                self.resolve_legacy_session(code, resolved[0], resolved[1], actor)
+                result["resolved"] += 1
+                continue
+            except ValueError:
+                reason = "DIAGNOSIS_LEGACY_IDENTITY_CONFLICT"
+            except Exception:
+                reason = "DIAGNOSIS_LEGACY_RESOLVER_UNAVAILABLE"
+            with self._lock, self._cursor() as cur:
+                cur.execute(
+                    "UPDATE diagnosis_legacy_quarantine SET reason_code=? WHERE code=?",
+                    (reason, code),
+                )
+            result["quarantined"] += 1
+        return result
+
+    def resolve_legacy_session(
+        self,
+        code: str,
+        patient_id: str,
+        encounter_id: str,
+        actor: str,
+    ) -> dict:
+        """Resolve one quarantined row using explicit canonical references."""
+        patient_id = self._canonical_uuid(patient_id)
+        encounter_id = self._canonical_uuid(encounter_id)
+        now = self._utc_now()
+        with self._lock, self._cursor() as cur:
+            cur.execute("BEGIN IMMEDIATE")
+            try:
+                cur.execute(
+                    "SELECT assessment_id, patient_id, encounter_id FROM diagnosis_legacy_links WHERE code=?",
+                    (code,),
+                )
+                linked = cur.fetchone()
+                if linked:
+                    if linked[1:] != (patient_id, encounter_id):
+                        raise ValueError("legacy resolution conflicts with existing link")
+                    cur.execute("SELECT * FROM diagnosis_assessments WHERE assessment_id=?", (linked[0],))
+                    assessment = self._v2_row(cur.fetchone())
+                    cur.execute("COMMIT")
+                    return assessment
+
+                cur.execute(
+                    "SELECT code, patient_id, checked, decision, created_at, updated_at FROM sessions WHERE code=?",
+                    (code,),
+                )
+                source = cur.fetchone()
+                if not source:
+                    raise KeyError(code)
+                cur.execute("SELECT assessment_id FROM diagnosis_assessments WHERE encounter_id=?", (encounter_id,))
+                if cur.fetchone():
+                    raise ValueError("encounter already has a diagnosis assessment")
+
+                assessment_id = str(uuid4())
+                created_at = datetime.fromtimestamp(source[4], UTC).isoformat().replace("+00:00", "Z")
+                updated_at = datetime.fromtimestamp(source[5], UTC).isoformat().replace("+00:00", "Z")
+                decision = "bypass" if source[3] == "definite" else source[3]
+                cur.execute(
+                    "INSERT INTO diagnosis_assessments VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)",
+                    (
+                        assessment_id,
+                        patient_id,
+                        encounter_id,
+                        source[2],
+                        decision,
+                        actor if decision else None,
+                        updated_at if decision else None,
+                        actor,
+                        actor,
+                        created_at,
+                        updated_at,
+                    ),
+                )
+                cur.execute("SELECT * FROM diagnosis_assessments WHERE assessment_id=?", (assessment_id,))
+                assessment = self._v2_row(cur.fetchone())
+                self._insert_v2_audit(cur, assessment, "migrated", actor, now)
+                cur.execute(
+                    "INSERT INTO diagnosis_legacy_links "
+                    "(code, assessment_id, patient_id, encounter_id, resolved_at) VALUES (?, ?, ?, ?, ?)",
+                    (code, assessment_id, patient_id, encounter_id, now),
+                )
+                cur.execute("DELETE FROM diagnosis_legacy_quarantine WHERE code=?", (code,))
+                cur.execute("COMMIT")
+                return assessment
+            except Exception:
+                cur.execute("ROLLBACK")
+                raise
+
+    def get_legacy_assessment(self, code: str) -> dict | None:
+        with self._cursor() as cur:
+            cur.execute("SELECT assessment_id FROM diagnosis_legacy_links WHERE code=?", (code,))
+            row = cur.fetchone()
+        return self.get_assessment(row[0]) if row else None
 
     def init(self, code: str, *, patient_id: str | None = None) -> bool:
         """Insert a new empty session. Returns ``True`` if created."""
@@ -252,6 +469,8 @@ class DiagnosisStore:
             cur.execute("DELETE FROM diagnosis_assessment_audit")
             cur.execute("DELETE FROM diagnosis_idempotency")
             cur.execute("DELETE FROM diagnosis_assessments")
+            cur.execute("DELETE FROM diagnosis_legacy_links")
+            cur.execute("DELETE FROM diagnosis_legacy_quarantine")
 
     @staticmethod
     def _v2_row(row: sqlite3.Row | tuple) -> dict:
@@ -280,10 +499,10 @@ class DiagnosisStore:
 
     def replay_assessment(self, actor: str, key: str, fingerprint: str) -> dict | None:
         cutoff = (datetime.now(UTC) - timedelta(days=1)).isoformat().replace("+00:00", "Z")
-        with self._cursor() as cur:
+        with self._lock, self._cursor() as cur:
             cur.execute("DELETE FROM diagnosis_idempotency WHERE created_at IS NULL OR created_at < ?", (cutoff,))
             cur.execute(
-                "SELECT fingerprint, assessment_id FROM diagnosis_idempotency WHERE actor_user_id=? AND operation='init' AND idempotency_key=?",
+                "SELECT fingerprint, assessment_id, response_snapshot FROM diagnosis_idempotency WHERE actor_user_id=? AND operation='init' AND idempotency_key=?",
                 (actor, key),
             )
             row = cur.fetchone()
@@ -291,31 +510,38 @@ class DiagnosisStore:
             return None
         if row[0] != fingerprint:
             raise ValueError("idempotency-conflict")
+        if row[2]:
+            return json.loads(row[2])
         return self.get_assessment(row[1])
 
     def init_assessment(self, patient_id: str, encounter_id: str, actor: str, key: str, fingerprint: str) -> tuple[dict, bool]:
         now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
         cutoff = (datetime.now(UTC) - timedelta(days=1)).isoformat().replace("+00:00", "Z")
-        with self._cursor() as cur:
+        with self._lock, self._cursor() as cur:
             cur.execute("BEGIN IMMEDIATE")
             try:
                 cur.execute("DELETE FROM diagnosis_idempotency WHERE created_at IS NULL OR created_at < ?", (cutoff,))
                 cur.execute(
-                    "SELECT fingerprint, assessment_id FROM diagnosis_idempotency WHERE actor_user_id=? AND operation='init' AND idempotency_key=?",
+                    "SELECT fingerprint, assessment_id, response_snapshot FROM diagnosis_idempotency WHERE actor_user_id=? AND operation='init' AND idempotency_key=?",
                     (actor, key),
                 )
                 replay = cur.fetchone()
                 if replay:
                     if replay[0] != fingerprint:
                         raise ValueError("idempotency-conflict")
-                    cur.execute("SELECT * FROM diagnosis_assessments WHERE assessment_id=?", (replay[1],))
-                    row = cur.fetchone()
+                    if replay[2]:
+                        assessment = json.loads(replay[2])
+                    else:
+                        cur.execute("SELECT * FROM diagnosis_assessments WHERE assessment_id=?", (replay[1],))
+                        assessment = self._v2_row(cur.fetchone())
                     cur.execute("COMMIT")
-                    return self._v2_row(row), True
+                    return assessment, True
                 cur.execute("SELECT * FROM diagnosis_assessments WHERE encounter_id=?", (encounter_id,))
                 row = cur.fetchone()
                 if row:
                     assessment = self._v2_row(row)
+                    if assessment["patientId"] != patient_id:
+                        raise ValueError("encounter belongs to a different patient")
                 else:
                     assessment_id = str(uuid4())
                     cur.execute(
@@ -326,8 +552,8 @@ class DiagnosisStore:
                     assessment = self._v2_row(cur.fetchone())
                     self._insert_v2_audit(cur, assessment, "initialized", actor, now)
                 cur.execute(
-                    "INSERT INTO diagnosis_idempotency (actor_user_id,operation,idempotency_key,fingerprint,assessment_id,created_at) VALUES (?, 'init', ?, ?, ?, ?)",
-                    (actor, key, fingerprint, assessment["assessmentId"], now),
+                    "INSERT INTO diagnosis_idempotency (actor_user_id,operation,idempotency_key,fingerprint,assessment_id,created_at,response_snapshot) VALUES (?, 'init', ?, ?, ?, ?, ?)",
+                    (actor, key, fingerprint, assessment["assessmentId"], now, json.dumps(assessment, sort_keys=True)),
                 )
                 cur.execute("COMMIT")
                 return assessment, False
@@ -337,7 +563,7 @@ class DiagnosisStore:
 
     def update_assessment(self, assessment_id: str, expected_version: int, checked: list[str], decision: str | None, actor: str) -> dict | None:
         now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
-        with self._cursor() as cur:
+        with self._lock, self._cursor() as cur:
             cur.execute("BEGIN IMMEDIATE")
             try:
                 cur.execute("SELECT resource_version FROM diagnosis_assessments WHERE assessment_id=?", (assessment_id,))
@@ -366,7 +592,14 @@ class DiagnosisStore:
     def _insert_v2_audit(self, cur: sqlite3.Cursor, assessment: dict, event_type: str, actor: str, occurred_at: str) -> None:
         cur.execute(
             "INSERT INTO diagnosis_assessment_audit (assessment_id,event_type,actor_user_id,occurred_at,resource_version,snapshot) VALUES (?,?,?,?,?,?)",
-            (assessment["assessmentId"], event_type, actor, occurred_at, assessment["resourceVersion"], json.dumps(assessment, sort_keys=True)),
+            (
+                assessment["assessmentId"],
+                event_type,
+                actor,
+                occurred_at,
+                assessment["resourceVersion"],
+                json.dumps(present_assessment(assessment), sort_keys=True),
+            ),
         )
 
     def list_assessment_audits(self, assessment_id: str) -> list[dict]:

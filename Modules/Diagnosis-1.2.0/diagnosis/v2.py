@@ -1,26 +1,25 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import re
 from pathlib import Path
 from typing import Literal
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, ConfigDict
 
 from .auth import Session
-from .criteria import CRITERIA, evaluate
+from .assessment_service import RULE_VERSION, SCHEMA_VERSION, evaluate_checked, present_assessment
+from .criteria import CRITERIA
 from .deps import require_csrf, require_psychiatrist, require_psychiatrist_or_admin, store
 from .patient import validate_patient_encounter
 
-INTERFACE_VERSION = "2.0.0"
-RULE_VERSION = "diagnosis-rules-1.0.0"
+INTERFACE_VERSION = SCHEMA_VERSION
 PREFIX = "/api/diagnosis/v2"
 SCHEMA_DIR = Path(__file__).resolve().parents[1] / "schema"
-IDEMPOTENCY_KEY = re.compile(r"^[A-Za-z0-9._:-]{16,128}$")
+IDEMPOTENCY_KEY = re.compile(r"^[A-Za-z0-9._~-]{16,128}$")
 CRITERIA_IDS = frozenset(item["id"] for item in CRITERIA)
 router = APIRouter()
 
@@ -43,16 +42,50 @@ class AssessmentUpdate(V2Model):
     clinicianDecision: DecisionInput | None
 
 
+def trace_ids(request: Request) -> tuple[str, str]:
+    if hasattr(request.state, "diagnosis_trace_ids"):
+        return request.state.diagnosis_trace_ids
+
+    def valid_uuid(value: str | None) -> str | None:
+        try:
+            return str(UUID(value)) if value else None
+        except ValueError:
+            return None
+
+    request_id = str(uuid4())
+    correlation_id = (
+        valid_uuid(request.headers.get("x-correlation-id"))
+        or valid_uuid(request.headers.get("x-request-id"))
+        or request_id
+    )
+    request.state.diagnosis_trace_ids = (request_id, correlation_id)
+    return request_id, correlation_id
+
+
 def problem(request: Request, status: int, code: str, detail: str) -> JSONResponse:
-    request_id = request.headers.get("x-request-id")
-    body = {"type": f"urn:insight:problem:{code.lower()}", "title": detail, "status": status, "code": code}
-    if request_id:
-        body["requestId"] = request_id
-    return JSONResponse(status_code=status, content=body, media_type="application/problem+json")
+    request_id, _ = trace_ids(request)
+    body = {
+        "type": f"urn:insight:problem:{code.lower().replace('_', '-')}",
+        "title": detail,
+        "status": status,
+        "code": code,
+        "requestId": request_id,
+    }
+    return JSONResponse(
+        status_code=status,
+        content=body,
+        headers=headers(request),
+        media_type="application/problem+json",
+    )
 
 
-def headers(**extra: str) -> dict[str, str]:
-    return {"X-Schema-Version": INTERFACE_VERSION, **extra}
+def headers(request: Request | None = None, **extra: str) -> dict[str, str]:
+    result = {"X-Schema-Version": INTERFACE_VERSION}
+    if request is not None:
+        request_id, correlation_id = trace_ids(request)
+        result.update({"X-Request-ID": request_id, "X-Correlation-ID": correlation_id})
+    result.update(extra)
+    return result
 
 
 def canonical_uuid(value: str) -> str | None:
@@ -68,31 +101,7 @@ def etag(assessment: dict) -> str:
 
 
 def present(assessment: dict) -> dict:
-    result = evaluate(assessment["checkedCriteria"])
-    status = "decided" if assessment["clinicianDecision"] else ("in-progress" if assessment["checkedCriteria"] else "initialized")
-    return {
-        "assessmentId": assessment["assessmentId"],
-        "patientId": assessment["patientId"],
-        "encounterId": assessment["encounterId"],
-        "checkedCriteria": assessment["checkedCriteria"],
-        "evaluation": {
-            "met": result.met, "aCount": result.a_count, "coreCount": result.core_count,
-            "failures": result.failures, "reason": result.reason,
-            "checkedCriteria": result.checked_ids, "ruleVersion": RULE_VERSION,
-        },
-        "clinicianDecision": assessment["clinicianDecision"],
-        "ruleVersion": RULE_VERSION,
-        "schemaVersion": INTERFACE_VERSION,
-        "status": status,
-        "resourceVersion": assessment["resourceVersion"],
-        "createdAt": assessment["createdAt"],
-        "updatedAt": assessment["updatedAt"],
-        "provenance": {
-            "sourceModule": "diagnosis",
-            "createdByUserId": assessment["createdByUserId"],
-            "lastUpdatedByUserId": assessment["lastUpdatedByUserId"],
-        },
-    }
+    return present_assessment(assessment)
 
 
 def require_schema(request: Request) -> JSONResponse | None:
@@ -102,22 +111,22 @@ def require_schema(request: Request) -> JSONResponse | None:
 
 
 @router.get(f"{PREFIX}/contract")
-def contract() -> JSONResponse:
+def contract(request: Request) -> JSONResponse:
     return JSONResponse(content={
         "moduleId": "diagnosis", "moduleVersion": "1.2.0", "interfaceVersion": INTERFACE_VERSION,
         "schemaVersions": [INTERFACE_VERSION], "ruleVersions": [RULE_VERSION], "profileVersion": "1.0.0",
         "openapiPath": f"{PREFIX}/openapi.json", "idempotencyKeyRetentionSeconds": 86400,
-    }, headers=headers())
+    }, headers=headers(request))
 
 
 @router.get(f"{PREFIX}/openapi.json")
-def openapi_contract() -> FileResponse:
-    return FileResponse(SCHEMA_DIR / "diagnosis-assessment-v2.openapi.json", media_type="application/json", headers=headers())
+def openapi_contract(request: Request) -> FileResponse:
+    return FileResponse(SCHEMA_DIR / "diagnosis-assessment-v2.openapi.json", media_type="application/json", headers=headers(request))
 
 
 @router.get(f"{PREFIX}/diagnosis-assessment-v2.schema.json")
-def schema_contract() -> FileResponse:
-    return FileResponse(SCHEMA_DIR / "diagnosis-assessment-v2.schema.json", media_type="application/schema+json", headers=headers())
+def schema_contract(request: Request) -> FileResponse:
+    return FileResponse(SCHEMA_DIR / "diagnosis-assessment-v2.schema.json", media_type="application/schema+json", headers=headers(request))
 
 
 @router.post(f"{PREFIX}/assessments")
@@ -130,7 +139,9 @@ async def init_assessment(request: Request, body: AssessmentInit, actor: Session
     key = request.headers.get("idempotency-key", "")
     if not IDEMPOTENCY_KEY.fullmatch(key):
         return problem(request, 400, "COMMON_IDEMPOTENCY_KEY_INVALID", "Idempotency-Key must contain 16-128 allowed characters.")
-    fingerprint = hashlib.sha256(b"POST\n/api/diagnosis/v2/assessments\n" + await request.body()).hexdigest()
+    fingerprint = hashlib.sha256(
+        b"POST\n/api/diagnosis/v2/assessments\n" + await request.body()
+    ).hexdigest()
     try:
         replay = store.replay_assessment(actor.user_id, key, fingerprint)
         if replay:
@@ -138,17 +149,19 @@ async def init_assessment(request: Request, body: AssessmentInit, actor: Session
             return JSONResponse(
                 status_code=201,
                 content=out,
-                headers=headers(ETag=etag(out), **{"Idempotency-Replayed": "true"}),
+                headers=headers(request, ETag=etag(out), **{"Idempotency-Replayed": "true"}),
             )
         validate_patient_encounter(patient_id, encounter_id, request.headers.get("cookie"))
         assessment, replayed = store.init_assessment(patient_id, encounter_id, actor.user_id, key, fingerprint)
-    except ValueError:
+    except ValueError as error:
+        if str(error) == "encounter belongs to a different patient":
+            return problem(request, 409, "DIAGNOSIS_ENCOUNTER_CONFLICT", "Encounter already has a diagnosis assessment for another patient.")
         return problem(request, 409, "COMMON_IDEMPOTENCY_KEY_REUSED", "Idempotency key was reused with a different request.")
     out = present(assessment)
     extra = {"ETag": etag(out)}
     if replayed:
         extra["Idempotency-Replayed"] = "true"
-    return JSONResponse(status_code=201, content=out, headers=headers(**extra))
+    return JSONResponse(status_code=201, content=out, headers=headers(request, **extra))
 
 
 @router.get(f"{PREFIX}/assessments/{{assessmentId}}/audit")
@@ -159,9 +172,7 @@ def get_audit(request: Request, assessmentId: str, _: Session = Depends(require_
     if not store.get_assessment(assessment_id):
         return problem(request, 404, "DIAGNOSIS_ASSESSMENT_NOT_FOUND", "Diagnosis assessment was not found.")
     events = store.list_assessment_audits(assessment_id)
-    for event in events:
-        event["snapshot"] = present(event["snapshot"])
-    return JSONResponse(content={"assessmentId": assessment_id, "events": events}, headers=headers())
+    return JSONResponse(content={"assessmentId": assessment_id, "events": events}, headers=headers(request))
 
 
 @router.get(f"{PREFIX}/assessments/{{assessmentId}}")
@@ -173,7 +184,7 @@ def get_assessment(request: Request, assessmentId: str, _: Session = Depends(req
     if not assessment:
         return problem(request, 404, "DIAGNOSIS_ASSESSMENT_NOT_FOUND", "Diagnosis assessment was not found.")
     out = present(assessment)
-    return JSONResponse(content=out, headers=headers(ETag=etag(out)))
+    return JSONResponse(content=out, headers=headers(request, ETag=etag(out)))
 
 
 @router.put(f"{PREFIX}/assessments/{{assessmentId}}")
@@ -195,7 +206,7 @@ def update_assessment(request: Request, assessmentId: str, body: AssessmentUpdat
     checked = body.checkedCriteria
     if set(checked) - CRITERIA_IDS:
         return problem(request, 422, "DIAGNOSIS_CRITERIA_INVALID", "Checked criteria contain unsupported identifiers.")
-    if body.clinicianDecision and body.clinicianDecision.type == "confirmed" and not evaluate(checked).met:
+    if body.clinicianDecision and body.clinicianDecision.type == "confirmed" and not evaluate_checked(checked)["met"]:
         return problem(
             request,
             422,
@@ -207,19 +218,28 @@ def update_assessment(request: Request, assessmentId: str, body: AssessmentUpdat
     except RuntimeError:
         return problem(request, 412, "COMMON_PRECONDITION_FAILED", "Diagnosis assessment has changed.")
     out = present(assessment)
-    return JSONResponse(content=out, headers=headers(ETag=etag(out)))
+    return JSONResponse(content=out, headers=headers(request, ETag=etag(out)))
 
 
 @router.get(f"{PREFIX}/encounters/{{encounterId}}/assessment-snapshot")
 def get_encounter_snapshot(request: Request, encounterId: str, _: Session = Depends(require_psychiatrist_or_admin)) -> JSONResponse:
-    encounter_id = canonical_uuid(encounterId) or ""
+    return _get_latest_assessment(request, encounterId)
+
+
+@router.get(f"{PREFIX}/encounters/{{encounterId}}/assessments/latest")
+def get_latest_assessment(request: Request, encounterId: str, _: Session = Depends(require_psychiatrist_or_admin)) -> JSONResponse:
+    return _get_latest_assessment(request, encounterId)
+
+
+def _get_latest_assessment(request: Request, encounter_id_value: str) -> JSONResponse:
+    encounter_id = canonical_uuid(encounter_id_value) or ""
     if not encounter_id:
         return problem(request, 400, "ENCOUNTER_ID_INVALID", "Encounter ID must be a canonical UUID.")
     assessment = store.get_assessment_by_encounter(encounter_id)
     if not assessment:
         return problem(request, 404, "DIAGNOSIS_ASSESSMENT_NOT_FOUND", "Diagnosis assessment was not found.")
     out = present(assessment)
-    return JSONResponse(content=out, headers=headers(ETag=etag(out)))
+    return JSONResponse(content=out, headers=headers(request, ETag=etag(out)))
 
 
-__all__ = ["router", "present", "INTERFACE_VERSION", "RULE_VERSION"]
+__all__ = ["router", "present", "problem", "headers", "trace_ids", "INTERFACE_VERSION", "RULE_VERSION"]

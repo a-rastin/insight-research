@@ -8,6 +8,8 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-023: Migrate Diagnosis storage and routes to assessment UUIDs (In
+  progress).
 - Capability completion packets INS-011 and INS-067 through INS-082 (In
   progress); INS-067 is complete and later packets remain separately gated.
 - INS-020: Reconcile Treatment Plan OpenAPI with live routes (In progress).
@@ -289,6 +291,34 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-023 Diagnosis assessment UUID storage and route migration (In progress).
+  Diagnosis now applies an ordered, idempotent v2 storage migration that stages
+  every unmapped code-keyed session in a lossless quarantine instead of
+  guessing an Encounter UUID. The explicit resolver accepts canonical Patient
+  and Encounter UUID mappings, records typed unresolved/conflict/unavailable
+  reasons, and atomically creates the assessment, legacy link, and immutable
+  versioned `migrated` audit snapshot. Resolved legacy routes adapt to the same
+  assessment and evaluator as v2, including explicit `definite`/`bypass`
+  translation; criteria evidence and clinician decisions remain separate. V2
+  create/read/update/latest and Treatment Plan snapshot routes now provide
+  strong ETags, stale-write rejection, exact-body actor-scoped idempotency with
+  exact create-response replay, generated or propagated request/correlation
+  IDs, common problem responses, role authorization, and CSRF-protected writes.
+  Focused migration/quarantine, v2 contract, authority, stale-write,
+  idempotency, latest/snapshot, request-ID, legacy-equivalence, and audit tests
+  passed 12/12 with `python3 -B -m unittest
+  test_diagnosis_v2_contracts.py -v`; v2 Authentication/role/CSRF tests passed
+  3/3 with `python3 -B -m unittest test_diagnosis_v2_security.py -v`. The full
+  documented Diagnosis surface passed 153 checks across its isolated commands;
+  common REST profile tests passed 8/8 and root discovery passed 65/65. Draft
+  2020-12 schema validation, JSON syntax, changed-file Python compilation, and
+  `git diff --check` passed. No file under `insight-research/doc/`, runtime
+  database, protected clinical/model source, or generated `graphify-out/` was
+  read or modified. Existing deployed legacy rows still require an operator or
+  integration to supply verified Encounter mappings through the explicit
+  resolver; unresolved rows remain quarantined. The next step is to execute
+  that resolver against controlled deployment data and migrate consumers to the
+  UUID-only latest/snapshot routes before retiring code-keyed compatibility.
 - Feature 22 capability-completion sequence (In progress). INS-067 is complete;
   INS-011 still requires named accountable owners and release evidence, and
   INS-068 through INS-082 remain separate dependency-ordered work packets.

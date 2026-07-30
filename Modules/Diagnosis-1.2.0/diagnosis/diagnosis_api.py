@@ -32,7 +32,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from .auth import Session
-from .criteria import evaluate
+from .assessment_service import evaluate_checked, legacy_decision_to_v2, v2_decision_to_legacy
 from .dashboard import _dump_for_audit
 from .deps import require_psychiatrist, require_psychiatrist_or_admin, require_csrf, store
 from .patient import resolve_patient
@@ -51,6 +51,18 @@ class Submission(BaseModel):
 RESULT_FIELDS = ("met", "a_count", "core_count", "failures", "reason", "checked")
 
 
+def _legacy_assessment_response(assessment: dict) -> dict:
+    decision = assessment["clinicianDecision"]
+    return {
+        "code": None,
+        "patient_id": assessment["patientId"],
+        "checked": assessment["checkedCriteria"],
+        "evaluation": evaluate_checked(assessment["checkedCriteria"]),
+        "decision": v2_decision_to_legacy(decision["type"] if decision else None),
+        "updated_at": assessment["updatedAt"],
+    }
+
+
 @router.post("/diagnosis/{code}/init")
 def init_session(
     code: str,
@@ -60,6 +72,9 @@ def init_session(
 ):
     if not code.strip():
         raise HTTPException(status_code=400, detail="Patient code required")
+    linked = store.get_legacy_assessment(code.strip())
+    if linked:
+        return {"created": False, "patient_id": linked["patientId"]}
     patient = resolve_patient(code.strip(), request.headers.get("cookie"))
     created = store.init(code.strip(), patient_id=patient.id)
     return {"created": created, "patient_id": patient.id}
@@ -72,6 +87,11 @@ def get_session(code: str, _: Session = Depends(require_psychiatrist_or_admin)):
     404 if the patient code has never been seen. The caller (other Insight
     modules) is expected to create the session via PUT.
     """
+    linked = store.get_legacy_assessment(code)
+    if linked:
+        response = _legacy_assessment_response(linked)
+        response["code"] = code
+        return response
     session = store.get(code)
     if session is None:
         raise HTTPException(status_code=404, detail=f"Unknown patient code: {code}")
@@ -80,7 +100,7 @@ def get_session(code: str, _: Session = Depends(require_psychiatrist_or_admin)):
         "patient_id": session["patient_id"],
         "checked": session["checked"],
         "decision": session["decision"],
-        "evaluation": evaluate(session["checked"]).to_dict(),
+        "evaluation": evaluate_checked(session["checked"]),
         "updated_at": session["updated_at"],
     }
 
@@ -103,8 +123,28 @@ def put_session(
     if not code.strip():
         raise HTTPException(status_code=400, detail="Patient code required")
 
-    patient = resolve_patient(code.strip(), request.headers.get("cookie"))
     checked = list(dict.fromkeys(body.checked))   # de-dupe, preserve order
+    linked = store.get_legacy_assessment(code.strip())
+    if linked:
+        decision = legacy_decision_to_v2(body.decision)
+        if decision == "confirmed" and not evaluate_checked(checked)["met"]:
+            raise HTTPException(
+                status_code=422,
+                detail="A confirmed clinician decision requires the server evaluation to be met; use bypass explicitly otherwise.",
+            )
+        assessment = store.update_assessment(
+            linked["assessmentId"],
+            linked["resourceVersion"],
+            checked,
+            decision,
+            _.user_id,
+        )
+        response = _legacy_assessment_response(assessment)
+        response["code"] = code.strip()
+        response.pop("checked")
+        return response
+
+    patient = resolve_patient(code.strip(), request.headers.get("cookie"))
     session = store.put(
         code.strip(),
         patient_id=patient.id,
@@ -126,7 +166,7 @@ def put_session(
     return {
         "code": session["code"],
         "patient_id": session["patient_id"],
-        "evaluation": evaluate(session["checked"]).to_dict(),
+        "evaluation": evaluate_checked(session["checked"]),
         "decision": session["decision"],
         "updated_at": session["updated_at"],
     }

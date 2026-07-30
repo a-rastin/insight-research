@@ -25,6 +25,7 @@ catalogue there is locked against the live router by
 | POST   | `/api/diagnosis/v2/assessments` | Initialize canonical Patient/Encounter UUID-bound assessment. |
 | GET/PUT | `/api/diagnosis/v2/assessments/{assessmentId}` | Fetch or conditionally update versioned assessment. |
 | GET    | `/api/diagnosis/v2/encounters/{encounterId}/assessment-snapshot` | Fetch Treatment Plan source snapshot. |
+| GET    | `/api/diagnosis/v2/encounters/{encounterId}/assessments/latest` | Fetch the latest version of the encounter-bound assessment. |
 | GET    | `/`                           | Standalone shell: serves the embeddable module UI HTML (one `#diagnosis-root` mount point + `window.createDiagnosisModule`) and bootstraps it against `document.body`. Stamps a CSRF token into `<meta name="csrf-token">` + sets the `csrf` cookie. |
 | GET    | `/health`                     | Liveness probe.                                   |
 | GET    | `/ready`                     | Readiness probe. 200 when ok + `{ok, module, checks:{db, auth, patient}}`, else 503 with the same body. **Never leaks URLs / paths / secrets.** |
@@ -163,7 +164,21 @@ python -m test_discovery    # Dashboard module-route discovery
 python -m test_patient      # canonical patient identity via fake registry
 python -m test_readiness    # readiness probe + no-leak + HTTP 200/503
 python -m test_embed        # embeddable module UI contract (createDiagnosisModule)
+python -m unittest test_diagnosis_v2_contracts.py -v  # migration, v2, authority, concurrency, audit, legacy equivalence
+python -m unittest test_diagnosis_v2_security.py -v   # Authentication roles + CSRF on v2 writes
 ```
+
+### Legacy storage migration
+
+Startup stages every unmapped code-keyed `sessions` row in
+`diagnosis_legacy_quarantine`; it never invents an Encounter UUID. The explicit
+`DiagnosisStore.migrate_legacy_sessions(resolver, actor)` path requires a
+resolver to return canonical `(patientId, encounterId)` UUIDs. A successful
+resolution atomically creates the v2 assessment, records a versioned `migrated`
+audit snapshot, and links the legacy code to that assessment. Missing,
+conflicting, invalid, or unavailable resolution remains quarantined with the
+original source snapshot and a typed reason. Linked legacy GET/PUT routes adapt
+to the canonical assessment and use the same evaluator as v2.
 
 The boot self-checks (`criteria._demo`, `api._http_selfcheck`) are now
 thin shims that run the matching ``unittest`` cases in `test_unittest.py`,

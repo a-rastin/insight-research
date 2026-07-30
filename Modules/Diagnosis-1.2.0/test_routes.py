@@ -104,6 +104,7 @@ def test_v2_seam_owns_only_uuid_rest():
         "/api/diagnosis/v2/assessments/{assessmentId}",
         "/api/diagnosis/v2/assessments/{assessmentId}/audit",
         "/api/diagnosis/v2/encounters/{encounterId}/assessment-snapshot",
+        "/api/diagnosis/v2/encounters/{encounterId}/assessments/latest",
     }
 
 
@@ -124,6 +125,7 @@ def test_composed_router_has_all_paths_from_app_openapi():
         "/api/diagnosis/v2/assessments/{assessmentId}",
         "/api/diagnosis/v2/assessments/{assessmentId}/audit",
         "/api/diagnosis/v2/encounters/{encounterId}/assessment-snapshot",
+        "/api/diagnosis/v2/encounters/{encounterId}/assessments/latest",
         "/health",
         "/ready",
     }

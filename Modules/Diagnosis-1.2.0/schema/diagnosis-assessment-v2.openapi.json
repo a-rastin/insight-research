@@ -35,6 +35,10 @@
     "/api/diagnosis/v2/encounters/{encounterId}/assessment-snapshot": {
       "parameters": [{"$ref": "#/components/parameters/EncounterId"}],
       "get": {"responses": {"200": {"description": "Versioned encounter-bound assessment snapshot", "content": {"application/json": {"schema": {"$ref": "diagnosis-assessment-v2.schema.json#/$defs/assessment"}}}}}}
+    },
+    "/api/diagnosis/v2/encounters/{encounterId}/assessments/latest": {
+      "parameters": [{"$ref": "#/components/parameters/EncounterId"}],
+      "get": {"responses": {"200": {"description": "Latest version of the encounter-bound assessment", "headers": {"ETag": {"schema": {"type": "string"}}}, "content": {"application/json": {"schema": {"$ref": "diagnosis-assessment-v2.schema.json#/$defs/assessment"}}}}, "404": {"description": "No diagnosis assessment exists for the encounter"}}}
     }
   },
   "components": {
