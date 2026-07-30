@@ -1,0 +1,23 @@
+[project]
+name = "clinical-graph-models"
+version = "0.1.0"
+description = "Validate, inspect, and evaluate INSIGHT clinical Bayesian Networks stored as XML."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.100",
+    "lxml>=5.0",
+    "uvicorn>=0.20",
+]
+
+[project.scripts]
+bn-manager-backend = "bn_manager_backend.server:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools.package-data]
+bn_manager_backend = [
+    "model_registry/**/*.xml",
+    "model_registry/**/*.xsd",
+]

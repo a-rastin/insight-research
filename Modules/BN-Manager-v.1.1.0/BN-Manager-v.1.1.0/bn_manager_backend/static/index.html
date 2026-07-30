@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>BN Manager</title>
+    <style>
+      :root { color-scheme: light; font-family: Arial, sans-serif; background: #f7f8fa; color: #20242a; }
+      body { margin: 0; }
+      main { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
+      h1 { margin: 0 0 8px; font-size: 32px; }
+      p { max-width: 760px; line-height: 1.5; }
+      .status { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin: 28px 0; }
+      .panel { border: 1px solid #d7dce2; border-radius: 8px; background: #fff; padding: 18px; }
+      .label { color: #5a6573; font-size: 13px; margin-bottom: 6px; }
+      .value { font-size: 18px; font-weight: 700; }
+      ul { line-height: 1.8; }
+      code { background: #eef1f4; border-radius: 4px; padding: 2px 5px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>BN Manager</h1>
+      <p>INSIGHT Bayesian Network service for schema validation, registry discovery, and posterior evaluation of the four canonical XML models.</p>
+      <section class="status" aria-label="Module status">
+        <div class="panel"><div class="label">Contract</div><div class="value">2.0.0</div></div>
+        <div class="panel"><div class="label">Canonical format</div><div class="value">BIF 0.3 XML</div></div>
+        <div class="panel"><div class="label">Registered models</div><div class="value">4</div></div>
+      </section>
+      <h2>Networks</h2>
+      <ul>
+        <li>Pharmacotherapy</li>
+        <li>Treatment Setting</li>
+        <li>Involuntary Treatment Considerations</li>
+        <li>Clozapine in Suicide Risk</li>
+      </ul>
+      <p>Use <code>/api/bn-manager/v1/models</code> for registry metadata and <code>/api/bn-manager/v1/models/schema/xml-0.3</code> for the canonical schema.</p>
+    </main>
+  </body>
+</html>

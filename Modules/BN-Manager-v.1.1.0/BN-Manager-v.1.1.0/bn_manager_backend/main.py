@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+from datetime import UTC, datetime
+from hashlib import sha256
+import json
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 from fastapi import Body, Depends, FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse
@@ -59,6 +63,7 @@ def create_app(
         settings.auth_session_url,
         settings.auth_timeout_seconds,
     )
+    app.state.evaluation_idempotency = {}
 
     @app.exception_handler(BnManagerHttpError)
     def bn_manager_error(request: Request, exc: BnManagerHttpError) -> JSONResponse:
@@ -140,6 +145,23 @@ def create_app(
             }
         )
 
+    @app.get("/api/bn-manager/v3/models")
+    def model_registry_list_v3() -> dict[str, Any]:
+        return ok_response(
+            {
+                "interface_version": "3.0.0",
+                "models": list_registry_entries(),
+                "schema": {"format": "XML", "version": "BIF-0.3"},
+            }
+        )
+
+    @app.get("/api/bn-manager/v3/models/{stable_id}")
+    def model_registry_detail_v3(stable_id: str) -> dict[str, Any]:
+        entry = get_registry_entry(stable_id)
+        if entry is None:
+            raise BnManagerHttpError(404, ERROR_CODES["model_not_found"], "BN Manager registry model not found.")
+        return ok_response({"interface_version": "3.0.0", "model": entry.payload()})
+
     @app.get("/api/bn-manager/v1/models/schema/xml-0.3")
     def model_registry_schema() -> dict[str, Any]:
         return ok_response(
@@ -212,6 +234,31 @@ def create_app(
     ) -> dict[str, Any]:
         return _evaluate_payload(payload, "Follow-up", session)
 
+    @app.post("/api/bn-manager/v3/evaluations")
+    def evaluate_v3(
+        request: Request,
+        payload: dict[str, Any] = Body(...),
+        session: SessionState = Depends(require_roles(EVALUATION_ROLES)),
+    ) -> dict[str, Any]:
+        key = request.headers.get("idempotency-key", "").strip()
+        if not key:
+            raise BnManagerHttpError(400, ERROR_CODES["invalid_request"], "Idempotency-Key is required.")
+        request_hash = sha256(
+            json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        cache_key = (session.subject, key)
+        cached = request.app.state.evaluation_idempotency.get(cache_key)
+        if cached:
+            if cached["request_hash"] != request_hash:
+                raise BnManagerHttpError(409, ERROR_CODES["invalid_request"], "Idempotency-Key was reused with a different request.")
+            return cached["response"]
+        response = _evaluate_payload_v3(payload, session)
+        request.app.state.evaluation_idempotency[cache_key] = {
+            "request_hash": request_hash,
+            "response": response,
+        }
+        return response
+
     @app.post("/api/bn-manager/v1/models/validate")
     def model_validate(
         payload: dict[str, Any] = Body(...),
@@ -254,7 +301,7 @@ app = create_app()
 
 
 def _evaluate_payload(payload: dict[str, Any], surface: str, session: SessionState) -> dict[str, Any]:
-    model = _load_model(payload)
+    model = _load_model(payload, allow_text=False)
     messages = [asdict(message) for message in validate_model(model)]
     if any(message["severity"] == "error" for message in messages):
         raise BnManagerHttpError(
@@ -297,10 +344,16 @@ def _evaluate_payload(payload: dict[str, Any], surface: str, session: SessionSta
     )
 
 
-def _load_model(payload: dict[str, Any]) -> ClinicalGraphModel:
+def _load_model(payload: dict[str, Any], *, allow_text: bool = True) -> ClinicalGraphModel:
     model_payload = payload.get("model") if isinstance(payload.get("model"), dict) else payload
     text = str(model_payload.get("text") or model_payload.get("model_text") or "").strip()
     stable_id = str(model_payload.get("stable_id") or model_payload.get("model_id") or "").strip()
+    if text and not allow_text:
+        raise BnManagerHttpError(
+            400,
+            ERROR_CODES["invalid_request"],
+            "Clinical evaluation accepts registry stable_id only; caller model text is prohibited.",
+        )
     if not text and stable_id:
         try:
             _, text = read_registry_model(stable_id)
@@ -395,3 +448,60 @@ def _validate_targets(payload: dict[str, Any]) -> list[str] | None:
         if resolved not in targets:
             targets.append(resolved)
     return targets or None
+
+
+def _evaluate_payload_v3(payload: dict[str, Any], session: SessionState) -> dict[str, Any]:
+    stable_id = str(payload.get("stable_id") or "").strip()
+    entry = get_registry_entry(stable_id)
+    if entry is None:
+        raise BnManagerHttpError(
+            404, ERROR_CODES["model_not_found"], "BN Manager registry model not found.", {"stable_id": stable_id}
+        )
+    model = _load_model({"stable_id": stable_id}, allow_text=False)
+    messages = [
+        asdict(message)
+        for message in validate_model(model, target_node_ids=[entry.target_node])
+    ]
+    errors = [message for message in messages if message["severity"] == "error"]
+    if errors:
+        raise BnManagerHttpError(
+            422, ERROR_CODES["model_validation_failed"], "Registry model failed validation.", {"messages": messages}
+        )
+    evidence = payload.get("evidence") or {}
+    if not isinstance(evidence, dict):
+        raise BnManagerHttpError(400, ERROR_CODES["invalid_request"], "Evidence must be an object.")
+    node_map = model.node_map()
+    accepted = {}
+    ignored = {}
+    for node_id, state in evidence.items():
+        node = node_map.get(node_id)
+        if node is None:
+            ignored[node_id] = {"value": state, "reason": "unknown-variable"}
+        elif state not in node.states:
+            ignored[node_id] = {"value": state, "reason": "unknown-state"}
+        else:
+            accepted[node_id] = state
+    try:
+        result = evaluate_posterior(model, entry.target_node, accepted)
+    except ValueError as exc:
+        raise BnManagerHttpError(422, ERROR_CODES["evaluation_failed"], str(exc)) from exc
+    evaluated_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+    warnings = messages + [
+        {"severity": "warning", "code": "BNM_EVIDENCE_IGNORED", "path": key}
+        for key in ignored
+    ]
+    return ok_response(
+        {
+            "interface_version": "3.0.0",
+            "evaluation_id": str(uuid4()),
+            "evaluated_at": evaluated_at,
+            "model": entry.payload(),
+            "target": result.target,
+            "accepted_evidence": accepted,
+            "ignored_evidence": ignored,
+            "warnings": warnings,
+            "posterior": result.values,
+            "mapping_version": entry.mapping_version,
+            "evaluated_by": session.subject,
+        }
+    )

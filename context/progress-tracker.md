@@ -8,6 +8,8 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-019: Publish BN evaluation and registry-governance v3 contract (In
+  progress).
 - INS-017: Publish Medical History assessment v2 contract (In progress).
 - INS-016: Publish PANSS Severity assessment v2 contract (In progress).
 - INS-015: Publish Diagnosis assessment v2 contract (In progress).
@@ -242,6 +244,24 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-019 BN evaluation and registry-governance v3 contract packet (In
+  progress). The mirrored standalone BN Manager now publishes v3 registry
+  discovery and evaluation routes. Discovery exposes stable ID, semantic
+  version, model and XSD hashes, BIF schema version, engine version,
+  lifecycle/clinical-use status, target, and mapping version without returning
+  model text. Clinical evaluation is registry-only and returns accepted and
+  ignored evidence, warnings, posterior, mapping version, evaluation UUID, and
+  UTC time. Actor-scoped idempotency returns the original result for an exact
+  retry and rejects conflicting key reuse; caller XML remains available only
+  to the admin validation route. The protected source repository was not
+  changed and no protected model/schema bytes were edited. Contract tests
+  passed 7/7 with `UV_CACHE_DIR=/tmp/insight-uv-cache uv run --with httpx2
+  python -B -m unittest tests.test_contract -v`; Python compilation and
+  `git diff --check` passed. Backend HTTP tests initially reached 11 passing
+  cases before exposing and correcting a keyword-call defect and stale v2
+  expectation; subsequent TestClient runs hung before response dispatch in the
+  installed Python 3.13/httpx2 environment, so full HTTP and module-suite
+  verification remains pending and the packet stays in progress.
 - INS-018 DDI knowledge and clinical-check v1 contract packet. Interface/schema
   `1.0.0` now defines resolved, ambiguous, and unknown medication identity;
   immutable draft/reviewed/active/retired knowledge revisions; attributable
