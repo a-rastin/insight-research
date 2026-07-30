@@ -8,7 +8,7 @@ import {
   RULE_VERSION,
   SCALE_VERSION,
   SCHEMA_VERSION,
-  deriveScores,
+  evaluatePanss,
   isUuid,
   validateAssessmentInput
 } from "./panss.js";
@@ -135,7 +135,8 @@ function validateV2Request(req, res, id, includeIdentity) {
 
 function assessmentFromInput(input, id, existing) {
   const now = new Date().toISOString();
-  const completed = input.status === "completed";
+  const state = { "in-progress": "incomplete", completed: "completed", skipped: "passed" }[input.status];
+  const { valid: _valid, ...evaluation } = evaluatePanss(state, input.itemScores, input.scores);
   return {
     interfaceVersion: INTERFACE_VERSION,
     schemaVersion: SCHEMA_VERSION,
@@ -145,7 +146,8 @@ function assessmentFromInput(input, id, existing) {
     assessmentType: "PANSS",
     status: input.status,
     itemScores: input.itemScores,
-    scores: completed ? deriveScores(input.itemScores) : null,
+    scores: evaluation.scores,
+    evaluation,
     resourceVersion: existing ? existing.resourceVersion + 1 : 1,
     provenance: {
       sourceModule: "severity",
@@ -285,6 +287,7 @@ app.get("/api/severity/:patient_code", (req, res) => {
     return res.json(assessment);
   } else {
     // Return empty initial state for new patient evaluation
+    const evaluation = evaluatePanss("incomplete", {});
     return res.json({
       patient_code,
       status: "pending",
@@ -294,6 +297,13 @@ app.get("/api/severity/:patient_code", (req, res) => {
         positive: 0,
         negative: 0,
         general: 0
+      },
+      evaluation: {
+        state: evaluation.state,
+        missingItemCodes: evaluation.missingItemCodes,
+        scores: evaluation.scores,
+        scaleVersion: evaluation.scaleVersion,
+        ruleVersion: evaluation.ruleVersion
       }
     });
   }
@@ -302,7 +312,7 @@ app.get("/api/severity/:patient_code", (req, res) => {
 // PUT api/severity/:patient_code
 app.put("/api/severity/:patient_code", (req, res) => {
   const { patient_code } = req.params;
-  const { status, scores, items } = req.body;
+  const { status, scores, items } = req.body || {};
 
   if (!patient_code || patient_code.trim() === "") {
     return res.status(400).json({ error: "Patient code is required" });
@@ -313,27 +323,41 @@ app.put("/api/severity/:patient_code", (req, res) => {
   }
 
   const assessments = readAssessments();
+  const evaluation = evaluatePanss(
+    status === "passed" ? "passed" : "completed",
+    status === "passed" ? {} : items,
+    status === "passed" ? undefined : scores
+  );
+  if (!evaluation.valid) {
+    return res.status(400).json({ error: evaluation.detail, code: evaluation.code });
+  }
 
   if (status === "passed") {
     assessments[patient_code] = {
       patient_code,
       status: "passed",
+      evaluation: {
+        state: evaluation.state,
+        missingItemCodes: evaluation.missingItemCodes,
+        scores: evaluation.scores,
+        scaleVersion: evaluation.scaleVersion,
+        ruleVersion: evaluation.ruleVersion
+      },
       updated_at: new Date().toISOString()
     };
   } else {
-    // status is "completed"
-    if (!scores || typeof scores.total !== "number" || typeof scores.positive !== "number" || typeof scores.negative !== "number" || typeof scores.general !== "number") {
-      return res.status(400).json({ error: "Invalid scores provided for completed assessment" });
-    }
-    if (!items || typeof items !== "object") {
-      return res.status(400).json({ error: "Invalid items provided for completed assessment" });
-    }
-
     assessments[patient_code] = {
       patient_code,
       status: "completed",
-      scores,
+      scores: evaluation.scores,
       items,
+      evaluation: {
+        state: evaluation.state,
+        missingItemCodes: evaluation.missingItemCodes,
+        scores: evaluation.scores,
+        scaleVersion: evaluation.scaleVersion,
+        ruleVersion: evaluation.ruleVersion
+      },
       updated_at: new Date().toISOString()
     };
   }

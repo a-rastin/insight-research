@@ -104,10 +104,11 @@ Validates, then **overwrites** `assessments[patient_code]` (no merge, no history
 - `400` if `patient_code` empty.
 - `400` if `status` missing or not in `["completed", "passed"]`.
 - **If `status === "passed"`** → stores `{ patient_code, status:"passed", updated_at }`. No scores, no items.
-- **If `status === "completed"`** → additionally requires:
-  - `scores` with `total`, `positive`, `negative`, `general` all numbers (`typeof === "number"`).
-  - `items` is an object (only checks `typeof items === "object"`, **not** that all 30 are present or in 1–7 range — trust boundary is the frontend).
-  - Stores `{ patient_code, status:"completed", scores, items, updated_at }`.
+- **If `status === "completed"`** → requires the exact 30 PANSS item codes,
+  integer ratings from 1–7, and all four projected totals. The shared pure
+  evaluator recomputes P/N/G/total and rejects malformed or mismatched projections.
+- V1 `pending`, `passed`, and `completed` records expose `incomplete`, `passed`,
+  and `completed` evaluation state plus scale/rule version metadata.
 - `writeAssessments` → `200 { success: true, data: <stored> }` or `500 { error: "Failed to write to database" }`.
 - `updated_at` is `new Date().toISOString()` — server-generated, not client-trusted.
 
@@ -248,8 +249,9 @@ These are intentional minimalism, not bugs — but they will bite if you forget.
 1. **No backend case normalization.** `pat-2940-x` and `PAT-2940-X` are different records. Frontend uppercases; direct API callers may not.
 2. **`readAssessments()` swallows corruption.** A malformed `assessments.json` returns `{}` silently — looks like an empty DB, doesn't error. If records "disappear", check the file contents first.
 3. **No concurrency lock.** Two PUTs racing → last writer wins, no conflict signal. Single-user-localhost assumption.
-4. **PUT validation is shallow.** `completed` accepts an `items` object with any keys, not just `P1..G16`, and does not range-check `1..7`. Trust boundary is the frontend. If a parent app writes directly, validate on its side.
-5. **`scores` are client-computed and trusted.** Backend only checks the four fields are numbers. A malicious/buggy client can store `total` inconsistent with `items`. The frontend recomputes in `submitAssessment()` (line 722) before sending — but a direct API caller bypasses that.
+4. **PANSS evaluation is server-authoritative.** `panss.js` validates the exact
+   item set and score range, recomputes all totals, and rejects mismatched browser
+   projections. Both v2 writes and the legacy PUT adapter use this evaluator.
 6. **`app.get("*")` catch-all** is GET-only. A `POST /foo` will 404 cleanly; a `GET /api/unknown` will pass to `next()` and Express returns its default 404 (HTML, not JSON). Don't expect JSON 404s for unknown `/api/*` GETs.
 7. **`fetchRecentAssessments` is local-only.** The "Recent Assessments" list on the lookup screen is per-browser `localStorage`, not a server query. Two different machines see different "recent" lists.
 8. **Hardcoded `30` literals** appear in the frontend in several places instead of a derived constant. If you change the item count, grep `30` in `index.html`.

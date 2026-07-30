@@ -54,9 +54,13 @@ PANSS v2 is canonical for UUID-based integration. Machine-readable artifacts liv
 V2 creates use `POST /api/severity/v2/assessments` with `Idempotency-Key` and
 `X-Schema-Version: 2.0.0`; reads and ETag-protected updates use
 `/api/severity/v2/assessments/{assessmentId}`. Completed scores are always
-recomputed server-side from all 30 ratings. `skipped` contains no ratings or
-scores and never means absent, normal, or favorable. Existing patient-code routes
-remain a v1 compatibility interface and retain their historical `passed` spelling.
+recomputed server-side from the exact 30-item set. Responses include explicit
+`incomplete`, `passed`, or `completed` evaluation state and scoring versions.
+Optional browser-projected totals are checked and rejected if malformed or
+mismatched; they are never authoritative. `skipped` contains no ratings or scores
+and never means absent, normal, or favorable. Existing patient-code routes remain
+a v1 compatibility interface, retain their historical `passed` spelling, and use
+the same evaluator.
 
 ### GET `/api/severity/:patient_code`
 
@@ -116,7 +120,7 @@ Saves either a completed assessment or a pass.
 ```
 
 **Errors**
-- `400` — missing `patient_code`, invalid `status` (must be `completed` or `passed`), or `completed` payload missing/invalid `scores` or `items`.
+- `400` — missing `patient_code`, invalid `status` (must be `completed` or `passed`), an invalid/incomplete item set, or malformed/mismatched projected scores.
 - `500` — file write failure.
 
 ---
