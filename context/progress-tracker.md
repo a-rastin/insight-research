@@ -8,6 +8,8 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-029: Connect Medical History UI and medication-resolution feedback (In
+  progress).
 - INS-028: Replace Medical History JSON with v2 repository and security (In
   progress).
 - INS-027: Rebuild Severity UI integration without PHI browser storage (In
@@ -300,6 +302,37 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-029 Medical History UI and medication-resolution feedback (In progress).
+  The bounded Medical History frontend now exposes frozen
+  `window.InsightMedicalHistory` mount/unmount APIs and consumes host-supplied
+  canonical Patient, Encounter, authenticated Actor, and optional Assessment
+  UUID context. It uses only credentialed gateway-relative v2 requests, loads a
+  named assessment or the Encounter latest record, obtains a session-bound CSRF
+  token before writes, uses idempotency for creates and ETags for updates,
+  validates returned identity/schema/version/status/actor/medication state, and
+  aborts active requests and removes listeners on unmount. Activation-code
+  forms, query-string restoration, host navigation, and code-based submission
+  were removed from the browser while the server compatibility adapter remains
+  unchanged. Every medication row remains a separate instance, including exact
+  duplicates; original text and server-supplied matched, unresolved, ambiguous,
+  or not-assessed identity status remain visible and are never silently resolved
+  or candidate-selected. Clinical controls start with no selection and visible
+  `Unanswered` text; unsupplied values persist as `not-assessed`, never `no`.
+  Save failures remain in a focused semantic alert until a later save succeeds.
+  Controls retain native keyboard operation, visible focus, 44px targets,
+  non-color status text, responsive layout, and reduced-motion behavior. Focused
+  UI checks passed with `node test_ui.mjs`; JavaScript syntax passed with `node
+  --check public/app.js`; the full `npm test` suite passed repository,
+  configuration, conditional legacy compatibility, real HTTP Authentication/
+  role/revocation, CSRF, restricted CORS, idempotency, ETag/concurrency, latest,
+  readiness, duplicate/unresolved medication, privacy, lifecycle, keyboard/focus,
+  and persistent-error checks. Common REST profile checks passed 8/8, root
+  discovery passed 65/65, and both repository `git diff --check` commands passed.
+  No file under `insight-research/doc/`, protected clinical/model source, runtime
+  data, or generated `graphify-out/` was read or modified. A configured Dashboard
+  or gateway host harness supplying live UUID context is not present, so a real
+  integrated host-browser run remains the next verification step and INS-029
+  stays marked in progress. Live DDI resolution remains owned by INS-031.
 - INS-028 Medical History v2 repository and security replacement (In progress).
   Medical History now uses a module-owned native SQLite repository with two
   ordered transactional migrations, WAL, strict migration-history checks,

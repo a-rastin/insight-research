@@ -2,7 +2,7 @@
 
 ## Architecture
 
-This is a dependency-free standalone Node.js 22.5+ module. `server.js` owns HTTP routing and authoritative validation, `repository.js` owns native SQLite persistence and ordered import, `auth.js` owns Authentication v2 session validation, and `csrf.js` owns signed double-submit tokens. `public/index.html`, `public/app.js`, and `public/styles.css` implement the compatibility browser flow.
+This is a dependency-free standalone Node.js 22.5+ module. `server.js` owns HTTP routing and authoritative validation, `repository.js` owns native SQLite persistence and ordered import, `auth.js` owns Authentication v2 session validation, and `csrf.js` owns signed double-submit tokens. `public/index.html`, `public/app.js`, and `public/styles.css` implement the bounded v2 embedded browser flow.
 
 The canonical boundary is `/api/medical-history/v2/*`. The `/api/internal/medical-history/*` activation-code boundary remains a thin compatibility adapter; a code resolves to canonical Patient and Encounter UUIDs and never owns clinical state.
 
@@ -31,9 +31,11 @@ Exact clozapine contraindications:
 
 `GET /api/internal/medical-history/options` returns disease, antipsychotic, and contraindication lists. Server validation is authoritative; do not rely only on conditional UI visibility.
 
-## Conditional UI behavior
+## Embedded UI behavior
 
-All four primary Yes/No questions default to No. Prior therapy = Yes reveals therapy success and antipsychotic selection. Clozapine contraindication = Yes reveals the checkbox list. Switching contraindication back to No clears checked contraindications. The Add drug control disables at 20 and re-enables after removal.
+The host calls `window.InsightMedicalHistory.mount({ root, context })`, where context contains canonical Patient, Encounter, and authenticated Actor UUIDs plus an optional Assessment UUID. The module renders only under the supplied root, performs credentialed relative v2 requests, and aborts active requests and removes listeners on unmount. It does not read or mutate URLs, navigation, or browser storage.
+
+All four primary questions initially display `Unanswered`; no answer is preselected. Yes reveals applicable conditional controls, and Unknown remains distinct from No. Unanswered values persist as `not-assessed`. Every medication row is retained as its own instance, including duplicates, and its server-supplied typed normalization state is shown without candidate selection or silent resolution. New rows begin as `not-assessed`. Failed saves remain visible in a focused alert until a later server save succeeds. The Add medication control disables at 20 and re-enables after removal.
 
 ## Persistence and testing
 
@@ -47,7 +49,7 @@ node --check public/app.js
 npm test
 ```
 
-`test_repository.js` verifies fresh migration, JSON import, quarantine, corruption rollback, provenance, and transactional concurrency. `test_configuration.js` verifies production fail-closed startup. `test_v2_api.js` verifies Authentication role/revocation behavior, CSRF, restricted CORS, canonical identity, explicit uncertainty, idempotency, strong ETags, concurrent updates, latest reads, and readiness dependency failure. The contract, Draft 2020-12 schema, and OpenAPI document are in `contracts/`.
+`test_repository.js` verifies fresh migration, JSON import, quarantine, corruption rollback, provenance, and transactional concurrency. `test_configuration.js` verifies production fail-closed startup. `test_v2_api.js` verifies Authentication role/revocation behavior, CSRF, restricted CORS, canonical identity, explicit uncertainty, idempotency, strong ETags, concurrent updates, latest reads, and readiness dependency failure. `test_ui.mjs` verifies host context, gateway-relative requests, duplicate and unresolved medication preservation, unanswered defaults, no browser PHI storage/navigation, CSRF headers, focus/error behavior, and the embedded lifecycle contract. The contract, Draft 2020-12 schema, and OpenAPI document are in `contracts/`.
 
 The integration tests cover option lists, a fully populated conditional submission, all-default No answers, code normalization/retrieval, the 20-drug maximum, and invalid conditional combinations.
 

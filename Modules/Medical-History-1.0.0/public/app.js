@@ -1,243 +1,467 @@
-﻿const state = {
-  activation: null,
-  returnUrl: "/dashboard"
+const SCHEMA_VERSION = "2.0.0";
+const DEFAULT_API_BASE_PATH = "/api/medical-history/v2";
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const CLINICAL_STATES = [
+  ["yes", "Yes"],
+  ["no", "No"],
+  ["unknown", "Unknown"]
+];
+const IDENTITY_LABELS = {
+  matched: "Matched identity",
+  unresolved: "Unresolved identity",
+  ambiguous: "Ambiguous identity",
+  "not-assessed": "Identity not assessed"
 };
+let mounted = null;
 
-const elements = {
-  status: document.querySelector("#status-pill"),
-  activationPanel: document.querySelector("#activation-panel"),
-  activationForm: document.querySelector("#activation-form"),
-  activationCode: document.querySelector("#activation-code"),
-  historyForm: document.querySelector("#history-form"),
-  activeCode: document.querySelector("#active-code"),
-  pastMedicalHistory: document.querySelector("#past-medical-history"),
-  medicationList: document.querySelector("#medication-list"),
-  addMedication: document.querySelector("#add-medication"),
-  backDashboard: document.querySelector("#back-dashboard"),
-  resultPanel: document.querySelector("#result-panel"),
-  resultSummary: document.querySelector("#result-summary"),
-  resultDashboard: document.querySelector("#result-dashboard"),
-  newEntry: document.querySelector("#new-entry"),
-  antipsychoticDetails: document.querySelector("#antipsychotic-details"),
-  antipsychotic: document.querySelector("#antipsychotic"),
-  clozapineContraindications: document.querySelector("#clozapine-contraindications")
-};
+export function normalizeContext(context) {
+  if (!context || !UUID_PATTERN.test(context.patientId || "") ||
+      !UUID_PATTERN.test(context.encounterId || "") || !UUID_PATTERN.test(context.actorId || "")) {
+    throw new Error("Medical History requires host-provided Patient, Encounter, and Actor UUID context.");
+  }
+  if (context.assessmentId && !UUID_PATTERN.test(context.assessmentId)) {
+    throw new Error("Medical History assessment context is invalid.");
+  }
+  return {
+    patientId: context.patientId,
+    encounterId: context.encounterId,
+    actorId: context.actorId,
+    assessmentId: context.assessmentId || null
+  };
+}
 
-async function api(path, options = {}) {
-  const response = await fetch(path, {
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
-    ...options
-  });
-  const data = await response.json().catch(() => ({}));
+export function normalizeApiBasePath(value = DEFAULT_API_BASE_PATH) {
+  if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//") || /[?#]/.test(value)) {
+    throw new Error("Medical History API base path must be gateway-relative.");
+  }
+  return value.replace(/\/$/, "");
+}
+
+async function responseBody(response, { allowNotFound = false } = {}) {
+  const body = await response.json().catch(() => null);
+  if (allowNotFound && response.status === 404) return null;
   if (!response.ok) {
-    throw new Error(data?.error?.message || "Request failed");
+    const detail = body?.detail || body?.title || "The Medical History service could not complete the request.";
+    const fieldErrors = body?.errors?.map((item) => item.message).filter(Boolean).join(" ");
+    throw new Error(fieldErrors ? `${detail} ${fieldErrors}` : detail);
   }
-  return data;
+  return body;
 }
 
-function setStatus(label, mode = "") {
-  elements.status.textContent = label;
-  elements.status.className = `status-pill ${mode}`.trim();
+export function createMedicalHistoryClient({ fetchImpl = fetch, apiBasePath = DEFAULT_API_BASE_PATH } = {}) {
+  const basePath = normalizeApiBasePath(apiBasePath);
+  const request = (path, options = {}) => fetchImpl(`${basePath}${path}`, { credentials: "include", ...options });
+
+  return {
+    async load(context, signal) {
+      const path = context.assessmentId
+        ? `/assessments/${encodeURIComponent(context.assessmentId)}`
+        : `/encounters/${encodeURIComponent(context.encounterId)}/assessments/latest`;
+      const response = await request(path, { signal });
+      return { assessment: await responseBody(response, { allowNotFound: !context.assessmentId }), etag: response.headers.get("ETag") };
+    },
+    async options(signal) {
+      const response = await fetchImpl("/api/internal/medical-history/options", { credentials: "include", signal });
+      return responseBody(response);
+    },
+    async save({ context, assessment, etag, value, signal }) {
+      const csrfResponse = await request("/csrf", { signal });
+      const csrf = await responseBody(csrfResponse);
+      const updating = Boolean(assessment?.assessmentId);
+      const headers = {
+        "Content-Type": "application/json",
+        "X-Schema-Version": SCHEMA_VERSION,
+        "X-CSRF-Token": csrf.token
+      };
+      if (updating) headers["If-Match"] = etag;
+      else headers["Idempotency-Key"] = crypto.randomUUID();
+      const body = updating ? value : { patientId: context.patientId, encounterId: context.encounterId, ...value };
+      const path = updating ? `/assessments/${encodeURIComponent(assessment.assessmentId)}` : "/assessments";
+      const response = await request(path, {
+        method: updating ? "PUT" : "POST",
+        headers,
+        body: JSON.stringify(body),
+        signal
+      });
+      return { assessment: await responseBody(response), etag: response.headers.get("ETag") };
+    }
+  };
 }
 
-function showError(message) {
-  const existing = document.querySelector(".toast");
-  if (existing) existing.remove();
-  const toast = document.createElement("div");
-  toast.className = "toast";
-  toast.textContent = message;
-  document.querySelector(".workspace").insertBefore(toast, elements.activationPanel.nextSibling);
-  setStatus("Needs attention", "error");
+export function validateServerAssessment(assessment, context) {
+  if (!assessment || assessment.interfaceVersion !== SCHEMA_VERSION || assessment.schemaVersion !== SCHEMA_VERSION ||
+      assessment.patientId !== context.patientId || assessment.encounterId !== context.encounterId ||
+      !UUID_PATTERN.test(assessment.assessmentId || "") || !["in-progress", "completed", "not-assessed"].includes(assessment.status) ||
+      !Number.isInteger(assessment.resourceVersion) || assessment.resourceVersion < 1 ||
+      !UUID_PATTERN.test(assessment.actor?.actorId || "") || assessment.actor?.role !== "psychiatrist" ||
+      !Array.isArray(assessment.medications)) {
+    throw new Error("Medical History returned an incompatible assessment response.");
+  }
+  for (const medication of assessment.medications) {
+    const identity = medication?.normalizedIdentity;
+    const matched = identity?.state === "matched";
+    if (!medication || typeof medication.originalText !== "string" || !IDENTITY_LABELS[identity?.state] ||
+        (matched && (typeof identity.conceptId !== "string" || typeof identity.display !== "string")) ||
+        (!matched && (identity.conceptId !== null || identity.display !== null || identity.terminologyVersion !== null))) {
+      throw new Error("Medical History returned an incompatible medication identity response.");
+    }
+  }
+  return assessment;
 }
 
-function clearError() {
-  const existing = document.querySelector(".toast");
-  if (existing) existing.remove();
+export function assessmentToFormValue(assessment) {
+  return {
+    pastMedicalHistory: [...(assessment?.pastMedicalHistory || [])],
+    medications: (assessment?.medications || []).map((medication) => ({
+      originalText: medication.originalText,
+      doseText: medication.doseText,
+      routeText: medication.routeText,
+      frequencyText: medication.frequencyText,
+      normalizedIdentity: { ...medication.normalizedIdentity }
+    })),
+    substantialSuicideRisk: assessment?.substantialSuicideRisk === "not-assessed" ? null : assessment?.substantialSuicideRisk || null,
+    priorAntipsychoticTherapy: assessment?.priorAntipsychoticTherapy === "not-assessed" ? null : assessment?.priorAntipsychoticTherapy || null,
+    priorAntipsychoticTherapySuccessful: assessment?.priorAntipsychoticTherapySuccessful === "not-assessed" ? null : assessment?.priorAntipsychoticTherapySuccessful || null,
+    antipsychotic: assessment?.antipsychotic || null,
+    clozapineContraindication: assessment?.clozapineContraindication === "not-assessed" ? null : assessment?.clozapineContraindication || null,
+    clozapineContraindications: [...(assessment?.clozapineContraindications || [])],
+    recurrentNonAdherenceDeterioration: assessment?.recurrentNonAdherenceDeterioration === "not-assessed" ? null : assessment?.recurrentNonAdherenceDeterioration || null
+  };
 }
 
-function showForm(activation) {
-  clearError();
-  state.activation = activation;
-  state.returnUrl = activation.context?.returnUrl || "/dashboard";
-  elements.activeCode.value = activation.code;
-  elements.activationPanel.classList.add("hidden");
-  elements.resultPanel.classList.add("hidden");
-  elements.historyForm.classList.remove("hidden");
-  setStatus("Active", "active");
+function shell() {
+  return `
+    <section class="medical-history-shell" aria-labelledby="medical-history-title">
+      <header class="medical-history-header">
+        <div>
+          <p class="medical-history-eyebrow">Encounter context supplied by host</p>
+          <h1 id="medical-history-title">Medical History</h1>
+        </div>
+        <span id="medical-history-status" class="medical-history-status" role="status">Loading</span>
+      </header>
+      <div id="medical-history-live" class="visually-hidden" aria-live="polite"></div>
+      <div id="medical-history-error" class="medical-history-alert hidden" role="alert" tabindex="-1"></div>
+      <form id="medical-history-form" novalidate>
+        <div class="medical-history-grid">
+          <section class="field-block" aria-labelledby="history-heading">
+            <div class="section-heading"><h2 id="history-heading">Past medical history</h2><span>Select multiple</span></div>
+            <label for="past-medical-history">Relevant diseases</label>
+            <select id="past-medical-history" multiple size="8"></select>
+          </section>
+          <section class="field-block" aria-labelledby="medications-heading">
+            <div class="section-heading">
+              <div><h2 id="medications-heading">Patient medications</h2><p>Each entered row remains a separate medication instance for later DDI review.</p></div>
+              <button class="secondary" id="add-medication" type="button">Add medication</button>
+            </div>
+            <div class="medication-list" id="medication-list"></div>
+            <p id="medication-empty" class="empty-state">No medications entered.</p>
+          </section>
+        </div>
+        <section class="field-block clinical-questions" aria-labelledby="clinical-heading">
+          <h2 id="clinical-heading">Clinical questions</h2>
+          <p class="field-guidance">Questions remain explicitly unanswered until the psychiatrist selects a response and saves.</p>
+          ${clinicalQuestion("substantial-suicide-risk", "Substantial suicide risk?")}
+          ${clinicalQuestion("prior-antipsychotic-therapy", "Prior antipsychotic therapy?")}
+          <div class="conditional hidden" id="antipsychotic-details">
+            ${clinicalQuestion("antipsychotic-successful", "Was the therapy successful?")}
+            <label for="antipsychotic">Which antipsychotic?</label>
+            <select id="antipsychotic"><option value="">Select an antipsychotic</option></select>
+          </div>
+          ${clinicalQuestion("clozapine-contraindication", "Any contraindication to clozapine?")}
+          <fieldset class="conditional hidden checkbox-list" id="clozapine-contraindications"><legend>Select all contraindications that apply</legend></fieldset>
+          ${clinicalQuestion("recurrent-non-adherence-deterioration", "Recurrent non-adherence-related deterioration?")}
+        </section>
+        <footer class="action-bar">
+          <p id="save-guidance">Unanswered questions will be saved as not assessed, never as No.</p>
+          <button class="primary" id="save-medical-history" type="submit">Save medical history</button>
+        </footer>
+      </form>
+    </section>`;
 }
 
-function addMedicationRow(value = {}) {
-  if (elements.medicationList.children.length >= 20) { showError("A maximum of 20 drugs can be added."); return; }
-  const row = document.createElement("div");
+function clinicalQuestion(name, legend) {
+  return `<fieldset class="clinical-question" data-question="${name}">
+    <legend>${legend}</legend>
+    <div class="clinical-options">${CLINICAL_STATES.map(([value, label]) => `<label><input type="radio" name="${name}" value="${value}"> ${label}</label>`).join("")}</div>
+    <p class="answer-state" data-answer-state="${name}">Unanswered</p>
+  </fieldset>`;
+}
+
+function createMedicationRow(state, medication = null) {
+  const value = medication || {
+    originalText: "",
+    doseText: null,
+    routeText: null,
+    frequencyText: null,
+    normalizedIdentity: { state: "not-assessed", conceptId: null, display: null, terminologyVersion: null }
+  };
+  const row = document.createElement("fieldset");
   row.className = "medication-row";
-  row.innerHTML = `
-    <div>
-      <label>Drug</label>
-      <input class="med-name" type="text" maxlength="160" placeholder="Drug name" value="${escapeAttribute(value.name || "")}">
-    </div>
-    <div>
-      <label>Dose</label>
-      <input class="med-dose" type="text" placeholder="Dose" value="${escapeAttribute(value.dose || "")}">
-    </div>
-    <div>
-      <label>Route</label>
-      <input class="med-route" type="text" placeholder="Oral" value="${escapeAttribute(value.route || "")}">
-    </div>
-    <div>
-      <label>Frequency</label>
-      <input class="med-frequency" type="text" placeholder="Daily" value="${escapeAttribute(value.frequency || "")}">
-    </div>
-    <button class="remove-medication" type="button" aria-label="Remove medication">x</button>
-  `;
-  row.querySelector(".remove-medication").addEventListener("click", () => { row.remove(); elements.addMedication.disabled = false; });
-  elements.medicationList.appendChild(row);
-  elements.addMedication.disabled = elements.medicationList.children.length >= 20;
-}
-
-function escapeAttribute(value) {
-  return String(value).replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
-}
-
-function getSelectedPastMedicalHistory() {
-  return Array.from(elements.pastMedicalHistory.selectedOptions).map((option) => option.value);
-}
-
-function getMedications() {
-  return Array.from(elements.medicationList.querySelectorAll(".medication-row"))
-    .map((row) => ({
-      name: row.querySelector(".med-name").value.trim(),
-      dose: row.querySelector(".med-dose").value.trim(),
-      route: row.querySelector(".med-route").value.trim(),
-      frequency: row.querySelector(".med-frequency").value.trim()
-    }))
-    .filter((medication) => medication.name || medication.dose || medication.route || medication.frequency);
-}
-
-async function loadOptions() {
-  const options = await api("/api/internal/medical-history/options");
-  elements.pastMedicalHistory.innerHTML = "";
-  options.pastMedicalHistory.forEach((label) => {
-    const option = document.createElement("option");
-    option.value = label;
-    option.textContent = label;
-    elements.pastMedicalHistory.appendChild(option);
+  row._normalizedIdentity = { ...value.normalizedIdentity };
+  const legend = document.createElement("legend");
+  legend.textContent = `Medication ${state.root.querySelectorAll(".medication-row").length + 1}`;
+  const fields = [
+    ["med-original", "Medication as entered", value.originalText, 500],
+    ["med-dose", "Dose", value.doseText || "", 160],
+    ["med-route", "Route", value.routeText || "", 160],
+    ["med-frequency", "Frequency", value.frequencyText || "", 160]
+  ];
+  row.append(legend);
+  for (const [className, labelText, fieldValue, maxLength] of fields) {
+    const wrapper = document.createElement("div");
+    const label = document.createElement("label");
+    const input = document.createElement("input");
+    const id = `medical-history-${className}-${crypto.randomUUID()}`;
+    input.id = id;
+    input.className = className;
+    input.type = "text";
+    input.maxLength = maxLength;
+    input.value = fieldValue;
+    label.htmlFor = id;
+    label.textContent = labelText;
+    wrapper.append(label, input);
+    row.append(wrapper);
+  }
+  const identity = document.createElement("div");
+  identity.className = "identity-status";
+  identity.dataset.state = value.normalizedIdentity.state;
+  identity.textContent = IDENTITY_LABELS[value.normalizedIdentity.state];
+  if (value.normalizedIdentity.state === "matched") {
+    identity.textContent += `: ${value.normalizedIdentity.display}`;
+  }
+  const remove = document.createElement("button");
+  remove.className = "remove-medication";
+  remove.type = "button";
+  remove.textContent = "Remove";
+  remove.addEventListener("click", () => {
+    row.remove();
+    updateMedicationControls(state);
+    state.root.querySelector("#add-medication").focus();
   });
-  options.antipsychotics.forEach((label) => elements.antipsychotic.add(new Option(label, label)));
-  options.clozapineContraindications.forEach((label) => {
-    const item = document.createElement("label");
-    item.innerHTML = `<input type="checkbox" value="${escapeAttribute(label)}"> ${label}`;
-    elements.clozapineContraindications.appendChild(item);
-  });
+  row.append(identity, remove);
+  return row;
 }
 
-
-function isYes(name) { return document.querySelector(`input[name="${name}"]:checked`)?.value === "yes"; }
-function updateConditionalFields() {
-  const prior = isYes("prior-antipsychotic-therapy");
-  const contraindication = isYes("clozapine-contraindication");
-  elements.antipsychoticDetails.classList.toggle("hidden", !prior);
-  elements.antipsychotic.required = prior;
-  elements.clozapineContraindications.classList.toggle("hidden", !contraindication);
-  if (!contraindication) elements.clozapineContraindications.querySelectorAll("input").forEach((input) => { input.checked = false; });
+function updateMedicationControls(state) {
+  const rows = state.root.querySelectorAll(".medication-row");
+  state.root.querySelector("#medication-empty").classList.toggle("hidden", rows.length > 0);
+  state.root.querySelector("#add-medication").disabled = rows.length >= 20;
+  rows.forEach((row, index) => { row.querySelector("legend").textContent = `Medication ${index + 1}`; });
 }
-async function activateFromCode(code) {
-  if (!/^[A-Za-z0-9]{6}$/.test(code)) {
-    showError("Enter a valid 6-character activation code.");
+
+function renderMedications(state) {
+  const list = state.root.querySelector("#medication-list");
+  list.replaceChildren(...state.value.medications.map((medication) => createMedicationRow(state, medication)));
+  updateMedicationControls(state);
+}
+
+function setQuestion(state, name, value) {
+  for (const input of state.root.querySelectorAll(`input[name="${name}"]`)) input.checked = input.value === value;
+  state.root.querySelector(`[data-answer-state="${name}"]`).textContent = value ? `Answered: ${CLINICAL_STATES.find(([item]) => item === value)?.[1] || value}` : "Unanswered";
+}
+
+function selectedQuestion(state, name) {
+  return state.root.querySelector(`input[name="${name}"]:checked`)?.value || null;
+}
+
+function updateConditionalFields(state) {
+  const prior = selectedQuestion(state, "prior-antipsychotic-therapy") === "yes";
+  const contraindication = selectedQuestion(state, "clozapine-contraindication") === "yes";
+  state.root.querySelector("#antipsychotic-details").classList.toggle("hidden", !prior);
+  state.root.querySelector("#antipsychotic").required = prior;
+  state.root.querySelector("#clozapine-contraindications").classList.toggle("hidden", !contraindication);
+  if (!contraindication) {
+    for (const input of state.root.querySelectorAll("#clozapine-contraindications input")) input.checked = false;
+  }
+}
+
+function renderValue(state) {
+  const history = state.root.querySelector("#past-medical-history");
+  for (const option of history.options) option.selected = state.value.pastMedicalHistory.includes(option.value);
+  renderMedications(state);
+  for (const name of ["substantial-suicide-risk", "prior-antipsychotic-therapy", "antipsychotic-successful", "clozapine-contraindication", "recurrent-non-adherence-deterioration"]) {
+    const key = name.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+    setQuestion(state, name, state.value[key]);
+  }
+  state.root.querySelector("#antipsychotic").value = state.value.antipsychotic || "";
+  for (const input of state.root.querySelectorAll("#clozapine-contraindications input")) input.checked = state.value.clozapineContraindications.includes(input.value);
+  updateConditionalFields(state);
+}
+
+function medicationPayload(state) {
+  return Array.from(state.root.querySelectorAll(".medication-row")).map((row) => ({
+    originalText: row.querySelector(".med-original").value.trim(),
+    doseText: row.querySelector(".med-dose").value.trim() || null,
+    routeText: row.querySelector(".med-route").value.trim() || null,
+    frequencyText: row.querySelector(".med-frequency").value.trim() || null,
+    normalizedIdentity: { ...row._normalizedIdentity }
+  }));
+}
+
+export function deriveStatus(value) {
+  const required = [value.substantialSuicideRisk, value.priorAntipsychoticTherapy, value.clozapineContraindication, value.recurrentNonAdherenceDeterioration];
+  if (value.priorAntipsychoticTherapy === "yes") required.push(value.priorAntipsychoticTherapySuccessful, value.antipsychotic);
+  if (value.clozapineContraindication === "yes") required.push(value.clozapineContraindications.length ? "answered" : null);
+  return required.every((item) => Boolean(item) && item !== "not-assessed") ? "completed" : "in-progress";
+}
+
+function collectValue(state) {
+  const prior = selectedQuestion(state, "prior-antipsychotic-therapy");
+  const contraindication = selectedQuestion(state, "clozapine-contraindication");
+  const value = {
+    pastMedicalHistory: Array.from(state.root.querySelector("#past-medical-history").selectedOptions).map((option) => option.value),
+    medications: medicationPayload(state),
+    substantialSuicideRisk: selectedQuestion(state, "substantial-suicide-risk") || "not-assessed",
+    priorAntipsychoticTherapy: prior || "not-assessed",
+    priorAntipsychoticTherapySuccessful: prior === "yes" ? selectedQuestion(state, "antipsychotic-successful") || "not-assessed" : "not-assessed",
+    antipsychotic: prior === "yes" ? state.root.querySelector("#antipsychotic").value || null : null,
+    clozapineContraindication: contraindication || "not-assessed",
+    clozapineContraindications: contraindication === "yes" ? Array.from(state.root.querySelectorAll("#clozapine-contraindications input:checked")).map((input) => input.value) : [],
+    recurrentNonAdherenceDeterioration: selectedQuestion(state, "recurrent-non-adherence-deterioration") || "not-assessed",
+    actor: { actorId: state.context.actorId, role: "psychiatrist" }
+  };
+  value.status = deriveStatus(value);
+  return value;
+}
+
+function showError(state, message) {
+  state.error = message;
+  const alert = state.root.querySelector("#medical-history-error");
+  alert.textContent = `Save failed: ${message} This error remains visible until a save succeeds.`;
+  alert.classList.remove("hidden");
+  alert.focus();
+  state.root.querySelector("#medical-history-status").textContent = "Save failed";
+  state.root.querySelector("#medical-history-live").textContent = `Save failed: ${message}`;
+}
+
+function clearErrorAfterSuccess(state) {
+  state.error = null;
+  const alert = state.root.querySelector("#medical-history-error");
+  alert.textContent = "";
+  alert.classList.add("hidden");
+}
+
+async function persist(state) {
+  const value = collectValue(state);
+  if (value.medications.some((medication) => !medication.originalText)) {
+    showError(state, "Medication as entered is required for every medication row.");
     return;
   }
-  const activation = await api("/api/internal/medical-history/activate", {
-    method: "POST",
-    body: JSON.stringify({
-      code,
-      requestedByModule: "standalone-launcher",
-      returnUrl: "/dashboard"
-    })
-  });
-  window.history.replaceState(null, "", `/?code=${encodeURIComponent(activation.code)}`);
-  showForm(activation);
-}
-
-async function restoreActivationFromUrl() {
-  const code = new URLSearchParams(window.location.search).get("code");
-  if (!code) {
-    setStatus("Waiting");
-    addMedicationRow();
-    return;
-  }
-
+  state.saving = true;
+  const submit = state.root.querySelector("#save-medical-history");
+  submit.disabled = true;
+  submit.textContent = "Saving...";
   try {
-    const activation = await api(`/api/internal/medical-history/activation/${encodeURIComponent(code)}`);
-    showForm(activation);
-    if (elements.medicationList.children.length === 0) addMedicationRow();
+    const result = await state.client.save({ context: state.context, assessment: state.assessment, etag: state.etag, value, signal: state.abort.signal });
+    if (mounted !== state) return;
+    if (!result.etag) throw new Error("Medical History returned an incompatible assessment response.");
+    state.assessment = validateServerAssessment(result.assessment, state.context);
+    state.etag = result.etag;
+    state.value = assessmentToFormValue(state.assessment);
+    clearErrorAfterSuccess(state);
+    renderValue(state);
+    state.root.querySelector("#medical-history-status").textContent = state.assessment.status === "completed" ? "Saved: completed" : "Saved: in progress";
+    state.root.querySelector("#medical-history-live").textContent = "Medical history saved successfully.";
+    state.onAssessmentChange?.({ assessmentId: state.assessment.assessmentId, status: state.assessment.status });
   } catch (error) {
-    elements.activationCode.value = code;
-    showError(error.message);
+    if (error.name !== "AbortError" && mounted === state) showError(state, error.message);
+  } finally {
+    if (mounted === state) {
+      state.saving = false;
+      submit.disabled = false;
+      submit.textContent = "Save medical history";
+    }
   }
 }
 
-function goToDashboard() {
-  window.location.assign(state.returnUrl || "/dashboard");
+function handleChange(state, event) {
+  if (event.target.matches('input[type="radio"]')) {
+    const answer = state.root.querySelector(`[data-answer-state="${event.target.name}"]`);
+    answer.textContent = `Answered: ${CLINICAL_STATES.find(([value]) => value === event.target.value)[1]}`;
+    updateConditionalFields(state);
+  }
 }
 
-elements.activationForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
+export async function mount({ root, context, apiBasePath = DEFAULT_API_BASE_PATH, fetchImpl = fetch, onAssessmentChange } = {}) {
+  unmount();
+  if (!(root instanceof Element)) throw new Error("Medical History mount requires a root Element.");
+  root.innerHTML = shell();
+  let normalized;
   try {
-    await activateFromCode(elements.activationCode.value.trim());
+    normalized = normalizeContext(context);
   } catch (error) {
-    showError(error.message);
+    const unavailable = { root, abort: new AbortController(), error, changeHandler: null, submitHandler: null, addHandler: null };
+    mounted = unavailable;
+    showError(unavailable, error.message);
+    for (const control of root.querySelectorAll("button, input, select")) control.disabled = true;
+    return null;
   }
-});
-
-elements.addMedication.addEventListener("click", () => addMedicationRow());
-document.querySelectorAll('input[name="prior-antipsychotic-therapy"], input[name="clozapine-contraindication"]').forEach((input) => input.addEventListener("change", updateConditionalFields));
-elements.backDashboard.addEventListener("click", goToDashboard);
-elements.resultDashboard.addEventListener("click", goToDashboard);
-elements.newEntry.addEventListener("click", () => {
-  window.location.assign("/");
-});
-
-elements.historyForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  clearError();
-
-  const medications = getMedications();
-  const invalidMedication = medications.some((medication) => !medication.name);
-  if (invalidMedication) {
-    showError("Medication name is required when a medication row has data.");
-    return;
-  }
+  const state = {
+    root,
+    context: normalized,
+    client: createMedicalHistoryClient({ fetchImpl, apiBasePath }),
+    assessment: null,
+    etag: null,
+    value: assessmentToFormValue(null),
+    saving: false,
+    error: null,
+    abort: new AbortController(),
+    onAssessmentChange
+  };
+  mounted = state;
+  state.changeHandler = (event) => handleChange(state, event);
+  state.submitHandler = (event) => { event.preventDefault(); persist(state); };
+  state.addHandler = () => {
+    const list = state.root.querySelector("#medication-list");
+    if (list.children.length >= 20) return;
+    const row = createMedicationRow(state);
+    list.append(row);
+    updateMedicationControls(state);
+    row.querySelector("input").focus();
+  };
+  root.addEventListener("change", state.changeHandler);
+  root.querySelector("#medical-history-form").addEventListener("submit", state.submitHandler);
+  root.querySelector("#add-medication").addEventListener("click", state.addHandler);
 
   try {
-    const submission = await api("/api/internal/medical-history/submissions", {
-      method: "POST",
-      body: JSON.stringify({
-        code: elements.activeCode.value,
-        pastMedicalHistory: getSelectedPastMedicalHistory(),
-        drugs: medications,
-        substantialSuicideRisk: isYes("substantial-suicide-risk"),
-        priorAntipsychoticTherapy: isYes("prior-antipsychotic-therapy"),
-        priorAntipsychoticTherapySuccessful: isYes("prior-antipsychotic-therapy") ? isYes("antipsychotic-successful") : null,
-        antipsychotic: isYes("prior-antipsychotic-therapy") ? elements.antipsychotic.value : null,
-        clozapineContraindication: isYes("clozapine-contraindication"),
-        clozapineContraindications: Array.from(elements.clozapineContraindications.querySelectorAll("input:checked")).map((input) => input.value),
-        recurrentNonAdherenceDeterioration: isYes("recurrent-non-adherence-deterioration"),
-        submittedBy: "current-user",
-        source: "standalone-ui"
-      })
-    });
-
-    elements.historyForm.classList.add("hidden");
-    elements.resultPanel.classList.remove("hidden");
-    elements.resultSummary.textContent = `Submission ${submission.submissionId} was saved for activation code ${submission.code}.`;
-    setStatus("Submitted", "active");
+    const [options, result] = await Promise.all([state.client.options(state.abort.signal), state.client.load(normalized, state.abort.signal)]);
+    if (mounted !== state) return null;
+    for (const label of options.pastMedicalHistory) state.root.querySelector("#past-medical-history").add(new Option(label, label));
+    for (const label of options.antipsychotics) state.root.querySelector("#antipsychotic").add(new Option(label, label));
+    for (const label of options.clozapineContraindications) {
+      const item = document.createElement("label");
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.value = label;
+      item.append(input, ` ${label}`);
+      state.root.querySelector("#clozapine-contraindications").append(item);
+    }
+    if (result.assessment) {
+      if (!result.etag) throw new Error("Medical History returned an incompatible assessment response.");
+      state.assessment = validateServerAssessment(result.assessment, normalized);
+      state.etag = result.etag;
+      state.value = assessmentToFormValue(state.assessment);
+    }
+    renderValue(state);
+    state.root.querySelector("#medical-history-status").textContent = state.assessment ? "Loaded" : "Not yet saved";
   } catch (error) {
-    showError(error.message);
+    if (error.name !== "AbortError" && mounted === state) showError(state, error.message);
   }
-});
+  return { unmount, getAssessmentId: () => state.assessment?.assessmentId || null };
+}
 
-loadOptions()
-  .then(restoreActivationFromUrl)
-  .catch((error) => showError(error.message));
+export function unmount() {
+  if (!mounted) return;
+  mounted.abort.abort();
+  if (mounted.changeHandler) mounted.root.removeEventListener("change", mounted.changeHandler);
+  if (mounted.submitHandler) mounted.root.querySelector("#medical-history-form")?.removeEventListener("submit", mounted.submitHandler);
+  if (mounted.addHandler) mounted.root.querySelector("#add-medication")?.removeEventListener("click", mounted.addHandler);
+  mounted.root.replaceChildren();
+  mounted = null;
+}
 
-
-
+if (typeof window !== "undefined") {
+  window.InsightMedicalHistory = Object.freeze({ mount, unmount });
+  const standaloneRoot = document.querySelector("#medical-history-root[data-standalone]");
+  if (standaloneRoot) mount({ root: standaloneRoot, context: window.__INSIGHT_MEDICAL_HISTORY_CONTEXT__ });
+}
