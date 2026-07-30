@@ -8,6 +8,8 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-026: Replace Severity JSON persistence with module-owned SQLite and
+  security controls (In progress).
 - INS-025: Implement server-authoritative PANSS evaluation (In progress).
 - INS-024: Connect embedded Diagnosis UI to v2 assessment context (In
   progress).
@@ -294,6 +296,38 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-026 Severity database and security replacement (In progress). The bounded
+  packet replaces both writable JSON stores with a Node `DatabaseSync`
+  repository and two ordered transactional SQLite migrations. Canonical v2
+  assessments now persist Patient, Encounter, and Assessment UUIDs, resource
+  versions, actor-scoped idempotency, and immutable actor/request-attributed
+  version snapshots under WAL and `BEGIN IMMEDIATE` write transactions. Existing
+  canonical v2 JSON records import once by source hash; records without canonical
+  identity are retained in quarantine, while corrupt or post-import-modified JSON
+  aborts startup instead of becoming an empty store. Every v2 clinical request
+  revalidates the opaque cookie against Authentication
+  `GET /api/auth/v2/session`, fails closed for revocation, malformed responses,
+  gates, expiry, or role mismatch, and permits only psychiatrists. Writes require
+  signed double-submit CSRF; CORS permits credentials only for exact configured
+  origins; no auth bypass exists; production requires an explicit CSRF secret.
+  Strong ETag updates are checked again inside the write transaction, preventing
+  concurrent lost updates. Liveness is dependency-free and readiness checks
+  configuration, SQLite integrity/migration state, and Authentication reachability
+  with safe errors. Patient-code routes now fail closed with
+  `SEVERITY_LEGACY_IDENTITY_UNMAPPED` rather than persisting unverifiable identity.
+  The isolated full `npm test` suite passed all repository, fresh/import,
+  quarantine, corruption, rollback, production configuration, auth/revocation/
+  role, CSRF, CORS, ETag/concurrency, idempotency, evaluator, liveness/readiness,
+  and legacy failure checks. JavaScript syntax, all three contract JSON files,
+  Draft 2020-12 schema checking, common REST profile checks (8/8), root discovery
+  (65/65), and both repository `git diff --check` commands passed. Pre-existing
+  tracked `node_modules` deletions, earlier INS-025 edits, and `graphify-out/` were
+  preserved; module HTTP tests therefore ran from `/tmp/kilo/severity-ins026` with
+  freshly installed Express. No file under `insight-research/doc/`, protected
+  source/model data, runtime JSON/database data, or generated artifact was read or
+  modified. The standalone Severity UI still uses patient-code v1 calls and cannot
+  submit until its separate UUID-context/auth/CSRF consumer migration, so INS-026
+  remains marked in progress.
 - INS-025 server-authoritative PANSS evaluation (In progress). Severity now has
   one pure evaluator for the exact P1-P7, N1-N7, and G1-G16 item set. It returns
   explicit `incomplete`, `passed`, or `completed` evaluation state, exact missing

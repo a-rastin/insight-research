@@ -16,17 +16,22 @@ Part of the **Insight** clinical decision support platform. Communicates with ot
   - `Pass` — skips the assessment → PUT `{status:"passed"}`.
 - **Dashboard button** — resets the workspace, clears URL params, returns to patient lookup.
 - **Patient lookup** — via form or deep-link `?patient_code=<code>` query param (so the parent app can route in directly).
-- **CORS open** for inter-module calls; serves `index.html` at `/` for standalone use.
+- **Protected module API** — Authentication v2 session revalidation on every
+  assessment operation, psychiatrist role enforcement, signed double-submit
+  CSRF on writes, and exact-origin credentialed CORS.
 
 ---
 
 ## Stack
 
-- **Backend** — Node.js + Express (single dependency). File-based JSON persistence in `data/assessments.json`.
+- **Backend** — Node.js 22 + Express with module-owned SQLite persistence through
+  the built-in `node:sqlite` repository seam.
 - **Frontend** — Single-file `public/index.html`. Tailwind via CDN, vanilla JS (ES modules). Zero build step, zero bundler.
 - **Design tokens** — matches `DESIGN.md`: teal `#0A9E8F` accent, Inter body, JetBrains Mono for codes/scores, 2px teal focus rings, clinician-control labels.
 
-> **Ponytail note:** Deliberately minimal. SQLite, build tooling, and auth are intentionally deferred — add when concurrent writes, bundle size, or multi-user identity actually demand them. Each is a one-rung jump, not a rewrite.
+SQLite, Authentication REST verification, CSRF, and concurrency controls are
+implemented. Build tooling remains deliberately deferred while the standalone UI
+remains a single dependency-light page.
 
 ---
 
@@ -58,9 +63,22 @@ recomputed server-side from the exact 30-item set. Responses include explicit
 `incomplete`, `passed`, or `completed` evaluation state and scoring versions.
 Optional browser-projected totals are checked and rejected if malformed or
 mismatched; they are never authoritative. `skipped` contains no ratings or scores
-and never means absent, normal, or favorable. Existing patient-code routes remain
-a v1 compatibility interface, retain their historical `passed` spelling, and use
-the same evaluator.
+and never means absent, normal, or favorable. Patient-code v1 persistence is no
+longer accepted because it cannot establish canonical Patient and Encounter
+identity.
+
+Every assessment route revalidates the opaque browser cookie through
+`GET /api/auth/v2/session`; only an authorized current `psychiatrist` session is
+accepted. Obtain a signed double-submit token from
+`GET /api/severity/v2/csrf`, then send its `token` as `X-CSRF-Token` while the
+`severity_csrf` cookie is present. Clinical writes are actor-attributed in an
+append-only SQLite version ledger.
+
+Legacy patient-code routes now return `410 SEVERITY_LEGACY_IDENTITY_UNMAPPED`.
+They cannot safely persist data because they do not carry verified Patient and
+Encounter UUIDs. Existing JSON records are imported once at startup; canonical
+v2 records are migrated and records without canonical identity are preserved in
+quarantine rather than guessed or discarded.
 
 ### GET `/api/severity/:patient_code`
 
@@ -139,7 +157,22 @@ Open `http://localhost:3000`. Enter a patient code or deep-link: `http://localho
 
 ### As a sub-module
 
-Parent app calls `GET /api/severity/<code>` to load, `PUT /api/severity/<code>` to save. No other surface area. CORS is open so the parent app can hit it from a different origin/port.
+Use the UUID-only v2 assessment routes. Cross-origin browser access is disabled
+unless the exact origin is listed in `SEVERITY_ALLOWED_ORIGINS`; wildcard origins
+are rejected.
+
+Required production configuration:
+
+- `SEVERITY_DB_PATH` — module-owned SQLite path.
+- `SEVERITY_AUTH_BASE_URL` — Authentication service origin.
+- `SEVERITY_CSRF_SECRET` — deployment secret of at least 32 characters.
+- `SEVERITY_ALLOWED_ORIGINS` — optional comma-separated exact browser origins.
+- `NODE_ENV=production` — disables the development-only CSRF default and requires
+  explicit secure configuration.
+
+`GET /healthz` reports process liveness. `GET /readyz` checks SQLite integrity and
+migration version plus Authentication reachability without exposing paths or
+credentials.
 
 ### Run the self-check
 
@@ -147,8 +180,9 @@ Parent app calls `GET /api/severity/<code>` to load, `PUT /api/severity/<code>` 
 npm test
 ```
 
-Runs `assert`-based v2 contract/scoring/idempotency/ETag checks and the v1
-compatibility GET/PUT checks using isolated temporary persistence.
+Runs isolated SQLite migration/import/corruption/quarantine and repository checks,
+production configuration checks, v2 auth/revocation/role/CSRF/CORS/concurrency/
+idempotency checks, health checks, and the fail-closed legacy identity check.
 
 ---
 
@@ -181,8 +215,6 @@ This module follows `DESIGN.md`:
 
 | Skip | Why | Add when |
 |---|---|---|
-| SQLite / Prisma | Single-user localhost, JSON file holds | Concurrent writes or audit-grade schema required |
 | Vite / React / TS | Single-file HTML is readable, no bundle penalty | Component count grows or types start paying for themselves |
-| JWT / session auth | Parent Insight app owns identity | Module is exposed beyond localhost or needs standalone login |
 
 Each is a one-rung jump from current state — not a rewrite. The `ponytail:` comments in `server.js` mark the seams.

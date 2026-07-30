@@ -2,6 +2,34 @@
 
 > Read this first. Everything you need to use, modify, or extend this module is below. If a section doesn't answer your question, the source file named in that section will.
 
+## INS-026 persistence and security replacement
+
+The legacy JSON architecture described later in this historical handoff has been
+superseded. `server.js` now uses `SeverityRepository` in `repository.js` over a
+module-owned SQLite database with two ordered transactional migrations, WAL,
+busy-timeout handling, strong ETag updates, actor-scoped idempotency, and an
+append-only attributed assessment-version ledger.
+
+At startup, existing v1 and v2 JSON sources are parsed before import. Corrupt JSON
+aborts startup and cannot appear as an empty store. Canonical v2 records are
+imported once by source hash; records lacking valid assessment, Patient, or
+Encounter UUIDs are retained in `legacy_quarantine`. A changed source after import
+also fails closed.
+
+All v2 assessment reads and writes revalidate Authentication through
+`GET /api/auth/v2/session`, validate the v2 response and expiry, and require the
+`psychiatrist` role. Writes require a signed `severity_csrf` double-submit token.
+There is no authentication bypass, and production startup rejects the
+development CSRF default. Credentialed CORS is restricted to exact configured
+origins. `/healthz` is dependency-free; `/readyz` verifies SQLite integrity,
+migration state, and Authentication reachability.
+
+The patient-code v1 routes return
+`410 SEVERITY_LEGACY_IDENTITY_UNMAPPED`; they cannot safely write a canonical
+assessment. The standalone UI remains pending its separate UUID-context consumer
+migration. Treat the JSON persistence, open-CORS, no-auth, and v1 route details in
+the historical sections below as pre-INS-026 background only.
+
 ---
 
 ## 1. What this module is

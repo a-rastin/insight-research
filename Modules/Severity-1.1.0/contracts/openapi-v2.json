@@ -5,6 +5,15 @@
     "version": "2.0.0"
   },
   "paths": {
+    "/healthz": {
+      "get": {"operationId": "getSeverityLiveness", "responses": {"200": {"description": "Process is live"}}}
+    },
+    "/readyz": {
+      "get": {"operationId": "getSeverityReadiness", "responses": {"200": {"description": "Storage, configuration, and Authentication are ready"}, "503": {"$ref": "#/components/responses/Problem"}}}
+    },
+    "/api/severity/v2/csrf": {
+      "get": {"operationId": "getSeverityCsrf", "security": [{"cookieAuth": []}], "responses": {"200": {"description": "Signed double-submit CSRF token"}, "401": {"$ref": "#/components/responses/Problem"}, "403": {"$ref": "#/components/responses/Problem"}, "503": {"$ref": "#/components/responses/Problem"}}}
+    },
     "/api/severity/v2/contract": {
       "get": {
         "operationId": "getSeverityV2Contract",
@@ -34,9 +43,11 @@
     "/api/severity/v2/assessments": {
       "post": {
         "operationId": "createPanssAssessment",
+        "security": [{"cookieAuth": []}],
         "parameters": [
           {"$ref": "#/components/parameters/SchemaVersion"},
-          {"$ref": "#/components/parameters/IdempotencyKey"}
+          {"$ref": "#/components/parameters/IdempotencyKey"},
+          {"$ref": "#/components/parameters/CsrfToken"}
         ],
         "requestBody": {
           "required": true,
@@ -47,7 +58,10 @@
         "responses": {
           "201": {"$ref": "#/components/responses/Assessment"},
           "400": {"$ref": "#/components/responses/Problem"},
-          "409": {"$ref": "#/components/responses/Problem"}
+          "401": {"$ref": "#/components/responses/Problem"},
+          "403": {"$ref": "#/components/responses/Problem"},
+          "409": {"$ref": "#/components/responses/Problem"},
+          "503": {"$ref": "#/components/responses/Problem"}
         }
       }
     },
@@ -62,16 +76,22 @@
       ],
       "get": {
         "operationId": "getPanssAssessment",
+        "security": [{"cookieAuth": []}],
         "responses": {
           "200": {"$ref": "#/components/responses/Assessment"},
-          "404": {"$ref": "#/components/responses/Problem"}
+          "401": {"$ref": "#/components/responses/Problem"},
+          "403": {"$ref": "#/components/responses/Problem"},
+          "404": {"$ref": "#/components/responses/Problem"},
+          "503": {"$ref": "#/components/responses/Problem"}
         }
       },
       "put": {
         "operationId": "updatePanssAssessment",
+        "security": [{"cookieAuth": []}],
         "parameters": [
           {"$ref": "#/components/parameters/SchemaVersion"},
-          {"$ref": "#/components/parameters/IfMatch"}
+          {"$ref": "#/components/parameters/IfMatch"},
+          {"$ref": "#/components/parameters/CsrfToken"}
         ],
         "requestBody": {
           "required": true,
@@ -81,13 +101,21 @@
         },
         "responses": {
           "200": {"$ref": "#/components/responses/Assessment"},
+          "400": {"$ref": "#/components/responses/Problem"},
+          "401": {"$ref": "#/components/responses/Problem"},
+          "403": {"$ref": "#/components/responses/Problem"},
+          "404": {"$ref": "#/components/responses/Problem"},
           "412": {"$ref": "#/components/responses/Problem"},
-          "428": {"$ref": "#/components/responses/Problem"}
+          "428": {"$ref": "#/components/responses/Problem"},
+          "503": {"$ref": "#/components/responses/Problem"}
         }
       }
     }
   },
   "components": {
+    "securitySchemes": {
+      "cookieAuth": {"type": "apiKey", "in": "cookie", "name": "insight_session"}
+    },
     "parameters": {
       "SchemaVersion": {
         "name": "X-Schema-Version",
@@ -106,6 +134,12 @@
         "in": "header",
         "required": true,
         "schema": {"type": "string", "pattern": "^\"[^\"]+\"$"}
+      },
+      "CsrfToken": {
+        "name": "X-CSRF-Token",
+        "in": "header",
+        "required": true,
+        "schema": {"type": "string", "minLength": 32}
       }
     },
     "responses": {

@@ -3,6 +3,9 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createHash, randomUUID } from "crypto";
+import { fetchSession, authenticationReachable } from "./auth.js";
+import { mintCsrf, verifyCsrf } from "./csrf.js";
+import { SeverityRepository } from "./repository.js";
 import {
   INTERFACE_VERSION,
   RULE_VERSION,
@@ -13,91 +16,64 @@ import {
   validateAssessmentInput
 } from "./panss.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const dataDir = path.join(__dirname, "data");
+const environment = process.env.NODE_ENV || "development";
+const production = environment === "production";
+const port = Number(process.env.PORT || 3000);
+const databasePath = process.env.SEVERITY_DB_PATH || path.join(dataDir, "severity.db");
+const authBaseUrl = process.env.SEVERITY_AUTH_BASE_URL || "http://127.0.0.1:8101";
+const authTimeoutMs = Number(process.env.SEVERITY_AUTH_TIMEOUT_MS || 2000);
+const csrfSecret = process.env.SEVERITY_CSRF_SECRET || (production ? "" : "severity-development-only-csrf-secret");
+const allowedOrigins = new Set((process.env.SEVERITY_ALLOWED_ORIGINS || "").split(",").map(value => value.trim()).filter(Boolean));
+const contractDir = path.join(__dirname, "contracts");
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-const DATA_DIR = path.join(__dirname, "data");
-const DATA_FILE = process.env.SEVERITY_DATA_FILE || path.join(DATA_DIR, "assessments.json");
-const V2_DATA_FILE = process.env.SEVERITY_V2_DATA_FILE || path.join(DATA_DIR, "assessments-v2.json");
-const CONTRACT_DIR = path.join(__dirname, "contracts");
-
-// Ensure data directory and file exist
-for (const file of [DATA_FILE, V2_DATA_FILE]) {
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  if (!fs.existsSync(file)) {
-    fs.writeFileSync(file, JSON.stringify(file === DATA_FILE ? {} : { assessments: {}, idempotency: {} }, null, 2));
+function validateConfiguration() {
+  if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("PORT must be a valid TCP port");
+  if (!Number.isFinite(authTimeoutMs) || authTimeoutMs < 100 || authTimeoutMs > 30000) throw new Error("SEVERITY_AUTH_TIMEOUT_MS is invalid");
+  let authUrl;
+  try {
+    authUrl = new URL(authBaseUrl);
+  } catch {
+    throw new Error("SEVERITY_AUTH_BASE_URL must be an absolute HTTP URL");
+  }
+  if (!["http:", "https:"].includes(authUrl.protocol)) throw new Error("SEVERITY_AUTH_BASE_URL must use HTTP or HTTPS");
+  if (csrfSecret.length < 32) throw new Error("SEVERITY_CSRF_SECRET must contain at least 32 characters");
+  if (allowedOrigins.has("*")) throw new Error("SEVERITY_ALLOWED_ORIGINS cannot contain a wildcard");
+  for (const origin of allowedOrigins) {
+    const parsed = new URL(origin);
+    if (parsed.origin !== origin || !["http:", "https:"].includes(parsed.protocol)) {
+      throw new Error("SEVERITY_ALLOWED_ORIGINS must contain exact HTTP origins");
+    }
   }
 }
 
-// Middleware
-app.use(express.json({
-  limit: "1mb"
-}));
-app.use(express.static(path.join(__dirname, "public")));
+validateConfiguration();
+fs.mkdirSync(path.dirname(databasePath), { recursive: true });
+const repository = new SeverityRepository(databasePath, [
+  { name: "severity-v1-json", kind: "v1", path: process.env.SEVERITY_DATA_FILE || path.join(dataDir, "assessments.json") },
+  { name: "severity-v2-json", kind: "v2", path: process.env.SEVERITY_V2_DATA_FILE || path.join(dataDir, "assessments-v2.json") }
+]);
 
-// CORS headers for API-first communication with other modules
+const app = express();
+app.disable("x-powered-by");
+app.use(express.json({ limit: "1mb" }));
+
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Schema-Version, X-Request-ID, X-Correlation-ID, X-Causation-ID, Idempotency-Key, If-Match");
-  res.setHeader("Access-Control-Expose-Headers", "ETag, X-Schema-Version, X-Request-ID");
+  const origin = req.get("Origin");
+  if (origin && allowedOrigins.has(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Schema-Version, X-Request-ID, X-Correlation-ID, X-Causation-ID, Idempotency-Key, If-Match, X-CSRF-Token");
+    res.setHeader("Access-Control-Expose-Headers", "ETag, X-Schema-Version, X-Request-ID");
+  }
   if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
+    return origin && allowedOrigins.has(origin) ? res.sendStatus(204) : res.sendStatus(403);
   }
   next();
 });
-
-// Helper to read assessments
-function readAssessments() {
-  try {
-    const data = fs.readFileSync(DATA_FILE, "utf8");
-    return JSON.parse(data);
-  } catch (error) {
-    console.error("Error reading database:", error);
-    return {};
-  }
-}
-
-// Helper to write assessments
-function writeAssessments(data) {
-  try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-    return true;
-  } catch (error) {
-    console.error("Error writing database:", error);
-    return false;
-  }
-}
-
-function readV2Store() {
-  return JSON.parse(fs.readFileSync(V2_DATA_FILE, "utf8"));
-}
-
-function writeV2Store(store) {
-  fs.writeFileSync(V2_DATA_FILE, JSON.stringify(store, null, 2));
-}
-
-function canonicalJson(value) {
-  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
-  if (value !== null && typeof value === "object") {
-    return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(",")}}`;
-  }
-  return JSON.stringify(value);
-}
-
-function pruneIdempotency(store) {
-  const cutoff = Date.now() - 86400000;
-  for (const [key, record] of Object.entries(store.idempotency)) {
-    const createdAt = Date.parse(record.createdAt);
-    if (!Number.isFinite(createdAt) || createdAt <= cutoff) delete store.idempotency[key];
-  }
-}
-
-function etag(assessment) {
-  return `"severity-assessment-${assessment.assessmentId}-v${assessment.resourceVersion}"`;
-}
 
 function requestId(req) {
   return isUuid(req.get("X-Request-ID")) ? req.get("X-Request-ID") : randomUUID();
@@ -118,6 +94,39 @@ function problem(res, id, status, code, title, detail) {
     detail,
     requestId: id
   });
+}
+
+function cookies(req) {
+  return Object.fromEntries((req.get("Cookie") || "").split(";").map(part => part.trim()).filter(Boolean).map(part => {
+    const separator = part.indexOf("=");
+    if (separator < 0) return [part, ""];
+    try {
+      return [part.slice(0, separator), decodeURIComponent(part.slice(separator + 1))];
+    } catch {
+      return [part.slice(0, separator), ""];
+    }
+  }));
+}
+
+async function authorize(req, res, id, requireWrite = false) {
+  const result = await fetchSession(authBaseUrl, req.get("Cookie"), authTimeoutMs);
+  if (result.unavailable) {
+    problem(res, id, 503, "COMMON_DEPENDENCY_UNAVAILABLE", "Authentication unavailable", "Authentication could not verify the session.");
+    return null;
+  }
+  if (!result.session) {
+    problem(res, id, 401, "COMMON_AUTHENTICATION_REQUIRED", "Authentication required", "A current authorized session is required.");
+    return null;
+  }
+  if (result.session.role !== "psychiatrist") {
+    problem(res, id, 403, "COMMON_FORBIDDEN", "Forbidden", "Psychiatrist authority is required.");
+    return null;
+  }
+  if (requireWrite && !verifyCsrf(csrfSecret, result.session.sessionId, cookies(req).severity_csrf, req.get("X-CSRF-Token"))) {
+    problem(res, id, 403, "COMMON_CSRF_REJECTED", "CSRF validation failed", "A valid Severity CSRF token is required.");
+    return null;
+  }
+  return result.session;
 }
 
 function validateV2Request(req, res, id, includeIdentity) {
@@ -161,6 +170,35 @@ function assessmentFromInput(input, id, existing) {
   };
 }
 
+function etag(assessment) {
+  return `"severity-assessment-${assessment.assessmentId}-v${assessment.resourceVersion}"`;
+}
+
+function canonicalJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value !== null && typeof value === "object") {
+    return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+app.get("/healthz", (_req, res) => res.json({ status: "live", module: "severity" }));
+
+app.get("/readyz", async (req, res) => {
+  const id = requestId(req);
+  try {
+    const storageReady = repository.readiness();
+    const authReady = await authenticationReachable(authBaseUrl, authTimeoutMs);
+    if (!storageReady || !authReady) {
+      return problem(res, id, 503, "SEVERITY_NOT_READY", "Severity is not ready", "A required local or Authentication dependency is unavailable.");
+    }
+    setV2Headers(res, id);
+    res.json({ status: "ready", module: "severity", schemaVersion: SCHEMA_VERSION });
+  } catch {
+    problem(res, id, 503, "SEVERITY_NOT_READY", "Severity is not ready", "A required local or Authentication dependency is unavailable.");
+  }
+});
+
 app.get("/api/severity/v2/contract", (req, res) => {
   const id = requestId(req);
   setV2Headers(res, id);
@@ -183,56 +221,53 @@ for (const [route, file] of [
 ]) {
   app.get(`/api/severity/v2/contract/${route}`, (req, res) => {
     setV2Headers(res, requestId(req));
-    res.sendFile(path.join(CONTRACT_DIR, file));
+    res.sendFile(path.join(contractDir, file));
   });
 }
 
-app.post("/api/severity/v2/assessments", (req, res) => {
+app.get("/api/severity/v2/csrf", async (req, res) => {
   const id = requestId(req);
-  if (!validateV2Request(req, res, id, true)) return;
+  const session = await authorize(req, res, id);
+  if (!session) return;
+  const token = mintCsrf(csrfSecret, session.sessionId);
+  res.cookie("severity_csrf", token, { httpOnly: false, sameSite: "strict", secure: production, path: "/api/severity" });
+  setV2Headers(res, id);
+  res.json({ token });
+});
 
+app.post("/api/severity/v2/assessments", async (req, res) => {
+  const id = requestId(req);
+  const session = await authorize(req, res, id, true);
+  if (!session || !validateV2Request(req, res, id, true)) return;
   const key = req.get("Idempotency-Key");
   if (!key || key.length < 8 || key.length > 128) {
     return problem(res, id, 400, "COMMON_IDEMPOTENCY_KEY_REQUIRED", "Idempotency key required", "Idempotency-Key must contain 8 to 128 characters.");
   }
-
   const fingerprint = createHash("sha256").update(canonicalJson(req.body)).digest("hex");
   try {
-    const store = readV2Store();
-    pruneIdempotency(store);
-    const activePrior = store.idempotency[key];
-    if (activePrior && activePrior.fingerprint !== fingerprint) {
-      return problem(res, id, 409, "COMMON_IDEMPOTENCY_KEY_REUSED", "Idempotency key reused", "Idempotency-Key was already used with different input.");
-    }
-    if (activePrior) {
-      const assessment = activePrior.response;
-      setV2Headers(res, id);
-      res.setHeader("ETag", etag(assessment));
-      return res.status(201).json(assessment);
-    }
-
     const assessment = assessmentFromInput(req.body, id);
-    store.assessments[assessment.assessmentId] = assessment;
-    store.idempotency[key] = { fingerprint, response: assessment, createdAt: new Date().toISOString() };
-    writeV2Store(store);
+    const result = repository.createIdempotent({ actorId: session.actorId, key, fingerprint, assessment, requestId: id });
+    if (result.conflict) {
+      return problem(res, id, 409, "COMMON_IDEMPOTENCY_KEY_REUSED", "Idempotency key reused", "Idempotency-Key was already used with different input by this actor.");
+    }
     setV2Headers(res, id);
-    res.setHeader("ETag", etag(assessment));
-    res.status(201).json(assessment);
+    res.setHeader("ETag", etag(result.assessment));
+    res.status(201).json(result.assessment);
   } catch {
     problem(res, id, 503, "SEVERITY_STORAGE_UNAVAILABLE", "Severity storage unavailable", "Assessment could not be persisted.");
   }
 });
 
-app.get("/api/severity/v2/assessments/:assessmentId", (req, res) => {
+app.get("/api/severity/v2/assessments/:assessmentId", async (req, res) => {
   const id = requestId(req);
+  const session = await authorize(req, res, id);
+  if (!session) return;
   if (!isUuid(req.params.assessmentId)) {
     return problem(res, id, 400, "SEVERITY_INVALID_ASSESSMENT_ID", "Invalid assessment identifier", "assessmentId must be a UUID.");
   }
   try {
-    const assessment = readV2Store().assessments[req.params.assessmentId];
-    if (!assessment) {
-      return problem(res, id, 404, "SEVERITY_ASSESSMENT_NOT_FOUND", "Assessment not found", "No PANSS assessment has that identifier.");
-    }
+    const assessment = repository.get(req.params.assessmentId);
+    if (!assessment) return problem(res, id, 404, "SEVERITY_ASSESSMENT_NOT_FOUND", "Assessment not found", "No PANSS assessment has that identifier.");
     setV2Headers(res, id);
     res.setHeader("ETag", etag(assessment));
     res.json(assessment);
@@ -241,148 +276,59 @@ app.get("/api/severity/v2/assessments/:assessmentId", (req, res) => {
   }
 });
 
-app.put("/api/severity/v2/assessments/:assessmentId", (req, res) => {
+app.put("/api/severity/v2/assessments/:assessmentId", async (req, res) => {
   const id = requestId(req);
+  const session = await authorize(req, res, id, true);
+  if (!session) return;
   if (!isUuid(req.params.assessmentId)) {
     return problem(res, id, 400, "SEVERITY_INVALID_ASSESSMENT_ID", "Invalid assessment identifier", "assessmentId must be a UUID.");
   }
   if (!validateV2Request(req, res, id, false)) return;
   const ifMatch = req.get("If-Match");
-  if (!ifMatch) {
-    return problem(res, id, 428, "COMMON_PRECONDITION_REQUIRED", "Precondition required", "If-Match is required for assessment updates.");
-  }
-
+  if (!ifMatch) return problem(res, id, 428, "COMMON_PRECONDITION_REQUIRED", "Precondition required", "If-Match is required for assessment updates.");
   try {
-    const store = readV2Store();
-    const current = store.assessments[req.params.assessmentId];
-    if (!current) {
-      return problem(res, id, 404, "SEVERITY_ASSESSMENT_NOT_FOUND", "Assessment not found", "No PANSS assessment has that identifier.");
-    }
-    if (ifMatch !== etag(current)) {
-      return problem(res, id, 412, "COMMON_PRECONDITION_FAILED", "Precondition failed", "Assessment changed after it was read.");
-    }
-
+    const current = repository.get(req.params.assessmentId);
+    if (!current) return problem(res, id, 404, "SEVERITY_ASSESSMENT_NOT_FOUND", "Assessment not found", "No PANSS assessment has that identifier.");
+    if (ifMatch !== etag(current)) return problem(res, id, 412, "COMMON_PRECONDITION_FAILED", "Precondition failed", "Assessment changed after it was read.");
     const assessment = assessmentFromInput(req.body, id, current);
-    store.assessments[assessment.assessmentId] = assessment;
-    writeV2Store(store);
+    const result = repository.update({
+      assessmentId: current.assessmentId,
+      expectedVersion: current.resourceVersion,
+      assessment,
+      actorId: session.actorId,
+      requestId: id
+    });
+    if (result.missing) return problem(res, id, 404, "SEVERITY_ASSESSMENT_NOT_FOUND", "Assessment not found", "No PANSS assessment has that identifier.");
+    if (result.stale) return problem(res, id, 412, "COMMON_PRECONDITION_FAILED", "Precondition failed", "Assessment changed after it was read.");
     setV2Headers(res, id);
-    res.setHeader("ETag", etag(assessment));
-    res.json(assessment);
+    res.setHeader("ETag", etag(result.assessment));
+    res.json(result.assessment);
   } catch {
     problem(res, id, 503, "SEVERITY_STORAGE_UNAVAILABLE", "Severity storage unavailable", "Assessment could not be persisted.");
   }
 });
 
-// GET api/severity/:patient_code
-app.get("/api/severity/:patient_code", (req, res) => {
-  const { patient_code } = req.params;
-  if (!patient_code || patient_code.trim() === "") {
-    return res.status(400).json({ error: "Patient code is required" });
-  }
-
-  const assessments = readAssessments();
-  const assessment = assessments[patient_code];
-
-  if (assessment) {
-    return res.json(assessment);
-  } else {
-    // Return empty initial state for new patient evaluation
-    const evaluation = evaluatePanss("incomplete", {});
-    return res.json({
-      patient_code,
-      status: "pending",
-      items: {},
-      scores: {
-        total: 0,
-        positive: 0,
-        negative: 0,
-        general: 0
-      },
-      evaluation: {
-        state: evaluation.state,
-        missingItemCodes: evaluation.missingItemCodes,
-        scores: evaluation.scores,
-        scaleVersion: evaluation.scaleVersion,
-        ruleVersion: evaluation.ruleVersion
-      }
-    });
-  }
+app.all("/api/severity/:patientCode", (req, res) => {
+  const id = requestId(req);
+  problem(res, id, 410, "SEVERITY_LEGACY_IDENTITY_UNMAPPED", "Legacy Severity route unavailable", "Patient-code records cannot be persisted without verified Patient and Encounter UUIDs; use the v2 assessment API.");
 });
 
-// PUT api/severity/:patient_code
-app.put("/api/severity/:patient_code", (req, res) => {
-  const { patient_code } = req.params;
-  const { status, scores, items } = req.body || {};
-
-  if (!patient_code || patient_code.trim() === "") {
-    return res.status(400).json({ error: "Patient code is required" });
-  }
-
-  if (!status || !["completed", "passed"].includes(status)) {
-    return res.status(400).json({ error: "Status must be 'completed' or 'passed'" });
-  }
-
-  const assessments = readAssessments();
-  const evaluation = evaluatePanss(
-    status === "passed" ? "passed" : "completed",
-    status === "passed" ? {} : items,
-    status === "passed" ? undefined : scores
-  );
-  if (!evaluation.valid) {
-    return res.status(400).json({ error: evaluation.detail, code: evaluation.code });
-  }
-
-  if (status === "passed") {
-    assessments[patient_code] = {
-      patient_code,
-      status: "passed",
-      evaluation: {
-        state: evaluation.state,
-        missingItemCodes: evaluation.missingItemCodes,
-        scores: evaluation.scores,
-        scaleVersion: evaluation.scaleVersion,
-        ruleVersion: evaluation.ruleVersion
-      },
-      updated_at: new Date().toISOString()
-    };
-  } else {
-    assessments[patient_code] = {
-      patient_code,
-      status: "completed",
-      scores: evaluation.scores,
-      items,
-      evaluation: {
-        state: evaluation.state,
-        missingItemCodes: evaluation.missingItemCodes,
-        scores: evaluation.scores,
-        scaleVersion: evaluation.scaleVersion,
-        ruleVersion: evaluation.ruleVersion
-      },
-      updated_at: new Date().toISOString()
-    };
-  }
-
-  if (writeAssessments(assessments)) {
-    return res.json({ success: true, data: assessments[patient_code] });
-  } else {
-    return res.status(500).json({ error: "Failed to write to database" });
-  }
-});
-
-// Fallback to SPA index.html for all other routes to allow standalone client-side routing if needed
+app.use(express.static(path.join(__dirname, "public")));
 app.get("*", (req, res, next) => {
-  // If requesting api, let it 404
-  if (req.path.startsWith("/api/")) {
-    return next();
-  }
+  if (req.path.startsWith("/api/")) return next();
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-app.listen(PORT, () => {
-  console.log(`====================================================`);
-  console.log(` Severity Module is running as a Standalone Web App`);
-  console.log(` URL: http://localhost:${PORT}`);
-  console.log(` GET API: http://localhost:${PORT}/api/severity/:patient_code`);
-  console.log(` PUT API: http://localhost:${PORT}/api/severity/:patient_code`);
-  console.log(`====================================================`);
+const server = app.listen(port, "127.0.0.1", () => {
+  console.log(`Severity Module listening on 127.0.0.1:${port}`);
 });
+
+function shutdown() {
+  server.close(() => {
+    repository.close();
+    process.exit(0);
+  });
+}
+
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);

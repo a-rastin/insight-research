@@ -55,7 +55,28 @@
     "sameKeyDifferentRequest": "409 COMMON_IDEMPOTENCY_KEY_REUSED",
     "retentionSeconds": 86400
   },
+  "persistence": {
+    "engine": "module-owned SQLite",
+    "schemaVersion": 2,
+    "migrations": "ordered, transactional, and append-only",
+    "legacyImport": "Existing JSON is imported once. Records lacking canonical patientId and encounterId UUIDs are retained in quarantine and are never exposed as assessments.",
+    "corruption": "Malformed import JSON or failed migration aborts startup and leaves the prior database state unchanged.",
+    "assessmentVersions": "Every accepted create and update appends an immutable attributed snapshot."
+  },
+  "security": {
+    "authentication": "Every assessment read and write revalidates the opaque browser cookie through GET /api/auth/v2/session.",
+    "authorizedRole": "psychiatrist",
+    "writes": "Signed double-submit CSRF is required after authentication and authorization.",
+    "cors": "Credentialed cross-origin access is limited to explicitly configured exact origins; wildcard origins are forbidden.",
+    "mockAuthentication": "No runtime authentication bypass is supported."
+  },
+  "health": {
+    "liveness": "/healthz",
+    "readiness": "/readyz",
+    "readinessChecks": ["configuration", "SQLite integrity and migration version", "Authentication dependency"]
+  },
   "provenance": {
-    "required": ["sourceModule", "createdAt", "updatedAt", "createdRequestId", "updatedRequestId", "scaleVersion", "ruleVersion"]
+    "required": ["sourceModule", "createdAt", "updatedAt", "createdRequestId", "updatedRequestId", "scaleVersion", "ruleVersion"],
+    "appendOnlyLedger": "Every accepted version records the authenticated actor UUID, request UUID, timestamp, resource version, and immutable assessment snapshot in module-owned storage."
   }
 }
