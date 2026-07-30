@@ -1,0 +1,12 @@
+Interaction Checker
+https://example.invalid/source
+mysterydrug (Rx)
+Interactions
+Serious (2)
+
+123 not a drug heading
+This sentence increases levels and should never become a heading.
+
+validdrug
+mysterydrug increases validdrug levels. Monitor closely.
+Adverse Effects

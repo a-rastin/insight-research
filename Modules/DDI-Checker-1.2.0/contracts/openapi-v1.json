@@ -1,0 +1,262 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "INSIGHT DDI API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/ddi/v1"
+    }
+  ],
+  "paths": {
+    "/contract": {
+      "get": {
+        "operationId": "getDdiContract",
+        "responses": {
+          "200": {
+            "description": "DDI contract discovery"
+          }
+        }
+      }
+    },
+    "/knowledge-revisions": {
+      "post": {
+        "operationId": "createKnowledgeRevision",
+        "description": "Admin-only idempotent creation of an immutable draft knowledge revision.",
+        "responses": {
+          "201": {
+            "description": "Draft revision created"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Admin role required"
+          },
+          "409": {
+            "description": "Idempotency conflict"
+          }
+        }
+      }
+    },
+    "/knowledge-revisions/{revisionId}/review": {
+      "post": {
+        "operationId": "reviewKnowledgeRevision",
+        "description": "Clinical-reviewer transition from draft to reviewed.",
+        "parameters": [
+          {
+            "name": "revisionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "ddi-v1.schema.json#/$defs/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revision reviewed"
+          },
+          "409": {
+            "description": "Invalid lifecycle transition"
+          },
+          "412": {
+            "description": "Stale strong ETag"
+          },
+          "428": {
+            "description": "If-Match required"
+          }
+        }
+      }
+    },
+    "/knowledge-revisions/{revisionId}/activate": {
+      "post": {
+        "operationId": "activateKnowledgeRevision",
+        "description": "Admin-only activation of a reviewed revision; the former active revision is retired.",
+        "parameters": [
+          {
+            "name": "revisionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "ddi-v1.schema.json#/$defs/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviewed revision activated"
+          },
+          "409": {
+            "description": "Invalid lifecycle transition"
+          },
+          "412": {
+            "description": "Stale strong ETag"
+          },
+          "428": {
+            "description": "If-Match required"
+          }
+        }
+      }
+    },
+    "/knowledge-revisions/{revisionId}/rollback": {
+      "post": {
+        "operationId": "rollbackKnowledgeRevision",
+        "description": "Admin-only rollback by activating a prior reviewed revision and appending a new activation event.",
+        "parameters": [
+          {
+            "name": "revisionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "ddi-v1.schema.json#/$defs/uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Prior reviewed revision activated without changing historical checks"
+          },
+          "409": {
+            "description": "Revision is not eligible for rollback"
+          },
+          "412": {
+            "description": "Stale strong ETag"
+          },
+          "428": {
+            "description": "If-Match required"
+          }
+        }
+      }
+    },
+    "/checks": {
+      "post": {
+        "operationId": "createDdiClinicalCheck",
+        "description": "Checks the exact Treatment Plan medication set against the active reviewed knowledge revision.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "ddi-v1.schema.json#/$defs/sha256"
+            }
+          },
+          {
+            "name": "X-Schema-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "const": "1.0.0"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "ddi-v1.schema.json#/$defs/checkRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Clinical check created or idempotently replayed",
+            "headers": {
+              "X-Schema-Version": {
+                "required": true,
+                "schema": {
+                  "const": "1.0.0"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "ddi-v1.schema.json#/$defs/checkResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unsupported schema major"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Role is not permitted"
+          },
+          "409": {
+            "description": "Idempotency key conflict"
+          },
+          "422": {
+            "description": "Invalid request or medication-set hash"
+          },
+          "503": {
+            "description": "No active reviewed knowledge revision"
+          }
+        }
+      }
+    },
+    "/checks/{checkId}/findings/{alertId}/actions": {
+      "post": {
+        "operationId": "recordFindingAction",
+        "description": "Append a psychiatrist finding action; a policy-permitted high-severity override requires rationale and remains subject to final revalidation.",
+        "parameters": [
+          {
+            "name": "checkId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "ddi-v1.schema.json#/$defs/uuid"
+            }
+          },
+          {
+            "name": "alertId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "ddi-v1.schema.json#/$defs/uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "ddi-v1.schema.json#/$defs/sha256"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "ddi-v1.schema.json#/$defs/findingAction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Append-only action recorded"
+          },
+          "403": {
+            "description": "Psychiatrist role or override policy denied"
+          },
+          "409": {
+            "description": "Idempotency conflict"
+          },
+          "422": {
+            "description": "Rationale or action invalid"
+          }
+        }
+      }
+    }
+  }
+}

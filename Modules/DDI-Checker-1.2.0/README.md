@@ -2,6 +2,21 @@
 
 Standalone clinical decision support module for a versioned interaction knowledge base, deterministic pairwise checking, admin review, and audit capture.
 
+## Published v1 contract
+
+The production REST boundary is published under `contracts/`:
+
+- `ddi-v1.contract.json` defines medication resolution, immutable knowledge
+  revision lifecycle and rollback, clinical checks, findings, append-only
+  clinical audit, override rules, roles, hashes, idempotency, and typed errors.
+- `ddi-v1.schema.json` provides Draft 2020-12 schemas.
+- `openapi-v1.json` publishes `POST /api/ddi/v1/checks`, aligned with the
+  Treatment Plan medication-set request and response seam.
+
+This packet publishes the interface only. The current browser-local storage and
+admin workflow remain prototype behavior and do not satisfy the protected,
+server-owned production contract.
+
 ## Run
 
 Open `index.html` in a browser, or serve the folder with any static server.

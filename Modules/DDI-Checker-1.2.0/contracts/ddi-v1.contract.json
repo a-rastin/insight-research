@@ -1,0 +1,150 @@
+{
+  "contractId": "insight.ddi",
+  "interfaceVersion": "1.0.0",
+  "schemaVersion": "1.0.0",
+  "moduleOwner": "ddi",
+  "status": "published",
+  "commonRestProfile": "1.0.0",
+  "basePath": "/api/ddi/v1",
+  "artifacts": [
+    "ddi-v1.contract.json",
+    "ddi-v1.schema.json",
+    "openapi-v1.json"
+  ],
+  "identityResolution": {
+    "inputPreserved": true,
+    "states": [
+      "resolved",
+      "ambiguous",
+      "unknown"
+    ],
+    "resolvedRequires": [
+      "conceptId",
+      "codeSystem",
+      "display"
+    ],
+    "ambiguousRequiresCandidates": true,
+    "unknownRequiresReason": true,
+    "unresolvedCoverageIsNotNoInteraction": true
+  },
+  "knowledgeRevisionLifecycle": {
+    "states": [
+      "draft",
+      "reviewed",
+      "active",
+      "retired"
+    ],
+    "transitions": {
+      "draft": [
+        "reviewed"
+      ],
+      "reviewed": [
+        "draft",
+        "active"
+      ],
+      "active": [
+        "retired"
+      ],
+      "retired": []
+    },
+    "immutableAfterActivation": true,
+    "singleActiveRevision": true,
+    "activationRequiresClinicalReview": true,
+    "rollback": {
+      "operation": "activate-prior-reviewed-revision",
+      "createsNewActivationEvent": true,
+      "doesNotMutateHistoricalChecks": true
+    },
+    "identity": [
+      "knowledgeBaseId",
+      "revisionId",
+      "version",
+      "contentHash"
+    ],
+    "hashAlgorithm": "sha256"
+  },
+  "clinicalCheck": {
+    "method": "POST",
+    "path": "/checks",
+    "consumer": "treatment-plan",
+    "requiresActiveKnowledgeRevision": true,
+    "checksEveryPairWhenAllMedicationsResolve": true,
+    "preservesMedicationInstances": true,
+    "medicationSetHash": {
+      "algorithm": "sha256",
+      "canonicalization": "schema-version-plus-medications-excluding-inputIndex-sorted-by-canonical-json",
+      "responseMustEqualRequest": true
+    },
+    "idempotency": {
+      "header": "Idempotency-Key",
+      "bodyCompatibilityField": "idempotencyKey",
+      "bothValuesMustMatch": true,
+      "sameFingerprint": "return-original-result-without-reexecution",
+      "differentFingerprintError": "DDI_IDEMPOTENCY_KEY_REUSED"
+    },
+    "unresolvedBehavior": "return-incomplete-coverage-and-no-negative-claim",
+    "resultIsAdvisory": true
+  },
+  "findingsAndAudit": {
+    "findingsImmutable": true,
+    "findingKeepsEvidenceAndKnowledgeIdentity": true,
+    "clinicalAuditAppendOnly": true,
+    "securityAuditSeparate": true,
+    "allowedFindingActions": [
+      "accepted",
+      "dismissed",
+      "overridden"
+    ],
+    "override": {
+      "allowedRole": "psychiatrist",
+      "allowedSeverities": [
+        "high"
+      ],
+      "rationaleMinLength": 20,
+      "rationaleMaxLength": 2000,
+      "preserveOriginalFinding": true,
+      "requiresServerRevalidation": true,
+      "requiresFinalAttestation": true
+    }
+  },
+  "permissions": {
+    "psychiatrist": [
+      "resolve-medications",
+      "run-clinical-check",
+      "record-finding-action",
+      "override-high-finding"
+    ],
+    "admin": [
+      "create-draft-revision",
+      "submit-revision-for-review",
+      "activate-reviewed-revision",
+      "rollback-to-reviewed-revision",
+      "retire-active-revision",
+      "read-knowledge-audit"
+    ],
+    "clinicalReviewer": [
+      "review-revision",
+      "return-revision-to-draft"
+    ],
+    "forbidden": {
+      "admin": [
+        "override-clinical-finding"
+      ],
+      "psychiatrist": [
+        "activate-knowledge-revision"
+      ]
+    }
+  },
+  "errors": {
+    "DDI_UNAUTHENTICATED": 401,
+    "DDI_FORBIDDEN": 403,
+    "DDI_NOT_FOUND": 404,
+    "DDI_IDEMPOTENCY_KEY_REUSED": 409,
+    "DDI_REVISION_TRANSITION_INVALID": 409,
+    "DDI_PRECONDITION_REQUIRED": 428,
+    "DDI_PRECONDITION_FAILED": 412,
+    "DDI_SCHEMA_INVALID": 422,
+    "DDI_MEDICATION_SET_HASH_MISMATCH": 422,
+    "DDI_NO_ACTIVE_KNOWLEDGE_REVISION": 503
+  }
+}

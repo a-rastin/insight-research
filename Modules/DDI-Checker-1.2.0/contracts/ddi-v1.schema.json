@@ -1,0 +1,512 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://insight.invalid/schemas/ddi-v1.schema.json",
+  "title": "INSIGHT DDI v1 schemas",
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(Z|[+-]00:00)$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "medicationInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inputIndex",
+        "source",
+        "originalText"
+      ],
+      "properties": {
+        "inputIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source": {
+          "enum": [
+            "current",
+            "proposed"
+          ]
+        },
+        "originalText": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "medicationCode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "codeSystem": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "route": {
+          "type": "string",
+          "minLength": 1
+        },
+        "frequency": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "conceptId",
+        "codeSystem",
+        "display"
+      ],
+      "properties": {
+        "conceptId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "codeSystem": {
+          "type": "string",
+          "minLength": 1
+        },
+        "display": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "medicationResolution": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "inputIndex",
+            "status",
+            "originalText",
+            "conceptId",
+            "codeSystem",
+            "display"
+          ],
+          "properties": {
+            "inputIndex": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "status": {
+              "const": "resolved"
+            },
+            "originalText": {
+              "type": "string",
+              "minLength": 1
+            },
+            "conceptId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "codeSystem": {
+              "type": "string",
+              "minLength": 1
+            },
+            "display": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "inputIndex",
+            "status",
+            "originalText",
+            "reason",
+            "candidates"
+          ],
+          "properties": {
+            "inputIndex": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "status": {
+              "const": "ambiguous"
+            },
+            "originalText": {
+              "type": "string",
+              "minLength": 1
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "candidates": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "$ref": "#/$defs/candidate"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "inputIndex",
+            "status",
+            "originalText",
+            "reason",
+            "candidates"
+          ],
+          "properties": {
+            "inputIndex": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "status": {
+              "const": "unknown"
+            },
+            "originalText": {
+              "type": "string",
+              "minLength": 1
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "candidates": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "knowledgeRevision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "knowledgeBaseId",
+        "revisionId",
+        "version",
+        "contentHash",
+        "state",
+        "createdAt",
+        "createdBy",
+        "resourceVersion"
+      ],
+      "properties": {
+        "knowledgeBaseId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "revisionId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "contentHash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "state": {
+          "enum": [
+            "draft",
+            "reviewed",
+            "active",
+            "retired"
+          ]
+        },
+        "createdAt": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "createdBy": {
+          "$ref": "#/$defs/uuid"
+        },
+        "reviewedAt": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "reviewedBy": {
+          "$ref": "#/$defs/uuid"
+        },
+        "activatedAt": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "activatedBy": {
+          "$ref": "#/$defs/uuid"
+        },
+        "supersedesRevisionId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "resourceVersion": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "checkRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "idempotencyKey",
+        "planSemanticHash",
+        "medicationSetHash",
+        "medications"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "1.0.0"
+        },
+        "idempotencyKey": {
+          "$ref": "#/$defs/sha256"
+        },
+        "planSemanticHash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "medicationSetHash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "medications": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/medicationInput"
+          }
+        }
+      }
+    },
+    "pairChecked": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "medicationInputIndexes"
+      ],
+      "properties": {
+        "medicationInputIndexes": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceId",
+        "sourceVersion",
+        "summary"
+      ],
+      "properties": {
+        "sourceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "alertId",
+        "medicationInputIndexes",
+        "severity",
+        "recommendedAction",
+        "evidence"
+      ],
+      "properties": {
+        "alertId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "medicationInputIndexes": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "severity": {
+          "enum": [
+            "contraindicated",
+            "high",
+            "moderate",
+            "low",
+            "unknown"
+          ]
+        },
+        "mechanism": {
+          "type": "string"
+        },
+        "recommendedAction": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        }
+      }
+    },
+    "checkResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "checkId",
+        "medicationSetHash",
+        "knowledgeBaseId",
+        "knowledgeBaseVersion",
+        "knowledgeBaseContentHash",
+        "coverageStatus",
+        "normalizedMedications",
+        "unresolvedMedications",
+        "pairsChecked",
+        "alerts",
+        "checkedAt"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "1.0.0"
+        },
+        "checkId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "medicationSetHash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "knowledgeBaseId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "knowledgeBaseVersion": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "knowledgeBaseContentHash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "coverageStatus": {
+          "enum": [
+            "complete",
+            "incomplete"
+          ]
+        },
+        "normalizedMedications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/medicationResolution"
+          }
+        },
+        "unresolvedMedications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/medicationResolution"
+          }
+        },
+        "pairsChecked": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/pairChecked"
+          }
+        },
+        "alerts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/finding"
+          }
+        },
+        "checkedAt": {
+          "$ref": "#/$defs/utcTimestamp"
+        }
+      }
+    },
+    "findingAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actionId",
+        "alertId",
+        "action",
+        "actorId",
+        "actorRole",
+        "recordedAt"
+      ],
+      "properties": {
+        "actionId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "alertId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "action": {
+          "enum": [
+            "accepted",
+            "dismissed",
+            "overridden"
+          ]
+        },
+        "actorId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "actorRole": {
+          "const": "psychiatrist"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 2000
+        },
+        "recordedAt": {
+          "$ref": "#/$defs/utcTimestamp"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "overridden"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "rationale"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

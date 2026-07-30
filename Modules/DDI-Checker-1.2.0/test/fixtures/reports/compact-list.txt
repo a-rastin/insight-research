@@ -1,0 +1,7 @@
+quetiapine (Rx)
+Interactions
+Contraindicated (1)
+• lefamulin: increases level/effect of quetiapine by affecting CYP3A4 metabolism. Contraindicated.
+Monitor Closely (3)
+• Increased Sedation/CNS Depression: alprazolam, lorazepam and zolpidem.
+Warnings

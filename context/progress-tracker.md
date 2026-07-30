@@ -242,6 +242,24 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-018 DDI knowledge and clinical-check v1 contract packet. Interface/schema
+  `1.0.0` now defines resolved, ambiguous, and unknown medication identity;
+  immutable draft/reviewed/active/retired knowledge revisions; attributable
+  review, activation, and rollback; exact medication-instance pairwise checks;
+  incomplete coverage; findings and append-only clinical audit; the sole
+  high-severity psychiatrist override; version/content and medication-set
+  hashes; deterministic idempotency; role permissions; and typed errors.
+  OpenAPI publishes the Treatment Plan-aligned `POST /api/ddi/v1/checks` seam
+  plus knowledge lifecycle and finding-action routes. Contract JSON syntax and
+  Draft 2020-12 schema checks passed; focused tests passed 5/5; the mirrored DDI
+  module suite passed 6/6 after restoring its pre-existing missing parser,
+  parity test, and report fixtures byte-for-byte from the protected source
+  repository. Root discovery ran 64 tests with 62 passing and the same two
+  unrelated existing capability-matrix failures for missing issue headings and
+  a stale project-overview hash. Protected server runtime, authentication,
+  authorization/CSRF, revision persistence, audit persistence, and endpoint
+  implementation remain pending, so the packet stays in progress and clinical
+  deployment remains blocked.
 - INS-017 Medical History assessment v2 contract packet. Interface/schema
   `2.0.0`, versioned controlled options, canonical Patient/Encounter/Assessment
   and psychiatrist Actor UUIDs, created/updated timestamps, resource versions,
@@ -641,6 +659,15 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- INS-018 publishes DDI v1 lifecycle, clinical-check, finding/audit/override,
+  permissions, hash, idempotency, and error contracts with Draft 2020-12 schemas
+  and OpenAPI. It does not claim the current browser-local workflow implements
+  the protected server contract. The missing parser, parity test, and report
+  fixtures in the destination DDI mirror were copied unchanged from
+  `/root/research/Modules`; that protected source was not modified. No clinical
+  knowledge bytes, active knowledge artifacts, runtime data, generated
+  `graphify-out/` artifact, or file under `insight-research/doc/` was read or
+  modified.
 - INS-016 adds PANSS v2 contract/schema/OpenAPI artifacts, one deterministic
   server scorer, UUID assessment routes, idempotent create behavior, strong-ETag
   updates, provenance, isolated tests, and module documentation. Legacy v1 API

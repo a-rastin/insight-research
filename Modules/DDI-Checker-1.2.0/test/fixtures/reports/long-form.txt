@@ -1,0 +1,16 @@
+fluoxetine (Rx)
+Brand and Other Names: Prozac
+Dosage Forms & Strengths
+capsule
+10mg
+Interactions
+Contraindicated (1)
+
+pimozide
+fluoxetine and pimozide both increase QTc interval. Contraindicated.
+
+Serious (1)
+
+amitriptyline
+fluoxetine increases amitriptyline levels through CYP2C19. Avoid or Use Alternate Drug.
+Adverse Effects
