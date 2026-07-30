@@ -8,6 +8,8 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- Capability completion packets INS-011 and INS-067 through INS-082 (In
+  progress); INS-067 is complete and later packets remain separately gated.
 - INS-020: Reconcile Treatment Plan OpenAPI with live routes (In progress).
 - INS-019: Publish BN evaluation and registry-governance v3 contract (In
   progress).
@@ -22,6 +24,24 @@ Update this file after every meaningful implementation change.
 
 ## Completed
 
+- INS-067 rolls out the Authentication v2 trust contract to the bounded
+  Dashboard consumer adapter. Dashboard now calls only
+  `GET /api/auth/v2/session`, requires schema/interface `2.0.0`, UUID user and
+  session identities, lowercase provider roles, an active future UTC `Z`
+  expiry, `authorized: true`, and cleared password/disclaimer gates. Legacy,
+  malformed, unsupported-major, gated, expired, and revoked responses fail
+  closed; every protected Dashboard request revalidates Authentication, while
+  the Authentication-owned v1 route remains only its deprecated compatibility
+  adapter. The restored Dashboard adapter is module-owned and was copied from
+  the protected source before being migrated; no protected source file was
+  changed. Focused Dashboard normalization tests passed 2/2, its full backend
+  suite passed 16/16, and its frontend test passed. Authentication provider and
+  full suites passed 7/7 and 19/19, including expiry, revocation, disablement,
+  role, disclaimer, password, CSRF, rate-limit, cookie, and v1 deprecation
+  behavior. Common REST profile checks passed 8/8, root discovery passed 65/65,
+  changed Python files compiled, and `git diff --check` passed. No file under
+  `insight-research/doc/` was read or modified. Remaining feature-22 headings
+  are separate packets and are not claimed complete.
 - INS-021 implements Patient and Encounter v2 in the Add New Patient owner.
   Ordered `patient-intake-v1` and `patient-encounter-v2` migration records now
   apply schema and backfill changes atomically; collision or invalid-row failure
@@ -269,6 +289,9 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- Feature 22 capability-completion sequence (In progress). INS-067 is complete;
+  INS-011 still requires named accountable owners and release evidence, and
+  INS-068 through INS-082 remain separate dependency-ordered work packets.
 - INS-020 Treatment Plan OpenAPI reconciliation packet (In progress).
   OpenAPI `1.1.0` now matches the ten unconditional routes in the live FastAPI
   router, publishes exact current response envelopes and schema-version

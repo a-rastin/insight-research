@@ -18,7 +18,7 @@ python -m uvicorn dashboard_backend.main:app --host 127.0.0.1 --port 4173
 
 Open `http://localhost:4173/dashboard/`.
 
-Without `AUTH_BASE_URL` or `AUTH_SESSION_URL`, Dashboard serves a mock `GET /api/auth/session` endpoint for standalone development. Set `DASHBOARD_MOCK_AUTH=0` in integrated environments if a real auth endpoint is required.
+Without `AUTH_BASE_URL` or `AUTH_SESSION_URL`, Dashboard serves a mock `GET /api/auth/v2/session` endpoint for standalone development. Set `DASHBOARD_MOCK_AUTH=0` in integrated environments if a real auth endpoint is required.
 
 ## Test
 
@@ -50,7 +50,7 @@ GET /readyz
 Authentication identity is verified through REST:
 
 ```http
-GET /api/auth/session
+GET /api/auth/v2/session
 ```
 
 Dashboard activation uses only Dashboard's internal REST endpoint:
@@ -59,7 +59,12 @@ Dashboard activation uses only Dashboard's internal REST endpoint:
 POST /internal/dashboard/session
 ```
 
-The caller supplies auth credentials through `Authorization`, `Cookie`, or `X-Auth-Session`. Request body identity fields are ignored; Dashboard calls Authentication to get `user.id`, `role`, and display profile. Dashboard rejects missing, expired, forced-password-change, password-reset-required, and disclaimer-blocked auth sessions.
+The caller supplies the opaque Authentication cookie (development fixtures may
+use `X-Auth-Session`). Request body identity fields are ignored. Dashboard
+requires interface `2.0.0`, UUID user and session identities, a lowercase
+`admin` or `psychiatrist` role, an active future UTC `Z` expiry,
+`authorized: true`, and cleared password/disclaimer gates. Unsupported or
+legacy response shapes fail closed.
 
 The UI then reads:
 
@@ -73,7 +78,7 @@ Buttons discover module placeholders through:
 GET /internal/dashboard/module-routes/{moduleId}
 ```
 
-Every protected Dashboard endpoint verifies the local dashboard session and re-checks Authentication through `GET /api/auth/session`.
+Every protected Dashboard endpoint verifies the local dashboard session and re-checks Authentication through `GET /api/auth/v2/session`, so revocation, disablement, expiry, and role changes take effect immediately.
 
 ## Files
 

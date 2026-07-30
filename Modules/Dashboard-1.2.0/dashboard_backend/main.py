@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -34,8 +35,18 @@ MODULE_BUTTONS = {
 }
 
 MOCK_AUTH_USERS = {
-    "psy-1": {"id": "psy-1", "role": "PSYCHIATRIST", "fullName": "Mina Rahimi", "title": "Dr."},
-    "admin-1": {"id": "admin-1", "role": "ADMIN", "fullName": "Ari Morgan", "title": ""},
+    "psy-1": {
+        "id": "f2af6c59-6856-4dcc-bcf6-8569e009d58b",
+        "username": "Mina Rahimi",
+        "role": "psychiatrist",
+        "legacyUserId": 2,
+    },
+    "admin-1": {
+        "id": "68f577d0-8d3f-46c7-bd8a-4396350a6454",
+        "username": "Ari Morgan",
+        "role": "admin",
+        "legacyUserId": 1,
+    },
 }
 MOCK_AUTH_SESSIONS: dict[str, str] = {}
 
@@ -158,7 +169,36 @@ async def readyz() -> Any:
     return {"ok": True}
 
 
-@app.get("/api/auth/session")
+def mock_auth_payload(session_id: str, user: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "authenticated": True,
+        "authorized": True,
+        "interfaceVersion": "2.0.0",
+        "session": {
+            "id": session_id,
+            "active": True,
+            "expiresAt": (datetime.now(UTC) + timedelta(hours=1))
+            .isoformat()
+            .replace("+00:00", "Z"),
+        },
+        "user": {
+            "id": user["id"],
+            "username": user["username"],
+            "role": user["role"],
+        },
+        "gates": {
+            "passwordChangeRequired": False,
+            "disclaimerRequired": False,
+            "disclaimerVersion": "2026-07-06",
+        },
+        "compatibility": {
+            "legacyUserId": user["legacyUserId"],
+            "legacyRole": "user" if user["role"] == "psychiatrist" else None,
+        },
+    }
+
+
+@app.get("/api/auth/v2/session")
 async def mock_auth_session(request: Request) -> JSONResponse:
     if not settings.use_mock_auth:
         return JSONResponse(status_code=404, content={"error": "not_found"})
@@ -168,16 +208,22 @@ async def mock_auth_session(request: Request) -> JSONResponse:
         user = MOCK_AUTH_USERS.get(requested_user)
         if not user:
             return JSONResponse(status_code=401, content={"authenticated": False})
-        session_id = f"mock-auth-{user['id']}"
-        MOCK_AUTH_SESSIONS[session_id] = user["id"]
-        return JSONResponse(content={"authenticated": True, "session": {"id": session_id}, "user": user})
+        session_id = str(uuid4())
+        MOCK_AUTH_SESSIONS[session_id] = requested_user
+        return JSONResponse(
+            content=mock_auth_payload(session_id, user),
+            headers={"X-Schema-Version": "2.0.0"},
+        )
 
     session_id = request.headers.get("x-auth-session") or request.headers.get("x-auth-session-id")
-    user_id = MOCK_AUTH_SESSIONS.get(session_id or "")
-    user = MOCK_AUTH_USERS.get(user_id or "")
+    user_key = MOCK_AUTH_SESSIONS.get(session_id or "")
+    user = MOCK_AUTH_USERS.get(user_key or "")
     if not user:
         return JSONResponse(status_code=401, content={"authenticated": False})
-    return JSONResponse(content={"authenticated": True, "session": {"id": session_id}, "user": user})
+    return JSONResponse(
+        content=mock_auth_payload(session_id or "", user),
+        headers={"X-Schema-Version": "2.0.0"},
+    )
 
 
 @app.post("/internal/dashboard/session")

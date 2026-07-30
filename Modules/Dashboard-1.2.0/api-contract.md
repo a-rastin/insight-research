@@ -7,10 +7,10 @@ Backend: Python FastAPI. Local state: Dashboard sessions plus optional workspace
 ## Primary INSIGHT Flow
 
 1. Host app calls `POST /internal/dashboard/session` with valid Authentication credentials.
-2. Dashboard calls `GET /api/auth/session` and ignores request-body identity fields.
+2. Dashboard calls `GET /api/auth/v2/session` and ignores request-body identity fields.
 3. Dashboard creates a local Dashboard session bound to verified `user.id`, `role`, and Authentication session id.
 4. UI calls `GET /internal/dashboard/workspace`.
-5. Dashboard re-validates local session and calls `GET /api/auth/session` again.
+5. Dashboard re-validates local session and calls `GET /api/auth/v2/session` again.
 6. Dashboard returns INSIGHT workspace metadata and module-link placeholders.
 
 Protected Dashboard endpoints accept Dashboard session id through either:
@@ -23,7 +23,7 @@ Protected Dashboard endpoints accept Dashboard session id through either:
 Dashboard verifies identity by calling Authentication:
 
 ```http
-GET /api/auth/session
+GET /api/auth/v2/session
 ```
 
 Dashboard forwards caller credentials when present:
@@ -38,24 +38,38 @@ Expected success response:
 ```json
 {
   "authenticated": true,
+  "authorized": true,
+  "interfaceVersion": "2.0.0",
   "session": {
-    "id": "auth-789"
+    "id": "720705d7-97bc-4d40-a4ac-59bdfcc65501",
+    "active": true,
+    "expiresAt": "2026-07-30T19:30:00Z"
   },
   "user": {
-    "id": "psy-1",
-    "role": "PSYCHIATRIST",
-    "fullName": "Mina Rahimi",
-    "title": "Dr."
-  }
+    "id": "f2af6c59-6856-4dcc-bcf6-8569e009d58b",
+    "username": "Mina Rahimi",
+    "role": "psychiatrist"
+  },
+  "gates": {
+    "passwordChangeRequired": false,
+    "disclaimerRequired": false,
+    "disclaimerVersion": "2026-07-06"
+  },
+  "compatibility": {"legacyUserId": 2, "legacyRole": "user"}
 }
 ```
 
-Accepted roles:
+Accepted provider roles are lowercase:
 
-- `PSYCHIATRIST`
-- `ADMIN`
+- `psychiatrist`
+- `admin`
 
-Dashboard requires a concrete Authentication session id from `session.id`, `sessionId`, or `authSessionId`.
+Dashboard requires `X-Schema-Version: 2.0.0`, exact v2 fields, UUID
+`session.id` and `user.id`, `authenticated: true`, `authorized: true`,
+`session.active: true`, a future RFC 3339 UTC `expiresAt` ending in `Z`, and
+both gates set to false. Dashboard translates the validated lowercase role to
+its existing uppercase local workspace role; uppercase or legacy provider
+roles are rejected.
 
 Rejected Authentication states:
 
@@ -63,9 +77,11 @@ Rejected Authentication states:
 - unauthenticated response
 - inactive session
 - expired session or past `expiresAt`
-- forced password change/reset
-- password reset required
-- disclaimer-required or disclaimer-blocked state
+- `authorized: false`
+- password-change gate
+- disclaimer-required gate
+- missing or unsupported interface/schema version
+- malformed or non-UUID identity
 - unsupported role
 - missing user id
 
@@ -76,7 +92,7 @@ Config:
 | Variable | Meaning |
 | --- | --- |
 | `AUTH_SESSION_URL` | Exact Authentication session URL. |
-| `AUTH_BASE_URL` | Base URL; Dashboard appends `/api/auth/session`. |
+| `AUTH_BASE_URL` | Base URL; Dashboard appends `/api/auth/v2/session`. |
 | `DASHBOARD_MOCK_AUTH` | `1` enables standalone mock auth; `0` disables it. |
 | `DASHBOARD_DB_PATH` | SQLite path; defaults to `dashboard.sqlite3`. |
 
@@ -107,7 +123,7 @@ Success: `201`
   "sessionId": "dashboard-session-uuid",
   "dashboardUrl": "/dashboard/?session=dashboard-session-uuid",
   "user": {
-    "id": "psy-1",
+    "id": "f2af6c59-6856-4dcc-bcf6-8569e009d58b",
     "role": "PSYCHIATRIST",
     "fullName": "Mina Rahimi",
     "title": "Dr.",
@@ -138,7 +154,7 @@ GET /internal/dashboard/summary?session={dashboardSessionId}
 Before returning workspace metadata, Dashboard:
 
 1. verifies Dashboard session exists and is active
-2. calls `GET /api/auth/session`
+2. calls `GET /api/auth/v2/session`
 3. rejects if Authentication `user.id` differs from Dashboard session `userId`
 4. refreshes local role and Authentication session id from verified identity
 
@@ -147,7 +163,7 @@ Common response:
 ```json
 {
   "user": {
-    "id": "psy-1",
+    "id": "f2af6c59-6856-4dcc-bcf6-8569e009d58b",
     "role": "PSYCHIATRIST",
     "fullName": "Mina Rahimi",
     "title": "Dr.",

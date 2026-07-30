@@ -14,6 +14,10 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
+PSYCHIATRIST_ID = "f2af6c59-6856-4dcc-bcf6-8569e009d58b"
+ADMIN_ID = "68f577d0-8d3f-46c7-bd8a-4396350a6454"
+AUTH_SESSION_ID = "720705d7-97bc-4d40-a4ac-59bdfcc65501"
+
 
 def free_port() -> int:
     with socket.socket() as sock:
@@ -28,6 +32,9 @@ class MockAuthenticationServer:
 
     def set_payload(self, session_id: str, payload: dict, status: int = 200) -> None:
         self.payloads[session_id] = (status, payload)
+        provider_session_id = payload.get("session", {}).get("id")
+        if provider_session_id:
+            self.payloads[provider_session_id] = (status, payload)
 
     def __enter__(self) -> "MockAuthenticationServer":
         owner = self
@@ -40,6 +47,8 @@ class MockAuthenticationServer:
                 body = json.dumps(payload).encode("utf-8")
                 self.send_response(status)
                 self.send_header("content-type", "application/json")
+                if 200 <= status < 300:
+                    self.send_header("x-schema-version", "2.0.0")
                 self.send_header("content-length", str(len(body)))
                 self.end_headers()
                 self.wfile.write(body)
@@ -51,7 +60,7 @@ class MockAuthenticationServer:
         self.server = ThreadingHTTPServer(("127.0.0.1", self.port), Handler)
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
-        self.url = f"http://127.0.0.1:{self.port}/api/auth/session"
+        self.url = f"http://127.0.0.1:{self.port}/api/auth/v2/session"
         return self
 
     def __exit__(self, *_: object) -> None:
@@ -144,8 +153,20 @@ def future_iso() -> str:
 def auth_payload(**overrides: dict) -> dict:
     payload = {
         "authenticated": True,
-        "session": {"id": "auth-1", "expiresAt": future_iso()},
-        "user": {"id": "psy-1", "role": "PSYCHIATRIST", "fullName": "Verified Clinician", "title": "Dr."},
+        "authorized": True,
+        "interfaceVersion": "2.0.0",
+        "session": {"id": AUTH_SESSION_ID, "active": True, "expiresAt": future_iso()},
+        "user": {
+            "id": PSYCHIATRIST_ID,
+            "username": "Verified Clinician",
+            "role": "psychiatrist",
+        },
+        "gates": {
+            "passwordChangeRequired": False,
+            "disclaimerRequired": False,
+            "disclaimerVersion": "2026-07-06",
+        },
+        "compatibility": {"legacyUserId": 2, "legacyRole": "user"},
     }
     for key, value in overrides.items():
         if isinstance(value, dict) and isinstance(payload.get(key), dict):
@@ -163,8 +184,8 @@ class AuthSessionNormalizationTest(unittest.TestCase):
 
         self.assertIsNotNone(identity)
         assert identity is not None
-        self.assertEqual(identity["authSessionId"], "auth-1")
-        self.assertEqual(identity["user"]["id"], "psy-1")
+        self.assertEqual(identity["authSessionId"], AUTH_SESSION_ID)
+        self.assertEqual(identity["user"]["id"], PSYCHIATRIST_ID)
         self.assertEqual(identity["user"]["role"], "PSYCHIATRIST")
         self.assertEqual(identity["user"]["fullName"], "Verified Clinician")
 
@@ -174,12 +195,15 @@ class AuthSessionNormalizationTest(unittest.TestCase):
         blocked_payloads = [
             auth_payload(session=None),
             auth_payload(authenticated=False),
-            auth_payload(session={"expired": True}),
+            auth_payload(authorized=False),
+            auth_payload(interfaceVersion="1.0.0"),
+            auth_payload(session={"active": False}),
             auth_payload(session={"expiresAt": "2000-01-01T00:00:00Z"}),
-            auth_payload(user={"mustChangePassword": True}),
-            auth_payload(session={"status": "PASSWORD_RESET_REQUIRED"}),
-            auth_payload(disclaimerBlocked=True),
-            auth_payload(status="DISCLAIMER_REQUIRED"),
+            auth_payload(session={"expiresAt": future_iso().replace("Z", "+00:00")}),
+            auth_payload(gates={"passwordChangeRequired": True}),
+            auth_payload(gates={"disclaimerRequired": True}),
+            auth_payload(user={"role": "PSYCHIATRIST"}),
+            auth_payload(user={"id": "legacy-user-id"}),
         ]
         for payload in blocked_payloads:
             with self.subTest(payload=payload):
@@ -221,7 +245,7 @@ class DashboardBackendTest(unittest.TestCase):
             )
 
             self.assertEqual(status, 201)
-            self.assertEqual(created["user"]["id"], "psy-1")
+            self.assertEqual(created["user"]["id"], PSYCHIATRIST_ID)
             self.assertEqual(created["user"]["role"], "PSYCHIATRIST")
             self.assertEqual(created["user"]["fullName"], "Mina Rahimi")
 
@@ -333,7 +357,10 @@ class DashboardBackendTest(unittest.TestCase):
         with MockAuthenticationServer() as auth:
             auth.set_payload(
                 "auth-psy",
-                auth_payload(session={"id": "auth-psy"}, user={"id": "psy-ext", "fullName": "Verified Clinician"}),
+                auth_payload(
+                    session={"id": AUTH_SESSION_ID},
+                    user={"id": PSYCHIATRIST_ID, "username": "Verified Clinician"},
+                ),
             )
             with DashboardServer(auth.url) as base:
                 status, created = request_json(
@@ -344,7 +371,7 @@ class DashboardBackendTest(unittest.TestCase):
                     body={"userId": "admin-1", "role": "ADMIN", "fullName": "Spoofed Admin"},
                 )
                 self.assertEqual(status, 201)
-                self.assertEqual(created["user"]["id"], "psy-ext")
+                self.assertEqual(created["user"]["id"], PSYCHIATRIST_ID)
                 self.assertEqual(created["user"]["role"], "PSYCHIATRIST")
 
                 status, workspace = request_json(base, f"/internal/dashboard/workspace?session={created['sessionId']}")
@@ -352,7 +379,7 @@ class DashboardBackendTest(unittest.TestCase):
                 self.assertEqual(workspace["displayName"], "Dr. Verified Clinician")
 
         self.assertTrue(auth.requests)
-        self.assertEqual({request["path"] for request in auth.requests}, {"/api/auth/session"})
+        self.assertEqual({request["path"] for request in auth.requests}, {"/api/auth/v2/session"})
         self.assertIn("auth-psy", [request["x-auth-session"] for request in auth.requests])
 
     def test_invalid_auth_session_returns_401(self) -> None:
@@ -370,7 +397,7 @@ class DashboardBackendTest(unittest.TestCase):
 
     def test_session_expiry_is_enforced_after_dashboard_session_creation(self) -> None:
         with MockAuthenticationServer() as auth:
-            auth.set_payload("auth-psy", auth_payload(session={"id": "auth-psy", "expiresAt": future_iso()}))
+            auth.set_payload("auth-psy", auth_payload(session={"id": AUTH_SESSION_ID, "expiresAt": future_iso()}))
             with DashboardServer(auth.url) as base:
                 status, created = request_json(
                     base,
@@ -380,8 +407,29 @@ class DashboardBackendTest(unittest.TestCase):
                 )
                 self.assertEqual(status, 201)
 
-                auth.set_payload("auth-psy", auth_payload(session={"id": "auth-psy", "expiresAt": "2000-01-01T00:00:00Z"}))
+                auth.set_payload("auth-psy", auth_payload(session={"id": AUTH_SESSION_ID, "expiresAt": "2000-01-01T00:00:00Z"}))
                 status, data = request_json(base, f"/internal/dashboard/workspace?session={created['sessionId']}")
+
+            self.assertEqual(status, 401)
+            self.assertEqual(data["error"], "authentication_session_required")
+
+    def test_auth_revocation_is_immediate_after_dashboard_session_creation(self) -> None:
+        with MockAuthenticationServer() as auth:
+            auth.set_payload("auth-psy", auth_payload())
+            with DashboardServer(auth.url) as base:
+                status, created = request_json(
+                    base,
+                    "/internal/dashboard/session",
+                    method="POST",
+                    headers={"x-auth-session": "auth-psy"},
+                )
+                self.assertEqual(status, 201)
+
+                auth.set_payload("auth-psy", auth_payload(authenticated=False), status=401)
+                status, data = request_json(
+                    base,
+                    f"/internal/dashboard/workspace?session={created['sessionId']}",
+                )
 
             self.assertEqual(status, 401)
             self.assertEqual(data["error"], "authentication_session_required")
@@ -391,8 +439,9 @@ class DashboardBackendTest(unittest.TestCase):
             auth.set_payload(
                 "auth-admin",
                 auth_payload(
-                    session={"id": "auth-admin"},
-                    user={"id": "admin-ext", "role": "ADMIN", "fullName": "Verified Admin", "title": ""},
+                    session={"id": AUTH_SESSION_ID},
+                    user={"id": ADMIN_ID, "role": "admin", "username": "Verified Admin"},
+                    compatibility={"legacyUserId": 1, "legacyRole": None},
                 ),
             )
             with DashboardServer(auth.url) as base:
