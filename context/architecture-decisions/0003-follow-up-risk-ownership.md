@@ -32,14 +32,6 @@ the preceding record. Assessment modules remain sole writers for their own new
 encounter-scoped assessments. Treatment Plan remains sole writer for plan
 supersession records.
 
-A dedicated Suicide Risk module is sole writer for structured C-SSRS assessment
-records. This ownership designation does not approve or implement an instrument.
-Until an approved source/licensing contract is supplied, the module has no
-questions or scoring rules and cannot produce a risk score. Missing risk is
-represented explicitly as `unknown` or `unavailable`; required risk-dependent
-processing is blocked and must not infer a negative, normal, or low-risk result
-from model summaries or absence of data.
-
 ## Alternatives
 
 | Alternative | Reason rejected |
