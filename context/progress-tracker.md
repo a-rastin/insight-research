@@ -846,9 +846,6 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
   before implementing production backup or restore.
 - Define versioned owner-local administration, log, backup, restore-verification,
   and retention APIs before wiring Dashboard or deployment orchestration.
-- Obtain approved C-SSRS source/licensing contract and named clinical owner
-  before defining any instrument questions, scoring, terminology, or release
-  behavior.
 - Migrate Add New Patient consumers to the UUID-only Patient and Encounter v2
   resources and add consumer-driven HTTP checks. Define the separate Follow-up
   Delta REST/schema contract before follow-up persistence or orchestration.
@@ -896,9 +893,6 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 - Named accountable product, clinical, and architecture owners for ADR-0003
   remain unidentified; task-level approval resolves ownership selection but not
   release governance.
-- Approved C-SSRS source/licensing contract is unavailable. Suicide Risk cannot
-  define questions or scoring, and required risk-dependent processing remains
-  fail-closed.
 - Named accountable Architecture and Operations owners remain unidentified;
   task-level HITL approval resolved INS-002 selection but not release governance.
 - Which Authentication session payload is authoritative: current flat v1
@@ -937,10 +931,6 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
   logs to each emitter, module backup/restore to each module, and metadata-only
   aggregate orchestration to deployment operations. Restore is target-module-only
   and rejects mismatched module identities before writes.
-- ADR-0003 makes Follow-up an orchestration flow, keeps Encounter and Follow-up
-  Delta ownership in Add New Patient, assigns structured C-SSRS assessments to a
-  dedicated Suicide Risk module, and blocks score/question inference until an
-  approved source/licensing contract exists.
 - ADR-0002 selects per-service HMAC-SHA256 request assertions, current-session
   revalidation through Authentication for user-attributed calls, service-only
   background identity, first-module browser CSRF enforcement, exact outbound
