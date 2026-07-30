@@ -85,45 +85,45 @@
         }
       }
     },
-    "medicationResolution": {
-      "oneOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "inputIndex",
-            "status",
-            "originalText",
-            "conceptId",
-            "codeSystem",
-            "display"
-          ],
-          "properties": {
-            "inputIndex": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "status": {
-              "const": "resolved"
-            },
-            "originalText": {
-              "type": "string",
-              "minLength": 1
-            },
-            "conceptId": {
-              "type": "string",
-              "minLength": 1
-            },
-            "codeSystem": {
-              "type": "string",
-              "minLength": 1
-            },
-            "display": {
-              "type": "string",
-              "minLength": 1
-            }
-          }
+    "resolvedMedication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inputIndex",
+        "status",
+        "originalText",
+        "conceptId",
+        "codeSystem",
+        "display"
+      ],
+      "properties": {
+        "inputIndex": {
+          "type": "integer",
+          "minimum": 0
         },
+        "status": {
+          "const": "resolved"
+        },
+        "originalText": {
+          "type": "string",
+          "minLength": 1
+        },
+        "conceptId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "codeSystem": {
+          "type": "string",
+          "minLength": 1
+        },
+        "display": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "unresolvedMedication": {
+      "oneOf": [
         {
           "type": "object",
           "additionalProperties": false,
@@ -252,6 +252,67 @@
         "resourceVersion": {
           "type": "integer",
           "minimum": 1
+        }
+      }
+    },
+    "lifecycleTransitionRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "lifecycleTransitionEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "revisionId",
+        "fromState",
+        "toState",
+        "actorId",
+        "recordedAt"
+      ],
+      "properties": {
+        "eventId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "revisionId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "fromState": {
+          "enum": ["draft", "reviewed", "active", "retired"]
+        },
+        "toState": {
+          "enum": ["draft", "reviewed", "active", "retired"]
+        },
+        "actorId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "recordedAt": {
+          "$ref": "#/$defs/utcTimestamp"
+        }
+      }
+    },
+    "lifecycleTransitionResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["revision", "event"],
+      "properties": {
+        "revision": {
+          "$ref": "#/$defs/knowledgeRevision"
+        },
+        "event": {
+          "$ref": "#/$defs/lifecycleTransitionEvent"
         }
       }
     },
@@ -390,7 +451,7 @@
         "knowledgeBaseVersion",
         "knowledgeBaseContentHash",
         "coverageStatus",
-        "normalizedMedications",
+        "resolvedMedications",
         "unresolvedMedications",
         "pairsChecked",
         "alerts",
@@ -422,16 +483,16 @@
             "incomplete"
           ]
         },
-        "normalizedMedications": {
+        "resolvedMedications": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/medicationResolution"
+            "$ref": "#/$defs/resolvedMedication"
           }
         },
         "unresolvedMedications": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/medicationResolution"
+            "$ref": "#/$defs/unresolvedMedication"
           }
         },
         "pairsChecked": {
@@ -449,9 +510,57 @@
         "checkedAt": {
           "$ref": "#/$defs/utcTimestamp"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "coverageStatus": {"const": "complete"}
+            },
+            "required": ["coverageStatus"]
+          },
+          "then": {
+            "properties": {
+              "unresolvedMedications": {"maxItems": 0}
+            }
+          },
+          "else": {
+            "properties": {
+              "unresolvedMedications": {"minItems": 1}
+            }
+          }
+        }
+      ]
     },
-    "findingAction": {
+    "findingActionRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action"],
+      "properties": {
+        "action": {
+          "enum": ["accepted", "dismissed", "overridden"]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 2000
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "action": {"const": "overridden"}
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "required": ["rationale"]
+          }
+        }
+      ]
+    },
+    "findingActionResponse": {
       "type": "object",
       "additionalProperties": false,
       "required": [

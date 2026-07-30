@@ -182,25 +182,36 @@ class BnManagerHttpEvaluator:
     async def evaluate(
         self, model: BnModel, evidence: Mapping[str, str], mapping_version: str
     ) -> RawBnEvaluation:
+        stable_id = f"bnm.{model.value}"
+        request_body = {
+            "stable_id": stable_id,
+            "evidence": dict(evidence),
+        }
+        idempotency_key = hashlib.sha256(
+            json.dumps(request_body, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
         response = await self._client.post(
-            f"{self._base_url}/api/bn-manager/v1/evaluations",
-            headers={"Accept": "application/json", "Content-Type": "application/json"},
-            json={
-                "modelId": model.value,
-                "evidenceVocabularyVersion": mapping_version,
-                "evidence": dict(evidence),
+            f"{self._base_url}/api/bn-manager/v3/evaluations",
+            headers={
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "Idempotency-Key": idempotency_key,
             },
+            json=request_body,
             timeout=self._timeout,
         )
         response.raise_for_status()
-        payload = response.json()
+        payload = response.json()["data"]
+        model_identity = payload["model"]
+        if payload.get("mapping_version") != mapping_version:
+            raise ValueError("BN Manager mapping_version does not match the requested mapping")
         return RawBnEvaluation(
-            evaluation_id=payload.get("evaluationId"),
-            model_id=payload.get("modelId"),
-            model_version=payload.get("modelVersion"),
-            model_hash=payload.get("modelHash"),
+            evaluation_id=payload.get("evaluation_id"),
+            model_id=str(model_identity.get("stable_id", "")).removeprefix("bnm."),
+            model_version=model_identity.get("semantic_version"),
+            model_hash=model_identity.get("content_hash"),
             posterior=payload.get("posterior"),
-            evaluated_at=payload.get("evaluatedAt"),
+            evaluated_at=payload.get("evaluated_at"),
         )
 
 

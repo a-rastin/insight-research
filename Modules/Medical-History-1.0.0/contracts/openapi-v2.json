@@ -1,0 +1,36 @@
+{
+  "openapi": "3.1.0",
+  "info": {"title": "INSIGHT Medical History API", "version": "2.0.0"},
+  "paths": {
+    "/healthz": {"get": {"operationId": "medicalHistoryLiveness", "responses": {"200": {"description": "Live"}}}},
+    "/readyz": {"get": {"operationId": "medicalHistoryReadiness", "responses": {"200": {"description": "Ready"}}}},
+    "/api/medical-history/v1/contract": {"get": {"operationId": "medicalHistoryContractDiscovery", "responses": {"200": {"description": "Contract discovery"}}}},
+    "/api/medical-history/v2/contract/document": {"get": {"operationId": "medicalHistoryContractDocument", "responses": {"200": {"description": "Medical History v2 contract document"}}}},
+    "/api/medical-history/v2/contract/schema": {"get": {"operationId": "medicalHistoryContractSchema", "responses": {"200": {"description": "Medical History v2 JSON Schema"}}}},
+    "/api/medical-history/v2/contract/openapi": {"get": {"operationId": "medicalHistoryOpenApi", "responses": {"200": {"description": "Medical History v2 OpenAPI document"}}}},
+    "/api/medical-history/v2/assessments": {
+      "post": {
+        "operationId": "createMedicalHistoryAssessmentV2",
+        "parameters": [
+          {"name": "X-Schema-Version", "in": "header", "required": true, "schema": {"const": "2.0.0"}},
+          {"name": "Idempotency-Key", "in": "header", "required": true, "schema": {"type": "string", "minLength": 16, "maxLength": 128}}
+        ],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "./medical-history-assessment-v2.schema.json#/$defs/assessmentWrite"}}}},
+        "responses": {"201": {"description": "Created"}, "400": {"description": "Invalid request"}, "409": {"description": "Idempotency conflict"}}
+      }
+    },
+    "/api/medical-history/v2/assessments/{assessmentId}": {
+      "parameters": [{"name": "assessmentId", "in": "path", "required": true, "schema": {"type": "string", "format": "uuid"}}],
+      "get": {"operationId": "getMedicalHistoryAssessmentV2", "responses": {"200": {"description": "Assessment"}, "404": {"description": "Not found"}}},
+      "put": {
+        "operationId": "updateMedicalHistoryAssessmentV2",
+        "parameters": [
+          {"name": "X-Schema-Version", "in": "header", "required": true, "schema": {"const": "2.0.0"}},
+          {"name": "If-Match", "in": "header", "required": true, "schema": {"type": "string"}}
+        ],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "./medical-history-assessment-v2.schema.json#/$defs/assessmentUpdate"}}}},
+        "responses": {"200": {"description": "Updated"}, "412": {"description": "Stale ETag"}, "428": {"description": "Missing precondition"}}
+      }
+    }
+  }
+}

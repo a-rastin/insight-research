@@ -1,0 +1,14 @@
+DROP INDEX IF EXISTS clinical_provenance_retention;
+DROP INDEX IF EXISTS plan_edits_plan_sequence;
+DROP INDEX IF EXISTS plan_versions_plan;
+DROP INDEX IF EXISTS plans_phi_expiry;
+DROP INDEX IF EXISTS input_snapshots_phi_expiry;
+DROP TABLE IF EXISTS clinical_provenance;
+DROP TABLE IF EXISTS evidence_links;
+DROP TABLE IF EXISTS safety_findings;
+DROP TABLE IF EXISTS plan_edits;
+DROP TABLE IF EXISTS plan_items;
+DROP TABLE IF EXISTS plan_versions;
+DROP TABLE IF EXISTS plans;
+DROP TABLE IF EXISTS input_snapshots;
+DROP TABLE IF EXISTS recommendation_runs;

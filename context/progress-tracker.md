@@ -703,6 +703,34 @@ variables: `AUTH_DB_PATH`, `DASHBOARD_DB_PATH`, `ADD_NEW_PATIENT_DB_PATH`,
 
 ## Session Notes
 
+- The 2026-07-30 audit of feature specs 11 through 20 corrected the confirmed
+  packet-level gaps without changing protected source repositories. INS-066 now
+  covers the current fourth project goal, has a current source hash, and defines
+  every referenced completion packet. Authentication v2 enforces and tests UTC
+  `Z` expiry. Add New Patient and Diagnosis consume the versioned Authentication
+  UUID session shape; Diagnosis also rejects implicit confirmation when criteria
+  are unmet. PANSS and Medical History now use semantic idempotency fingerprints,
+  immutable create-response replay, stricter schema parity, and complete contract
+  route documentation. The Medical History and Treatment Plan mirrors were made
+  runnable at their canonical paths by restoring only missing module-owned files.
+- DDI v1 now separates caller actions from server-owned audit attribution,
+  machine-defines lifecycle preconditions, and fails closed on resolution and
+  coverage consistency. BN Manager now publishes a strict v3 JSON Schema and
+  OpenAPI for its real registry-only routes and rejects caller model text on the
+  clinical endpoint. Treatment Plan now references that real BN v3 operation,
+  validates UUID plan/request identifiers, and resolves provider references
+  recursively.
+- Verification passed: root contracts 65/65; Authentication 19/19; Add New
+  Patient 50/50 plus frontend 3/3; Diagnosis v2 7/7 and its documented suites
+  when run in isolated processes; Severity full suite; Medical History full
+  suite; DDI 46/46; BN Manager 49/49; and Treatment Plan 61/61. Root and changed
+  module `git diff --check` passed. One low-severity npm advisory remains in the
+  locked Severity dependency tree.
+- Clinical deployment remains blocked. INS-012 common-profile runtime rollout,
+  protected DDI server implementation, PANSS and Medical History Authentication
+  and CSRF integration, Diagnosis legacy-route delegation to the v2 authority,
+  and cross-module end-to-end verification remain separate completion packets;
+  this audit does not claim those deferred capabilities are deployed.
 - INS-018 publishes DDI v1 lifecycle, clinical-check, finding/audit/override,
   permissions, hash, idempotency, and error contracts with Draft 2020-12 schemas
   and OpenAPI. It does not claim the current browser-local workflow implements

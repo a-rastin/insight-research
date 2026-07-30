@@ -1,0 +1,15 @@
+{
+  "policyId": "schizophrenia-research-safety",
+  "version": "1.0.0",
+  "status": "research-only-pending-clinical-approval",
+  "rules": [
+    {"id": "emergency-signal", "kind": "emergency-signal", "priority": 1000, "severity": "critical", "action": "Activate the configured emergency escalation pathway and obtain immediate clinical assessment."},
+    {"id": "imminent-suicide-risk", "kind": "suicide-risk", "priority": 990, "states": ["high", "imminent", "positive"], "severity": "critical", "action": "Activate the configured emergency escalation pathway and obtain immediate suicide-risk assessment."},
+    {"id": "candidate-allergy", "kind": "allergy", "priority": 900, "severity": "critical", "disposition": "excluded"},
+    {"id": "candidate-contraindication", "kind": "contraindication", "priority": 890, "severity": "critical", "disposition": "excluded"},
+    {"id": "monitoring-capacity-insufficient", "kind": "monitoring-capacity", "priority": 800, "severity": "high", "disposition": "excluded", "levels": ["none", "routine", "enhanced"]},
+    {"id": "prior-adverse-response", "kind": "prior-response-adverse", "priority": 700, "states": ["adverse", "intolerable"], "severity": "high", "disposition": "excluded"},
+    {"id": "poor-adherence-support-needed", "kind": "adherence", "priority": 600, "states": ["poor"], "severity": "moderate", "disposition": "conditional"},
+    {"id": "prior-beneficial-response", "kind": "prior-response-beneficial", "priority": 100, "states": ["good", "beneficial"], "severity": "info", "disposition": "preferred"}
+  ]
+}

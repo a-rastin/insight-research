@@ -48,6 +48,27 @@ class SecurityTests(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         self.assertEqual(["sid=trusted"], adapter.received_cookies)
 
+    def test_plan_routes_reject_non_uuid_ids_and_missing_request_id(self):
+        security, _ = self.security(self.session(("psychiatrist",)))
+        app = create_app(Settings(environment="test"), InMemoryRepository(), security)
+        with TestClient(app) as client:
+            invalid_plan = client.get(
+                "/api/treatment-plan/v1/plans/not-a-uuid",
+                headers={"Cookie": "sid=trusted"},
+            )
+            missing_request_id = client.post(
+                "/api/treatment-plan/v1/plans/00000000-0000-4000-8000-000000000001/finalize",
+                headers={
+                    "Cookie": "sid=trusted",
+                    "X-CSRF-Token": "csrf-secret",
+                    "If-Match": '"1"',
+                    "Idempotency-Key": "tp-request-key-0001",
+                },
+                json={"attestation": "I reviewed and attest to this exact plan."},
+            )
+        self.assertEqual(422, invalid_plan.status_code)
+        self.assertEqual(422, missing_request_id.status_code)
+
     def test_ssrf_allowlist_rejects_untrusted_and_malformed_urls(self):
         cases = [
             {"TP_AUTHENTICATION_SESSION_URL":"http://169.254.169.254/session","TP_TRUSTED_INTERNAL_ORIGINS":"https://auth.internal"},

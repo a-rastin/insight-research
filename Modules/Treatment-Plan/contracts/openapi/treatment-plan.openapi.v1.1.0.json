@@ -9,7 +9,12 @@
   "x-insight-compatibility": {
     "classification": "breaking-contract-correction",
     "supersedes": "treatment-plan.openapi.v1.0.0.json",
-    "runtimeBehaviorChanged": false,
+    "runtimeBehaviorChanged": true,
+    "newClinicalBehavior": false,
+    "runtimeValidationCorrections": [
+      "plan_id path parameters reject non-UUID values",
+      "X-Request-ID is required and UUID-formatted for finalization"
+    ],
     "removedUndocumentedRuntimeClaims": [
       "GET /api/treatment-plan/v1/contract",
       "GET /api/treatment-plan/v1/schemas/{name}/{version}",
@@ -33,7 +38,8 @@
     },
     {
       "provider": "bn-manager",
-      "operation": "POST /api/v3/models/{model_id}/evaluate",
+      "operation": "POST /api/bn-manager/v3/evaluations",
+      "openapi": "../../../BN-Manager-v.1.1.0/BN-Manager-v.1.1.0/contracts/openapi-v3.json",
       "implementationIssue": "INS-019",
       "use": "Registry-governed Bayesian evaluation"
     }
@@ -289,7 +295,7 @@
         "name": "plan_id",
         "in": "path",
         "required": true,
-        "schema": {"type": "string"}
+        "schema": {"type": "string", "format": "uuid"}
       },
       "IfMatch": {
         "name": "If-Match",
@@ -307,7 +313,7 @@
         "name": "X-Request-ID",
         "in": "header",
         "required": true,
-        "schema": {"type": "string"}
+        "schema": {"type": "string", "format": "uuid"}
       },
       "CorrelationId": {
         "name": "X-Correlation-ID",

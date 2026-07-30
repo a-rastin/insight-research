@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Add New Patient</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="module-shell" data-module="add-new-patient">
+      <section class="dashboard-view" id="dashboardView" aria-labelledby="dashboardTitle">
+        <div class="dashboard-panel">
+          <div>
+            <p class="eyebrow">Patient intake</p>
+            <h1 id="dashboardTitle">Add New Patient</h1>
+            <p class="summary">Create a patient record through the module REST API.</p>
+          </div>
+          <button class="primary-action" id="activateModuleButton" type="button">
+            Add New Patient
+          </button>
+        </div>
+      </section>
+
+      <section class="patient-view" id="patientView" aria-labelledby="formTitle" hidden>
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Generated code</p>
+            <output class="patient-code" id="patientCode" aria-live="polite"></output>
+          </div>
+          <button class="secondary-action" id="backButton" type="button">Back to Dashboard</button>
+        </header>
+
+        <form class="patient-form" id="patientForm" novalidate>
+          <div class="form-heading">
+            <h2 id="formTitle">Patient details</h2>
+            <p>Required fields are marked with an asterisk.</p>
+          </div>
+
+          <section class="form-section" aria-labelledby="demographicsSectionTitle">
+            <h3 id="demographicsSectionTitle">Demographics</h3>
+            <div class="section-errors" data-error-section="demographics" role="alert" hidden>
+              <p>Demographics</p>
+              <ul data-section-error-list></ul>
+            </div>
+
+            <div class="field-grid">
+              <label class="field">
+                <span>First Name *</span>
+                <input id="firstName" name="firstName" autocomplete="given-name" required>
+                <small class="field-error" data-error-for="demographics.firstName"></small>
+              </label>
+
+              <label class="field">
+                <span>Last Name *</span>
+                <input id="lastName" name="lastName" autocomplete="family-name" required>
+                <small class="field-error" data-error-for="demographics.lastName"></small>
+              </label>
+
+              <fieldset class="field sex-field">
+                <legend>Sex *</legend>
+                <div class="segmented-control" role="radiogroup" aria-label="Sex">
+                  <label>
+                    <input type="radio" name="sex" value="Male" required>
+                    <span>Male</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="sex" value="Female">
+                    <span>Female</span>
+                  </label>
+                </div>
+                <small class="field-error" data-error-for="demographics.sex"></small>
+              </fieldset>
+
+              <label class="field">
+                <span>Date of Birth *</span>
+                <input id="dob" name="dob" type="date" required>
+                <small class="field-error" data-error-for="demographics.dob"></small>
+              </label>
+
+              <label class="field phone-field">
+                <span>Phone Number</span>
+                <input id="phoneNumber" name="phoneNumber" autocomplete="tel-national" inputmode="numeric" maxlength="14" placeholder="10 digits">
+                <small class="field-error" data-error-for="demographics.phoneNumber"></small>
+              </label>
+            </div>
+          </section>
+
+          <section class="form-section" aria-labelledby="clinicalSectionTitle">
+            <h3 id="clinicalSectionTitle">Clinical</h3>
+            <div class="section-errors" data-error-section="clinical" role="alert" hidden>
+              <p>Clinical</p>
+              <ul data-section-error-list></ul>
+            </div>
+
+            <div class="field-grid">
+              <label class="field wide-field">
+                <span>Presenting Complaint *</span>
+                <textarea id="presentingComplaint" name="presentingComplaint" maxlength="2000" rows="4" required></textarea>
+                <small class="field-error" data-error-for="clinical.presentingComplaint"></small>
+              </label>
+
+              <label class="field wide-field">
+                <span>Provisional Diagnosis *</span>
+                <input id="provisionalDiagnosis" name="provisionalDiagnosis" maxlength="240" required>
+                <small class="field-error" data-error-for="clinical.provisionalDiagnosis"></small>
+              </label>
+
+              <label class="field wide-field">
+                <span>Treatment History</span>
+                <textarea id="treatmentHistory" name="treatmentHistory" rows="3"></textarea>
+                <small class="field-error" data-error-for="clinical.treatmentHistory"></small>
+              </label>
+
+              <label class="field">
+                <span>Allergies</span>
+                <textarea id="allergies" name="allergies" rows="3"></textarea>
+                <small class="field-error" data-error-for="clinical.allergies"></small>
+              </label>
+
+              <label class="field">
+                <span>Current Medications</span>
+                <textarea id="currentMedications" name="currentMedications" rows="3"></textarea>
+                <small class="field-error" data-error-for="clinical.currentMedications"></small>
+              </label>
+
+              <label class="field">
+                <span>Suicidality</span>
+                <select id="suicidality" name="suicidality">
+                  <option value="suicidality_none">None</option>
+                  <option value="ideation">Ideation</option>
+                  <option value="plan">Plan</option>
+                  <option value="attempt">Attempt</option>
+                </select>
+                <small class="field-error" data-error-for="clinical.riskFlags.suicidality"></small>
+              </label>
+
+              <label class="checkbox-field">
+                <input id="substanceUse" name="substanceUse" type="checkbox">
+                <span>Substance use risk</span>
+                <small class="field-error" data-error-for="clinical.riskFlags.substanceUse"></small>
+              </label>
+            </div>
+          </section>
+
+          <div class="form-actions">
+            <button class="primary-action" type="submit">Submit Patient</button>
+            <button class="tertiary-action" id="regenerateCodeButton" type="button">Generate New Code</button>
+          </div>
+
+          <p class="status-message" id="statusMessage" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>

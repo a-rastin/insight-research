@@ -244,6 +244,13 @@ def test_route_layer_unchanged():
         # event-seam issue. Under ``/internal/...`` so its ``{code}`` param
         # does NOT collide with the per-patient ``/{code}`` family.
         "/internal/diagnosis/audit/{code}",
+        "/api/diagnosis/v2/contract",
+        "/api/diagnosis/v2/openapi.json",
+        "/api/diagnosis/v2/diagnosis-assessment-v2.schema.json",
+        "/api/diagnosis/v2/assessments",
+        "/api/diagnosis/v2/assessments/{assessmentId}/audit",
+        "/api/diagnosis/v2/assessments/{assessmentId}",
+        "/api/diagnosis/v2/encounters/{encounterId}/assessment-snapshot",
         "/diagnosis/{code}/init",
         "/diagnosis/{code}",
         "/health",

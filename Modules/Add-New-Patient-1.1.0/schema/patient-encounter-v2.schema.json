@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://insight.local/schemas/patient-encounter-v2.schema.json",
+  "title": "INSIGHT Patient and Encounter v2",
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$"
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceModule", "createdByUserId", "createdAt", "updatedAt"],
+      "properties": {
+        "sourceModule": {"const": "add-new-patient"},
+        "createdByUserId": {"type": "string", "minLength": 1, "maxLength": 128},
+        "createdAt": {"$ref": "#/$defs/utcTimestamp"},
+        "updatedAt": {"$ref": "#/$defs/utcTimestamp"},
+        "legacyIntakeId": {"type": "string", "minLength": 1, "maxLength": 128}
+      }
+    },
+    "patient": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["patientId", "schemaVersion", "resourceVersion", "firstName", "lastName", "sex", "dob", "phoneNumber", "provenance"],
+      "properties": {
+        "patientId": {"$ref": "#/$defs/uuid"},
+        "schemaVersion": {"const": "2.0.0"},
+        "resourceVersion": {"type": "integer", "minimum": 1},
+        "firstName": {"type": "string", "minLength": 1, "maxLength": 80},
+        "lastName": {"type": "string", "minLength": 1, "maxLength": 80},
+        "sex": {"enum": ["Male", "Female"]},
+        "dob": {"type": "string", "format": "date"},
+        "phoneNumber": {"type": ["string", "null"], "pattern": "^[0-9]{10}$"},
+        "provenance": {"$ref": "#/$defs/provenance"}
+      }
+    },
+    "patientCodeAlias": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["aliasId", "patientId", "patientCode", "schemaVersion", "resourceVersion", "provenance"],
+      "properties": {
+        "aliasId": {"$ref": "#/$defs/uuid"},
+        "patientId": {"$ref": "#/$defs/uuid"},
+        "patientCode": {"type": "string", "pattern": "^[A-Z0-9]{6}$"},
+        "schemaVersion": {"const": "2.0.0"},
+        "resourceVersion": {"type": "integer", "minimum": 1},
+        "provenance": {"$ref": "#/$defs/provenance"}
+      }
+    },
+    "encounter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["encounterId", "patientId", "encounterType", "occurredAt", "schemaVersion", "resourceVersion", "provenance"],
+      "properties": {
+        "encounterId": {"$ref": "#/$defs/uuid"},
+        "patientId": {"$ref": "#/$defs/uuid"},
+        "encounterType": {"enum": ["initial", "follow-up"]},
+        "occurredAt": {"$ref": "#/$defs/utcTimestamp"},
+        "schemaVersion": {"const": "2.0.0"},
+        "resourceVersion": {"type": "integer", "minimum": 1},
+        "provenance": {"$ref": "#/$defs/provenance"}
+      }
+    },
+    "riskFlags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["suicidality", "substanceUse"],
+      "properties": {
+        "suicidality": {"enum": ["suicidality_none", "ideation", "plan", "attempt"]},
+        "substanceUse": {"type": "boolean"}
+      }
+    },
+    "intakeSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["intakeSnapshotId", "patientId", "encounterId", "schemaVersion", "resourceVersion", "presentingComplaint", "provisionalDiagnosis", "treatmentHistory", "allergies", "currentMedications", "riskFlags", "provenance"],
+      "properties": {
+        "intakeSnapshotId": {"$ref": "#/$defs/uuid"},
+        "patientId": {"$ref": "#/$defs/uuid"},
+        "encounterId": {"$ref": "#/$defs/uuid"},
+        "schemaVersion": {"const": "2.0.0"},
+        "resourceVersion": {"type": "integer", "minimum": 1},
+        "presentingComplaint": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "provisionalDiagnosis": {"type": "string", "minLength": 1, "maxLength": 240},
+        "treatmentHistory": {"type": "array", "items": {"type": "string", "maxLength": 160}},
+        "allergies": {"type": "array", "items": {"type": "string", "maxLength": 160}},
+        "currentMedications": {"type": "array", "items": {"type": "string", "maxLength": 160}},
+        "riskFlags": {"$ref": "#/$defs/riskFlags"},
+        "provenance": {"$ref": "#/$defs/provenance"}
+      }
+    },
+    "patientInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["firstName", "lastName", "sex", "dob"],
+      "properties": {
+        "patientCode": {"type": ["string", "null"], "pattern": "^[A-Za-z0-9]{6}$"},
+        "firstName": {"type": "string", "minLength": 1, "maxLength": 80},
+        "lastName": {"type": "string", "minLength": 1, "maxLength": 80},
+        "sex": {"enum": ["Male", "Female"]},
+        "dob": {"type": "string", "format": "date"},
+        "phoneNumber": {"type": ["string", "null"]}
+      }
+    },
+    "encounterInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["encounterType", "occurredAt"],
+      "properties": {
+        "encounterType": {"const": "initial"},
+        "occurredAt": {"$ref": "#/$defs/utcTimestamp"}
+      }
+    },
+    "intakeSnapshotInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["presentingComplaint", "provisionalDiagnosis"],
+      "properties": {
+        "presentingComplaint": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "provisionalDiagnosis": {"type": "string", "minLength": 1, "maxLength": 240},
+        "treatmentHistory": {"type": ["array", "null"], "items": {"type": "string", "maxLength": 160}},
+        "allergies": {"type": ["array", "null"], "items": {"type": "string", "maxLength": 160}},
+        "currentMedications": {"type": ["array", "null"], "items": {"type": "string", "maxLength": 160}},
+        "riskFlags": {"oneOf": [{"$ref": "#/$defs/riskFlags"}, {"type": "null"}]}
+      }
+    },
+    "createPatientEncounterRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["patient", "encounter", "intakeSnapshot"],
+      "properties": {
+        "patient": {"$ref": "#/$defs/patientInput"},
+        "encounter": {"$ref": "#/$defs/encounterInput"},
+        "intakeSnapshot": {"$ref": "#/$defs/intakeSnapshotInput"}
+      }
+    },
+    "createPatientEncounterResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["patient", "patientCodeAlias", "encounter", "intakeSnapshot"],
+      "properties": {
+        "patient": {"$ref": "#/$defs/patient"},
+        "patientCodeAlias": {"$ref": "#/$defs/patientCodeAlias"},
+        "encounter": {"$ref": "#/$defs/encounter"},
+        "intakeSnapshot": {"$ref": "#/$defs/intakeSnapshot"}
+      }
+    },
+    "patientListResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["items", "nextPageToken"],
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["patient", "patientCodeAlias"],
+            "properties": {
+              "patient": {"$ref": "#/$defs/patient"},
+              "patientCodeAlias": {"$ref": "#/$defs/patientCodeAlias"}
+            }
+          }
+        },
+        "nextPageToken": {"type": ["string", "null"], "pattern": "^[A-Za-z0-9_-]+$"}
+      }
+    },
+    "patientSearchRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["query"],
+      "properties": {
+        "query": {"type": "string", "minLength": 1, "maxLength": 80},
+        "pageSize": {"type": "integer", "minimum": 1, "maximum": 100, "default": 50},
+        "pageToken": {"type": ["string", "null"], "pattern": "^[A-Za-z0-9_-]+$"}
+      }
+    }
+  }
+}

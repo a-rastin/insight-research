@@ -90,6 +90,48 @@ class DiagnosisV2ContractTest(unittest.TestCase):
             )
         self.assertEqual(missing.status_code, 404)
 
+    def test_idempotency_key_rejects_changed_payload(self) -> None:
+        first = self.create("diagnosis-v2-key-changed")
+        self.assertEqual(first.status_code, 201, first.text)
+        changed = self.client.post(
+            f"{PREFIX}/assessments",
+            headers={"X-Schema-Version": "2.0.0", "Idempotency-Key": "diagnosis-v2-key-changed"},
+            json={"patientId": self.patient_id, "encounterId": str(uuid4())},
+        )
+        self.assertEqual(changed.status_code, 409, changed.text)
+        self.assertEqual(changed.json()["code"], "COMMON_IDEMPOTENCY_KEY_REUSED")
+
+    def test_update_requires_if_match(self) -> None:
+        created = self.create("diagnosis-v2-key-if-match")
+        assessment_id = created.json()["assessmentId"]
+        response = self.client.put(
+            f"{PREFIX}/assessments/{assessment_id}",
+            headers={"X-Schema-Version": "2.0.0"},
+            json={"checkedCriteria": [], "clinicianDecision": None},
+        )
+        self.assertEqual(response.status_code, 428, response.text)
+        self.assertEqual(response.json()["code"], "COMMON_PRECONDITION_REQUIRED")
+
+    def test_confirmed_requires_met_server_evaluation_but_bypass_remains_valid(self) -> None:
+        created = self.create("diagnosis-v2-key-confirm-gate")
+        assessment_id = created.json()["assessmentId"]
+        confirmed = self.client.put(
+            f"{PREFIX}/assessments/{assessment_id}",
+            headers={"X-Schema-Version": "2.0.0", "If-Match": created.headers["ETag"]},
+            json={"checkedCriteria": ["A1"], "clinicianDecision": {"type": "confirmed"}},
+        )
+        self.assertEqual(confirmed.status_code, 422, confirmed.text)
+        self.assertEqual(confirmed.json()["code"], "DIAGNOSIS_CONFIRMATION_REQUIRES_MET_CRITERIA")
+
+        bypass = self.client.put(
+            f"{PREFIX}/assessments/{assessment_id}",
+            headers={"X-Schema-Version": "2.0.0", "If-Match": created.headers["ETag"]},
+            json={"checkedCriteria": ["A1"], "clinicianDecision": {"type": "bypass"}},
+        )
+        self.assertEqual(bypass.status_code, 200, bypass.text)
+        self.assertFalse(bypass.json()["evaluation"]["met"])
+        self.assertEqual(bypass.json()["clinicianDecision"]["type"], "bypass")
+
     def test_authority_stale_write_snapshot_and_audit_order(self) -> None:
         created = self.create()
         assessment_id = created.json()["assessmentId"]

@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://insight.invalid/schemas/bn-manager-v3.schema.json",
+  "title": "INSIGHT BN Manager v3 schemas",
+  "$defs": {
+    "uuid": {"type": "string", "format": "uuid"},
+    "utcTimestamp": {"type": "string", "format": "date-time", "pattern": "Z$"},
+    "sha256": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stable_id", "title", "file_path", "target_node", "active_version", "status",
+        "lifecycle_status", "clinical_use_status", "mapping_version", "engine_version",
+        "schema_path", "semantic_version", "content_hash", "schema_version", "schema_content_hash"
+      ],
+      "properties": {
+        "stable_id": {"enum": ["bnm.pharmacotherapy", "bnm.treatment-setting", "bnm.involuntary-treatment-considerations", "bnm.clozapine-suicide-risk"]},
+        "title": {"type": "string", "minLength": 1},
+        "file_path": {"type": "string", "pattern": "^xml/[^/]+\\.xml$"},
+        "target_node": {"type": "string", "minLength": 1},
+        "active_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+        "status": {"const": "active"},
+        "lifecycle_status": {"const": "active"},
+        "clinical_use_status": {"const": "research-only"},
+        "mapping_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+        "engine_version": {"type": "string", "minLength": 1},
+        "schema_path": {"const": "schemas/XSD.xml"},
+        "semantic_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+        "content_hash": {"$ref": "#/$defs/sha256"},
+        "schema_version": {"const": "BIF-0.3"},
+        "schema_content_hash": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["module_id", "contract_version", "request_id", "clinical_safety_wording", "warnings"],
+      "properties": {
+        "module_id": {"const": "bn-manager"},
+        "contract_version": {"const": "3.0.0"},
+        "request_id": {"type": ["string", "null"]},
+        "clinical_safety_wording": {"type": "string", "minLength": 1},
+        "warnings": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "modelListData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["interface_version", "models", "schema"],
+      "properties": {
+        "interface_version": {"const": "3.0.0"},
+        "models": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"$ref": "#/$defs/model"}},
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["format", "version"],
+          "properties": {"format": {"const": "XML"}, "version": {"const": "BIF-0.3"}}
+        }
+      }
+    },
+    "modelDetailData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["interface_version", "model"],
+      "properties": {
+        "interface_version": {"const": "3.0.0"},
+        "model": {"$ref": "#/$defs/model"}
+      }
+    },
+    "evaluationRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stable_id"],
+      "properties": {
+        "stable_id": {"$ref": "#/$defs/model/properties/stable_id"},
+        "evidence": {
+          "type": "object",
+          "propertyNames": {"minLength": 1},
+          "additionalProperties": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "ignoredEvidence": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["value", "reason"],
+        "properties": {
+          "value": {"type": "string"},
+          "reason": {"enum": ["unknown-variable", "unknown-state"]}
+        }
+      }
+    },
+    "validationMessage": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["severity", "code", "path"],
+      "properties": {
+        "severity": {"enum": ["info", "warning", "error"]},
+        "code": {"type": "string", "minLength": 1},
+        "path": {"type": "string"}
+      }
+    },
+    "evaluationData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interface_version", "evaluation_id", "evaluated_at", "model", "target",
+        "accepted_evidence", "ignored_evidence", "warnings", "posterior", "mapping_version", "evaluated_by"
+      ],
+      "properties": {
+        "interface_version": {"const": "3.0.0"},
+        "evaluation_id": {"$ref": "#/$defs/uuid"},
+        "evaluated_at": {"$ref": "#/$defs/utcTimestamp"},
+        "model": {"$ref": "#/$defs/model"},
+        "target": {"type": "string", "minLength": 1},
+        "accepted_evidence": {"type": "object", "additionalProperties": {"type": "string"}},
+        "ignored_evidence": {"$ref": "#/$defs/ignoredEvidence"},
+        "warnings": {"type": "array", "items": {"$ref": "#/$defs/validationMessage"}},
+        "posterior": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1}},
+        "mapping_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+        "evaluated_by": {"type": "string", "minLength": 1}
+      }
+    },
+    "successEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ok", "data", "error", "meta"],
+      "properties": {
+        "ok": {"const": true},
+        "data": {"type": "object"},
+        "error": {"type": "null"},
+        "meta": {"$ref": "#/$defs/meta"}
+      }
+    },
+    "modelListResponse": {"$ref": "#/$defs/successEnvelope", "properties": {"data": {"$ref": "#/$defs/modelListData"}}},
+    "modelDetailResponse": {"$ref": "#/$defs/successEnvelope", "properties": {"data": {"$ref": "#/$defs/modelDetailData"}}},
+    "evaluationResponse": {"$ref": "#/$defs/successEnvelope", "properties": {"data": {"$ref": "#/$defs/evaluationData"}}}
+  }
+}

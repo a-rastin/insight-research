@@ -195,6 +195,13 @@ def update_assessment(request: Request, assessmentId: str, body: AssessmentUpdat
     checked = body.checkedCriteria
     if set(checked) - CRITERIA_IDS:
         return problem(request, 422, "DIAGNOSIS_CRITERIA_INVALID", "Checked criteria contain unsupported identifiers.")
+    if body.clinicianDecision and body.clinicianDecision.type == "confirmed" and not evaluate(checked).met:
+        return problem(
+            request,
+            422,
+            "DIAGNOSIS_CONFIRMATION_REQUIRES_MET_CRITERIA",
+            "A confirmed clinician decision requires the server evaluation to be met; use bypass explicitly otherwise.",
+        )
     try:
         assessment = store.update_assessment(assessment_id, current["resourceVersion"], checked, body.clinicianDecision.type if body.clinicianDecision else None, actor.user_id)
     except RuntimeError:

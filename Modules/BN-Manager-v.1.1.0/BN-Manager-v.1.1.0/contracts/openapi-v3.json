@@ -1,0 +1,75 @@
+{
+  "openapi": "3.1.0",
+  "info": {"title": "INSIGHT BN Manager API", "version": "3.0.0"},
+  "servers": [{"url": "/api/bn-manager/v3"}],
+  "paths": {
+    "/models": {
+      "get": {
+        "operationId": "listBnModelsV3",
+        "responses": {
+          "200": {
+            "description": "Four governed registry model identities without model text",
+            "content": {"application/json": {"schema": {"$ref": "bn-manager-v3.schema.json#/$defs/modelListResponse"}}}
+          }
+        }
+      }
+    },
+    "/models/{stable_id}": {
+      "get": {
+        "operationId": "getBnModelV3",
+        "parameters": [{"$ref": "#/components/parameters/StableId"}],
+        "responses": {
+          "200": {
+            "description": "Governed registry model identity without model text",
+            "content": {"application/json": {"schema": {"$ref": "bn-manager-v3.schema.json#/$defs/modelDetailResponse"}}}
+          },
+          "404": {"description": "Registry model not found"}
+        }
+      }
+    },
+    "/evaluations": {
+      "post": {
+        "operationId": "createBnEvaluationV3",
+        "description": "Evaluate one registered model. Caller model text and undeclared request fields are rejected.",
+        "security": [{"cookieSession": [], "csrfToken": []}],
+        "parameters": [{"$ref": "#/components/parameters/IdempotencyKey"}],
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "bn-manager-v3.schema.json#/$defs/evaluationRequest"}}}
+        },
+        "responses": {
+          "200": {
+            "description": "Traceable posterior evaluation or exact idempotent replay",
+            "content": {"application/json": {"schema": {"$ref": "bn-manager-v3.schema.json#/$defs/evaluationResponse"}}}
+          },
+          "400": {"description": "Invalid or undeclared request fields"},
+          "401": {"description": "Authentication required"},
+          "403": {"description": "Role or CSRF denied"},
+          "404": {"description": "Registry model not found"},
+          "409": {"description": "Idempotency key conflict"},
+          "422": {"description": "Model validation or evaluation failed"}
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "cookieSession": {"type": "apiKey", "in": "cookie", "name": "session"},
+      "csrfToken": {"type": "apiKey", "in": "header", "name": "X-CSRF-Token"}
+    },
+    "parameters": {
+      "StableId": {
+        "name": "stable_id",
+        "in": "path",
+        "required": true,
+        "schema": {"$ref": "bn-manager-v3.schema.json#/$defs/model/properties/stable_id"}
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {"type": "string", "minLength": 1, "maxLength": 128}
+      }
+    }
+  }
+}

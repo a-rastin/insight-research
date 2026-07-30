@@ -18,8 +18,11 @@ def numbered(prefix, values):
     return {f"{prefix}-{value}" for value in values}
 
 
+EXPECTED_GOAL_REFS = numbered("goal", range(1, 5))
+
+
 EXPECTED_SOURCE_REFS = (
-    numbered("goal", range(1, 4))
+    EXPECTED_GOAL_REFS
     | numbered("core-flow", range(1, 13))
     | numbered("feature-clinical", range(1, 8))
     | numbered("feature-decision", range(1, 8))
@@ -54,6 +57,14 @@ class CapabilityMatrixContractTest(unittest.TestCase):
         self.assertEqual(set(refs), EXPECTED_SOURCE_REFS)
         self.assertEqual(len(refs), len(set(refs)))
         self.assertEqual(ids, [f"CAP-{index:03d}" for index in range(1, len(rows) + 1)])
+
+    def test_every_project_goal_is_expected_explicitly(self):
+        actual = {
+            row["sourceRef"]
+            for row in self.matrix["rows"]
+            if row["sourceRef"].startswith("goal-")
+        }
+        self.assertEqual(actual, EXPECTED_GOAL_REFS)
 
     def test_every_issue_is_defined(self):
         text = "\n".join(

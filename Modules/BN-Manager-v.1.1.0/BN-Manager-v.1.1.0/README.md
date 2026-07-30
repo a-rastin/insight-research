@@ -2,6 +2,10 @@
 
 BN Manager is the standalone FastAPI service for validating, discovering, and evaluating the INSIGHT clinical Bayesian Networks. Contract v3 uses the supplied BIF 0.3 XML schema and accepts canonical registry models only for clinical evaluation.
 
+The complete machine-readable v3 contract is published in `contracts/` as
+`bn-manager-v3.contract.json`, `bn-manager-v3.schema.json`, and
+`openapi-v3.json`.
+
 ## Canonical networks
 
 The module owns exactly four versioned registry entries:
@@ -104,7 +108,9 @@ evaluation UUID, and UTC evaluation time.
 }
 ```
 
-Callers may instead provide `{"format": "XML", "text": "<BIF ...>"}`. The model must validate against the bundled XSD.
+Only an administrator calling `POST /api/bn-manager/v1/models/validate` may
+provide `{"format": "XML", "text": "<BIF ...>"}`. Evaluation routes reject
+caller model text and use registry `stable_id` values only.
 
 ## Python API
 

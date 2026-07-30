@@ -240,6 +240,21 @@ class BnManagerBackendTests(unittest.TestCase):
         )
         self.assertEqual(legacy_text.status_code, 400)
 
+        for field, value in (
+            ("text", "<BIF/>"),
+            ("model_text", "<BIF/>"),
+            ("model", {"text": "<BIF/>"}),
+            ("caller_note", "ignored before INS-019"),
+        ):
+            with self.subTest(field=field):
+                rejected = self.admin_client.post(
+                    "/api/bn-manager/v3/evaluations",
+                    json={"stable_id": "bnm.pharmacotherapy", field: value},
+                    headers={"x-csrf-token": "csrf-validate", "idempotency-key": f"reject-{field}"},
+                )
+                self.assertEqual(rejected.status_code, 400)
+                self.assertEqual(rejected.json()["error"]["code"], "BNM_INVALID_REQUEST")
+
 
 if __name__ == "__main__":
     unittest.main()

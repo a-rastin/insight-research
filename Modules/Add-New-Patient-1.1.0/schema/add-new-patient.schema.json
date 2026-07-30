@@ -1,0 +1,319 @@
+{
+  "_note": "This file is integration documentation only. The runtime patient contract lives in add_new_patient_backend/models.py (Pydantic). Keep both aligned when fields change.",
+  "module": {
+    "name": "Add New Patient",
+    "slug": "add-new-patient",
+    "activation": {
+      "buttonLabel": "Add New Patient",
+      "action": "generate_patient_code_and_show_form"
+    },
+    "communication": {
+      "style": "API first",
+      "protocol": "internal REST",
+      "basePath": "/api"
+    }
+  },
+  "tables": [
+    {
+      "name": "patients",
+      "storage": "add_new_patient.sqlite3",
+      "primaryKey": "id",
+      "uniqueKeys": ["patientCode"],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "description": "Server-generated patient record identifier."
+        },
+        {
+          "name": "patientCode",
+          "type": "string",
+          "required": true,
+          "length": 6,
+          "pattern": "^[A-Z0-9]{6}$",
+          "description": "Six-character code generated when the module opens."
+        },
+        {
+          "name": "firstName",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "lastName",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "sex",
+          "type": "enum",
+          "required": true,
+          "values": ["Male", "Female"]
+        },
+        {
+          "name": "dob",
+          "type": "date",
+          "required": true,
+          "description": "Date of birth. Must not be in the future and must be at least 1 year ago. API responses compute age from this value."
+        },
+        {
+          "name": "phoneNumber",
+          "type": "string",
+          "required": false,
+          "length": 10,
+          "pattern": "^\\d{10}$",
+          "description": "Optional 10-digit phone number stored as digits only."
+        },
+        {
+          "name": "createdByUserId",
+          "type": "string",
+          "required": true,
+          "description": "Authenticated psychiatrist user id that created the patient identity."
+        },
+        {
+          "name": "createdAt",
+          "type": "datetime",
+          "required": true,
+          "format": "ISO-8601"
+        },
+        {
+          "name": "updatedAt",
+          "type": "datetime",
+          "required": true,
+          "format": "ISO-8601"
+        }
+      ]
+    },
+    {
+      "name": "patient_intake_records",
+      "storage": "add_new_patient.sqlite3",
+      "primaryKey": "id",
+      "foreignKeys": [
+        {
+          "column": "patientId",
+          "references": "patients.id"
+        }
+      ],
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "required": true,
+          "description": "Server-generated intake record identifier."
+        },
+        {
+          "name": "patientId",
+          "type": "uuid",
+          "required": true
+        },
+        {
+          "name": "encounterDate",
+          "type": "datetime",
+          "required": true,
+          "format": "ISO-8601"
+        },
+        {
+          "name": "presentingComplaint",
+          "type": "string",
+          "required": true,
+          "maxLength": 2000,
+          "description": "Required clinical presenting complaint."
+        },
+        {
+          "name": "provisionalDiagnosis",
+          "type": "string",
+          "required": true,
+          "maxLength": 240,
+          "description": "Free text or v1 ICD-10-like four-character code pattern."
+        },
+        {
+          "name": "allergies",
+          "type": "string[]",
+          "required": false,
+          "default": []
+        },
+        {
+          "name": "treatmentHistory",
+          "type": "string[]",
+          "required": false,
+          "default": []
+        },
+        {
+          "name": "currentMedications",
+          "type": "string[]",
+          "required": false,
+          "default": []
+        },
+        {
+          "name": "riskFlags",
+          "type": "object",
+          "required": false,
+          "default": {
+            "suicidality": "suicidality_none",
+            "substanceUse": false
+          },
+          "properties": {
+            "suicidality": ["suicidality_none", "ideation", "plan", "attempt"],
+            "substanceUse": "boolean"
+          }
+        },
+        {
+          "name": "createdByUserId",
+          "type": "string",
+          "required": true,
+          "description": "Authenticated psychiatrist user id that created the intake record."
+        }
+      ]
+    }
+  ],
+  "forms": [
+    {
+      "name": "addNewPatientForm",
+      "submitEndpoint": "POST /api/patients",
+      "fields": [
+        {
+          "name": "demographics.patientCode",
+          "control": "readonly-output",
+          "label": "Generated Code",
+          "required": true
+        },
+        {
+          "name": "demographics.firstName",
+          "control": "text-input",
+          "label": "First Name",
+          "required": true
+        },
+        {
+          "name": "demographics.lastName",
+          "control": "text-input",
+          "label": "Last Name",
+          "required": true
+        },
+        {
+          "name": "demographics.sex",
+          "control": "segmented-radio",
+          "label": "Sex",
+          "required": true,
+          "options": ["Male", "Female"]
+        },
+        {
+          "name": "demographics.dob",
+          "control": "date-input",
+          "label": "Date of Birth",
+          "required": true
+        },
+        {
+          "name": "demographics.phoneNumber",
+          "control": "tel-input",
+          "label": "Phone Number",
+          "required": false,
+          "digits": 10
+        },
+        {
+          "name": "clinical.presentingComplaint",
+          "control": "textarea",
+          "label": "Presenting Complaint",
+          "required": true,
+          "maxLength": 2000
+        },
+        {
+          "name": "clinical.provisionalDiagnosis",
+          "control": "text-input",
+          "label": "Provisional Diagnosis",
+          "required": true,
+          "maxLength": 240
+        },
+        {
+          "name": "clinical.allergies",
+          "control": "textarea",
+          "label": "Allergies",
+          "required": false
+        },
+        {
+          "name": "clinical.treatmentHistory",
+          "control": "textarea",
+          "label": "Treatment History",
+          "required": false
+        },
+        {
+          "name": "clinical.currentMedications",
+          "control": "textarea",
+          "label": "Current Medications",
+          "required": false
+        },
+        {
+          "name": "clinical.riskFlags.suicidality",
+          "control": "select",
+          "label": "Suicidality",
+          "required": false,
+          "options": ["suicidality_none", "ideation", "plan", "attempt"],
+          "default": "suicidality_none"
+        },
+        {
+          "name": "clinical.riskFlags.substanceUse",
+          "control": "checkbox",
+          "label": "Substance Use Risk",
+          "required": false,
+          "default": false
+        }
+      ]
+    }
+  ],
+  "strings": {
+    "buttons": {
+      "activate": "Add New Patient",
+      "submit": "Submit Patient",
+      "back": "Back to Dashboard",
+      "regenerateCode": "Generate New Code"
+    },
+    "messages": {
+      "saving": "Saving patient...",
+      "success": "Patient {patientCode} saved.",
+      "validationError": "Review the highlighted fields."
+    }
+  },
+  "restApi": {
+    "GET /api/health": {
+      "description": "Module liveness check."
+    },
+    "GET /api/patients": {
+      "description": "Returns saved patient records.",
+      "response": {
+        "patients": "Patient[]"
+      }
+    },
+    "POST /api/patients": {
+      "description": "Validates and saves a new patient.",
+      "requestBody": {
+        "demographics": {
+          "patientCode": "string?",
+          "firstName": "string",
+          "lastName": "string",
+          "sex": "Male | Female",
+          "dob": "YYYY-MM-DD",
+          "phoneNumber": "string?"
+        },
+        "clinical": {
+          "presentingComplaint": "string",
+          "provisionalDiagnosis": "string",
+          "treatmentHistory": "string[]?",
+          "allergies": "string[]?",
+          "currentMedications": "string[]?",
+          "riskFlags": {
+            "suicidality": "suicidality_none | ideation | plan | attempt",
+            "substanceUse": "boolean"
+          }
+        }
+      },
+      "responses": {
+        "201": "Patient created.",
+        "422": "Validation failed with errors keyed as section.field, for example demographics.dob or clinical.provisionalDiagnosis."
+      }
+    },
+    "GET /api/patients/{idOrCode}": {
+      "description": "Returns a patient by UUID or six-character patient code."
+    }
+  }
+}

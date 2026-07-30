@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import time
 from typing import Any
+from uuid import UUID
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
@@ -118,7 +119,8 @@ def create_app(
         return {"actor": current_actor, "mode": "development-stub" if settings.auth_stub_enabled else "rest"}
 
     @app.get("/api/treatment-plan/v1/plans/{plan_id}")
-    def read_plan(plan_id: str, request: Request):
+    def read_plan(plan_id: UUID, request: Request):
+        plan_id = str(plan_id)
         authorized_session(request, Capability.PLAN_READ)
         try:
             view = plan_ledger.get(plan_id)
@@ -128,12 +130,13 @@ def create_app(
 
     @app.patch("/api/treatment-plan/v1/plans/{plan_id}/draft")
     def edit_draft(
-        plan_id: str,
+        plan_id: UUID,
         body: dict[str, Any],
         request: Request,
         if_match: str | None = Header(default=None, alias="If-Match"),
         csrf_token: str | None = Header(default=None, alias="X-CSRF-Token"),
     ):
+        plan_id = str(plan_id)
         current_session = authorized_session(request, Capability.PLAN_MUTATE, csrf_token)
         allowed_fields = {"operation", "path", "after", "reason"}
         unknown = sorted(set(body) - allowed_fields)
@@ -166,15 +169,16 @@ def create_app(
 
     @app.post("/api/treatment-plan/v1/plans/{plan_id}/finalize", status_code=201)
     async def finalize_plan(
-        plan_id: str,
+        plan_id: UUID,
         body: dict[str, Any],
         request: Request,
         if_match: str | None = Header(default=None, alias="If-Match"),
         csrf_token: str | None = Header(default=None, alias="X-CSRF-Token"),
         idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
-        request_id: str | None = Header(default=None, alias="X-Request-ID"),
+        request_id: UUID = Header(alias="X-Request-ID"),
         correlation_id: str | None = Header(default=None, alias="X-Correlation-ID"),
     ):
+        plan_id = str(plan_id)
         current_session = authorized_session(request, Capability.PLAN_MUTATE, csrf_token)
         if plan_finalizer is None:
             raise HTTPException(503, "authoritative finalization is not configured")
@@ -187,7 +191,7 @@ def create_app(
             actor_id=current_session.user_id,
             session_id=current_session.session_id,
             attestation=body["attestation"],
-            request_id=request_id or "",
+            request_id=str(request_id),
             correlation_id=observability.correlation_id,
             idempotency_key=idempotency_key or "",
         )
@@ -219,7 +223,8 @@ def create_app(
         )
 
     @app.get("/api/treatment-plan/v1/plans/{plan_id}/provenance")
-    def read_plan_provenance(plan_id: str, request: Request):
+    def read_plan_provenance(plan_id: UUID, request: Request):
+        plan_id = str(plan_id)
         authorized_session(request, Capability.PLAN_READ)
         try:
             record = plan_ledger.get_finalization(plan_id)
@@ -234,7 +239,8 @@ def create_app(
         return JSONResponse([provenance], headers={"X-Schema-Version": "1.0.0"})
 
     @app.get("/api/treatment-plan/v1/plans/{plan_id}/audit")
-    def read_plan_audit(plan_id: str, request: Request):
+    def read_plan_audit(plan_id: UUID, request: Request):
+        plan_id = str(plan_id)
         current_session = authorized_session(request, Capability.AUDIT_READ)
         events = [event.to_dict() for event in observability.audit_events(entity_id=plan_id)]
         observability.audit("audit.retrieve", "success", actor_id=current_session.user_id, entity_id=plan_id)

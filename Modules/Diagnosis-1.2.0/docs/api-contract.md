@@ -116,8 +116,9 @@ Assessment responses validate against
 assessment, Patient, and Encounter UUIDs; checked criteria; server evaluation;
 nullable explicit clinician decision (`confirmed` or `bypass`) with actor and
 time; rule/schema versions; status; resource version; UTC create/update times;
-and actor provenance. `evaluation.met` remains evidence only. It never creates,
-rewrites, or rejects a clinician decision, and bypass remains valid whether the
+and actor provenance. `evaluation.met` remains evidence only and never creates
+or rewrites a clinician decision. A `confirmed` decision is invalid when the
+server evaluation is unmet; `bypass` remains the explicit valid path whether
 criteria evaluate true or false.
 
 `PUT /api/diagnosis/v2/assessments/{assessmentId}` requires schema header,
@@ -557,19 +558,22 @@ Admins audit, never mutate clinical state.
 
 ### Trust call
 For every protected request the module calls
-`GET {AUTH_BASE_URL}/api/auth/session` with the incoming `Cookie`
+`GET {AUTH_BASE_URL}/api/auth/v2/session` with the incoming `Cookie`
 header and reads the JSON response:
 
 ```json
 {
   "authenticated": true,
-  "user_id":       "u-123",
-  "roles":         ["psychiatrist"],
-  "session_id":    "s-abc"
+  "authorized": true,
+  "interfaceVersion": "2.0.0",
+  "session": {"id": "<uuid>", "active": true, "expiresAt": "<UTC date-time>"},
+  "user": {"id": "<uuid>", "username": "clinician", "role": "psychiatrist"},
+  "gates": {"passwordChangeRequired": false, "disclaimerRequired": false, "disclaimerVersion": "<version>"}
 }
 ```
 
-- Missing / non-authenticated → **401** `{"detail": "Not authenticated"}`.
+- Missing, non-authenticated, unauthorized, gated, expired, non-v2, non-UUID,
+  or non-canonical-role response → **401** `{"detail": "Not authenticated"}`.
 - Authenticated but missing the required role → **403** `{"detail": "Forbidden"}`.
 - Auth service unreachable / non-JSON / timed out (`AUTH_TIMEOUT_S`,
   default 2.0s) → **401** fail-closed (does not leak the transport

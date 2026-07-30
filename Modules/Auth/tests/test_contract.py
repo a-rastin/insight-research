@@ -4,15 +4,34 @@ import json
 from pathlib import Path
 import uuid
 
+from jsonschema import Draft202012Validator, FormatChecker
+
 import security
 
 
 class AuthContractTests(AuthTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.session_schema = json.loads(
+            (Path(__file__).parents[1] / "docs" / "auth-session-v2.schema.json").read_text(encoding="utf-8")
+        )
+        Draft202012Validator.check_schema(cls.session_schema)
+        cls.session_validator = Draft202012Validator(
+            cls.session_schema,
+            format_checker=FormatChecker(),
+        )
+
+    def assert_valid_v2_session(self, response):
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.session_validator.validate(body)
+        return body
+
     def test_v2_session_contract_uses_uuid_identity_and_explicit_gates(self):
         client = self.login_admin()
         response = client.get("/api/auth/v2/session")
-        self.assertEqual(response.status_code, 200)
-        body = response.json()
+        body = self.assert_valid_v2_session(response)
         self.assertEqual(response.headers["x-schema-version"], "2.0.0")
         self.assertEqual(
             set(body),
@@ -30,11 +49,18 @@ class AuthContractTests(AuthTestCase):
         self.assertEqual(expires_at.tzinfo, UTC)
         self.assertNotIn("message", body)
 
-        schema = json.loads(
-            (Path(__file__).parents[1] / "docs" / "auth-session-v2.schema.json").read_text(encoding="utf-8")
+        self.assertEqual(
+            self.session_schema["properties"]["interfaceVersion"]["const"],
+            body["interfaceVersion"],
         )
-        self.assertEqual(schema["properties"]["interfaceVersion"]["const"], body["interfaceVersion"])
-        self.assertEqual(schema["properties"]["user"]["properties"]["role"]["enum"], ["admin", "psychiatrist"])
+        self.assertEqual(
+            self.session_schema["properties"]["user"]["properties"]["role"]["enum"],
+            ["admin", "psychiatrist"],
+        )
+
+        noncanonical = json.loads(json.dumps(body))
+        noncanonical["session"]["expiresAt"] = noncanonical["session"]["expiresAt"].replace("Z", "+00:00")
+        self.assertTrue(list(self.session_validator.iter_errors(noncanonical)))
 
     def test_v2_session_exposes_password_and_disclaimer_gates(self):
         user_id = security.register_user("pending", "psychiatrist", "temporary")
@@ -48,7 +74,7 @@ class AuthContractTests(AuthTestCase):
         )
         self.assertTrue(login.json()["password_change_required"])
 
-        body = client.get("/api/auth/v2/session").json()
+        body = self.assert_valid_v2_session(client.get("/api/auth/v2/session"))
         self.assertTrue(body["authenticated"])
         self.assertFalse(body["authorized"])
         self.assertTrue(body["gates"]["passwordChangeRequired"])
@@ -65,13 +91,15 @@ class AuthContractTests(AuthTestCase):
             json={"username": "current-state", "password": "secret", "role": "psychiatrist"},
         )
         token = client.cookies.get(security.cfg("AUTH_COOKIE_NAME"))
-        self.assertEqual(client.get("/api/auth/v2/session").status_code, 200)
+        self.assert_valid_v2_session(client.get("/api/auth/v2/session"))
 
         security.update_user_role(user_id, "admin")
         self.assertEqual(self.client_with_session_token(token).get("/api/auth/v2/session").status_code, 401)
 
         token = security.issue_token(user_id, "admin")
-        self.assertEqual(self.client_with_session_token(token).get("/api/auth/v2/session").status_code, 200)
+        self.assert_valid_v2_session(
+            self.client_with_session_token(token).get("/api/auth/v2/session")
+        )
         security.set_user_disabled(user_id, True)
         self.assertEqual(self.client_with_session_token(token).get("/api/auth/v2/session").status_code, 401)
 

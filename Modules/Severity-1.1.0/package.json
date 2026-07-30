@@ -1,0 +1,17 @@
+{
+  "name": "severity",
+  "version": "1.0.0",
+  "description": "Severity module with PANSS questionnaire for schizophrenia severity evaluation",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test_v2_api.js && node test_api.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

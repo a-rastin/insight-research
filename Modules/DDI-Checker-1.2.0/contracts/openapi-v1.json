@@ -52,11 +52,17 @@
             "schema": {
               "$ref": "ddi-v1.schema.json#/$defs/uuid"
             }
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
           }
         ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/LifecycleTransition"
+        },
         "responses": {
           "200": {
-            "description": "Revision reviewed"
+            "$ref": "#/components/responses/LifecycleTransition"
           },
           "409": {
             "description": "Invalid lifecycle transition"
@@ -82,11 +88,17 @@
             "schema": {
               "$ref": "ddi-v1.schema.json#/$defs/uuid"
             }
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
           }
         ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/LifecycleTransition"
+        },
         "responses": {
           "200": {
-            "description": "Reviewed revision activated"
+            "$ref": "#/components/responses/LifecycleTransition"
           },
           "409": {
             "description": "Invalid lifecycle transition"
@@ -112,11 +124,17 @@
             "schema": {
               "$ref": "ddi-v1.schema.json#/$defs/uuid"
             }
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
           }
         ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/LifecycleTransition"
+        },
         "responses": {
           "200": {
-            "description": "Prior reviewed revision activated without changing historical checks"
+            "$ref": "#/components/responses/LifecycleTransition"
           },
           "409": {
             "description": "Revision is not eligible for rollback"
@@ -237,14 +255,21 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "ddi-v1.schema.json#/$defs/findingAction"
+                "$ref": "ddi-v1.schema.json#/$defs/findingActionRequest"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Append-only action recorded"
+            "description": "Append-only action recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "ddi-v1.schema.json#/$defs/findingActionResponse"
+                }
+              }
+            }
           },
           "403": {
             "description": "Psychiatrist role or override policy denied"
@@ -254,6 +279,52 @@
           },
           "422": {
             "description": "Rationale or action invalid"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "IfMatch": {
+        "name": "If-Match",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^\"[^\"]+\"$"
+        }
+      }
+    },
+    "requestBodies": {
+      "LifecycleTransition": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "ddi-v1.schema.json#/$defs/lifecycleTransitionRequest"
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "LifecycleTransition": {
+        "description": "Revision state changed and an attributable transition event was appended",
+        "headers": {
+          "ETag": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\"[^\"]+\"$"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "ddi-v1.schema.json#/$defs/lifecycleTransitionResponse"
+            }
           }
         }
       }

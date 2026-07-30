@@ -1,0 +1,45 @@
+{
+  "policyId": "schizophrenia-research-primary-plan",
+  "version": "1.0.0",
+  "status": "research-only-pending-clinical-approval",
+  "compatibleSafetyPolicy": {
+    "policyId": "schizophrenia-research-safety",
+    "version": "1.0.0"
+  },
+  "settings": [
+    {"candidateId": "outpatient", "setting": "outpatient", "ruleId": "setting-outpatient"},
+    {"candidateId": "intensive-outpatient", "setting": "intensive-outpatient", "ruleId": "setting-intensive-outpatient"},
+    {"candidateId": "inpatient", "setting": "inpatient", "ruleId": "setting-inpatient"},
+    {"candidateId": "emergency", "setting": "emergency", "ruleId": "setting-emergency"}
+  ],
+  "pharmacotherapies": [
+    {
+      "candidateId": "candidate-a",
+      "medicationCode": "synthetic-candidate-a",
+      "codeSystem": "synthetic-research-only",
+      "dose": "synthetic-dose-a",
+      "route": "oral",
+      "frequency": "synthetic-frequency-a",
+      "ruleId": "pharmacotherapy-candidate-a"
+    },
+    {
+      "candidateId": "candidate-b",
+      "medicationCode": "synthetic-candidate-b",
+      "codeSystem": "synthetic-research-only",
+      "dose": "synthetic-dose-b",
+      "route": "oral",
+      "frequency": "synthetic-frequency-b",
+      "ruleId": "pharmacotherapy-candidate-b"
+    }
+  ],
+  "appointments": [
+    {"setting": "outpatient", "interval": "P14D", "ruleId": "follow-up-outpatient-14d"},
+    {"setting": "intensive-outpatient", "interval": "P7D", "ruleId": "follow-up-intensive-outpatient-7d"},
+    {"setting": "inpatient", "interval": "P1D", "ruleId": "follow-up-inpatient-1d"},
+    {"setting": "emergency", "interval": "PT0S", "ruleId": "follow-up-emergency-immediate"}
+  ],
+  "limitations": [
+    "Research-only synthesis policy; the candidate catalog and intervals are pending clinical approval.",
+    "The draft is decision support for psychiatrist review, not a prescription or autonomous clinical order."
+  ]
+}

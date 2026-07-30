@@ -90,7 +90,7 @@ class DdiV1ContractTest(unittest.TestCase):
             "knowledgeBaseVersion": "1.2.3",
             "knowledgeBaseContentHash": digest_a,
             "coverageStatus": "incomplete",
-            "normalizedMedications": [
+            "resolvedMedications": [
                 {
                     "inputIndex": 1,
                     "status": "resolved",
@@ -121,7 +121,7 @@ class DdiV1ContractTest(unittest.TestCase):
             "status": "resolved",
             "originalText": "unknown",
         }
-        self.assertTrue(list(self.validator("medicationResolution").iter_errors(invalid_resolved)))
+        self.assertTrue(list(self.validator("resolvedMedication").iter_errors(invalid_resolved)))
 
         blank_candidates = {
             "inputIndex": 0,
@@ -130,7 +130,7 @@ class DdiV1ContractTest(unittest.TestCase):
             "reason": "multiple-matches",
             "candidates": [],
         }
-        self.assertTrue(list(self.validator("medicationResolution").iter_errors(blank_candidates)))
+        self.assertTrue(list(self.validator("unresolvedMedication").iter_errors(blank_candidates)))
 
         override_without_rationale = {
             "actionId": "00000000-0000-4000-8000-000000000003",
@@ -140,7 +140,7 @@ class DdiV1ContractTest(unittest.TestCase):
             "actorRole": "psychiatrist",
             "recordedAt": "2026-07-30T00:00:00Z",
         }
-        self.assertTrue(list(self.validator("findingAction").iter_errors(override_without_rationale)))
+        self.assertTrue(list(self.validator("findingActionResponse").iter_errors(override_without_rationale)))
 
     def test_openapi_publishes_treatment_plan_check_endpoint(self):
         self.assertEqual(self.openapi["openapi"], "3.1.0")

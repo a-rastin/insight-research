@@ -1,0 +1,145 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "INSIGHT Severity API",
+    "version": "2.0.0"
+  },
+  "paths": {
+    "/api/severity/v2/contract": {
+      "get": {
+        "operationId": "getSeverityV2Contract",
+        "responses": {
+          "200": {"description": "PANSS v2 contract"}
+        }
+      }
+    },
+    "/api/severity/v2/contract/document": {
+      "get": {
+        "operationId": "getSeverityV2ContractDocument",
+        "responses": {"200": {"description": "PANSS v2 contract document"}}
+      }
+    },
+    "/api/severity/v2/contract/schema": {
+      "get": {
+        "operationId": "getSeverityV2Schema",
+        "responses": {"200": {"description": "PANSS v2 JSON Schema"}}
+      }
+    },
+    "/api/severity/v2/contract/openapi": {
+      "get": {
+        "operationId": "getSeverityV2OpenApi",
+        "responses": {"200": {"description": "PANSS v2 OpenAPI document"}}
+      }
+    },
+    "/api/severity/v2/assessments": {
+      "post": {
+        "operationId": "createPanssAssessment",
+        "parameters": [
+          {"$ref": "#/components/parameters/SchemaVersion"},
+          {"$ref": "#/components/parameters/IdempotencyKey"}
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {"schema": {"$ref": "panss-assessment-v2.schema.json#/$defs/assessmentWrite"}}
+          }
+        },
+        "responses": {
+          "201": {"$ref": "#/components/responses/Assessment"},
+          "400": {"$ref": "#/components/responses/Problem"},
+          "409": {"$ref": "#/components/responses/Problem"}
+        }
+      }
+    },
+    "/api/severity/v2/assessments/{assessmentId}": {
+      "parameters": [
+        {
+          "name": "assessmentId",
+          "in": "path",
+          "required": true,
+          "schema": {"type": "string", "format": "uuid"}
+        }
+      ],
+      "get": {
+        "operationId": "getPanssAssessment",
+        "responses": {
+          "200": {"$ref": "#/components/responses/Assessment"},
+          "404": {"$ref": "#/components/responses/Problem"}
+        }
+      },
+      "put": {
+        "operationId": "updatePanssAssessment",
+        "parameters": [
+          {"$ref": "#/components/parameters/SchemaVersion"},
+          {"$ref": "#/components/parameters/IfMatch"}
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {"schema": {"$ref": "panss-assessment-v2.schema.json#/$defs/assessmentUpdate"}}
+          }
+        },
+        "responses": {
+          "200": {"$ref": "#/components/responses/Assessment"},
+          "412": {"$ref": "#/components/responses/Problem"},
+          "428": {"$ref": "#/components/responses/Problem"}
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "SchemaVersion": {
+        "name": "X-Schema-Version",
+        "in": "header",
+        "required": true,
+        "schema": {"const": "2.0.0"}
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {"type": "string", "minLength": 8, "maxLength": 128}
+      },
+      "IfMatch": {
+        "name": "If-Match",
+        "in": "header",
+        "required": true,
+        "schema": {"type": "string", "pattern": "^\"[^\"]+\"$"}
+      }
+    },
+    "responses": {
+      "Assessment": {
+        "description": "PANSS assessment",
+        "headers": {
+          "ETag": {"required": true, "schema": {"type": "string"}},
+          "X-Schema-Version": {"required": true, "schema": {"const": "2.0.0"}},
+          "X-Request-ID": {"required": true, "schema": {"type": "string", "format": "uuid"}}
+        },
+        "content": {
+          "application/json": {"schema": {"$ref": "panss-assessment-v2.schema.json"}}
+        }
+      },
+      "Problem": {
+        "description": "Safe RFC 9457 problem details",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "title", "status", "code", "detail", "requestId"],
+              "properties": {
+                "type": {"type": "string", "format": "uri"},
+                "title": {"type": "string"},
+                "status": {"type": "integer", "minimum": 400, "maximum": 599},
+                "code": {"type": "string"},
+                "detail": {"type": "string"},
+                "requestId": {"type": "string", "format": "uuid"}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://insight.local/schemas/severity/panss-assessment-v2.schema.json",
+  "title": "INSIGHT PANSS Severity Assessment v2",
+  "$ref": "#/$defs/assessment",
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "itemScores": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^(P[1-7]|N[1-7]|G(?:[1-9]|1[0-6]))$"
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 7
+      },
+      "maxProperties": 30
+    },
+    "derivedScores": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["positive", "negative", "general", "total"],
+      "properties": {
+        "positive": {"type": "integer", "minimum": 7, "maximum": 49},
+        "negative": {"type": "integer", "minimum": 7, "maximum": 49},
+        "general": {"type": "integer", "minimum": 16, "maximum": 112},
+        "total": {"type": "integer", "minimum": 30, "maximum": 210}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceModule", "createdAt", "updatedAt", "createdRequestId", "updatedRequestId", "scaleVersion", "ruleVersion"],
+      "properties": {
+        "sourceModule": {"const": "severity"},
+        "createdAt": {"$ref": "#/$defs/utcTimestamp"},
+        "updatedAt": {"$ref": "#/$defs/utcTimestamp"},
+        "createdRequestId": {"$ref": "#/$defs/uuid"},
+        "updatedRequestId": {"$ref": "#/$defs/uuid"},
+        "scaleVersion": {"const": "PANSS-30-1.0.0"},
+        "ruleVersion": {"const": "PANSS-SUM-2.0.0"}
+      }
+    },
+    "assessmentWrite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["patientId", "encounterId", "status", "itemScores"],
+      "properties": {
+        "patientId": {"$ref": "#/$defs/uuid"},
+        "encounterId": {"$ref": "#/$defs/uuid"},
+        "status": {"enum": ["in-progress", "completed", "skipped"]},
+        "itemScores": {"$ref": "#/$defs/itemScores"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "completed"}}, "required": ["status"]},
+          "then": {"properties": {"itemScores": {"minProperties": 30, "maxProperties": 30}}}
+        },
+        {
+          "if": {"properties": {"status": {"const": "in-progress"}}, "required": ["status"]},
+          "then": {"properties": {"itemScores": {"maxProperties": 29}}}
+        },
+        {
+          "if": {"properties": {"status": {"const": "skipped"}}, "required": ["status"]},
+          "then": {"properties": {"itemScores": {"maxProperties": 0}}}
+        }
+      ]
+    },
+    "assessmentUpdate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "itemScores"],
+      "properties": {
+        "status": {"enum": ["in-progress", "completed", "skipped"]},
+        "itemScores": {"$ref": "#/$defs/itemScores"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "completed"}}, "required": ["status"]},
+          "then": {"properties": {"itemScores": {"minProperties": 30, "maxProperties": 30}}}
+        },
+        {
+          "if": {"properties": {"status": {"const": "in-progress"}}, "required": ["status"]},
+          "then": {"properties": {"itemScores": {"maxProperties": 29}}}
+        },
+        {
+          "if": {"properties": {"status": {"const": "skipped"}}, "required": ["status"]},
+          "then": {"properties": {"itemScores": {"maxProperties": 0}}}
+        }
+      ]
+    },
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["interfaceVersion", "schemaVersion", "assessmentId", "patientId", "encounterId", "assessmentType", "status", "itemScores", "scores", "resourceVersion", "provenance"],
+      "properties": {
+        "interfaceVersion": {"const": "2.0.0"},
+        "schemaVersion": {"const": "2.0.0"},
+        "assessmentId": {"$ref": "#/$defs/uuid"},
+        "patientId": {"$ref": "#/$defs/uuid"},
+        "encounterId": {"$ref": "#/$defs/uuid"},
+        "assessmentType": {"const": "PANSS"},
+        "status": {"enum": ["in-progress", "completed", "skipped"]},
+        "itemScores": {"$ref": "#/$defs/itemScores"},
+        "scores": {
+          "oneOf": [
+            {"$ref": "#/$defs/derivedScores"},
+            {"type": "null"}
+          ]
+        },
+        "resourceVersion": {"type": "integer", "minimum": 1},
+        "provenance": {"$ref": "#/$defs/provenance"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "completed"}}, "required": ["status"]},
+          "then": {
+            "properties": {
+              "itemScores": {"minProperties": 30, "maxProperties": 30},
+              "scores": {"$ref": "#/$defs/derivedScores"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"status": {"const": "in-progress"}}, "required": ["status"]},
+          "then": {
+            "properties": {
+              "itemScores": {"maxProperties": 29},
+              "scores": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"status": {"const": "skipped"}}, "required": ["status"]},
+          "then": {
+            "properties": {
+              "itemScores": {"maxProperties": 0},
+              "scores": {"type": "null"}
+            }
+          }
+        }
+      ]
+    }
+  }
+}

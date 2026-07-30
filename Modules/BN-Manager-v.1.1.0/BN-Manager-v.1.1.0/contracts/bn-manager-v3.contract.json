@@ -1,0 +1,31 @@
+{
+  "contractId": "insight.bn-manager",
+  "interfaceVersion": "3.0.0",
+  "schemaVersion": "3.0.0",
+  "moduleOwner": "bn-manager",
+  "status": "published",
+  "basePath": "/api/bn-manager/v3",
+  "artifacts": [
+    "bn-manager-v3.contract.json",
+    "bn-manager-v3.schema.json",
+    "openapi-v3.json"
+  ],
+  "operations": [
+    {"method": "GET", "path": "/models", "operationId": "listBnModelsV3"},
+    {"method": "GET", "path": "/models/{stable_id}", "operationId": "getBnModelV3"},
+    {"method": "POST", "path": "/evaluations", "operationId": "createBnEvaluationV3"}
+  ],
+  "evaluation": {
+    "registryOnly": true,
+    "requestFields": ["stable_id", "evidence"],
+    "additionalPropertiesAllowed": false,
+    "callerModelTextAllowed": false,
+    "idempotencyScope": ["authenticated-actor", "key"],
+    "returnsAcceptedAndIgnoredEvidence": true
+  },
+  "callerModelText": {
+    "allowedOperation": "POST /api/bn-manager/v1/models/validate",
+    "allowedRole": "admin",
+    "allowedForV3Evaluation": false
+  }
+}

@@ -451,6 +451,15 @@ def _validate_targets(payload: dict[str, Any]) -> list[str] | None:
 
 
 def _evaluate_payload_v3(payload: dict[str, Any], session: SessionState) -> dict[str, Any]:
+    allowed_fields = {"stable_id", "evidence"}
+    undeclared_fields = sorted(set(payload) - allowed_fields)
+    if undeclared_fields:
+        raise BnManagerHttpError(
+            400,
+            ERROR_CODES["invalid_request"],
+            "BN Manager v3 evaluation request contains undeclared fields.",
+            {"fields": undeclared_fields},
+        )
     stable_id = str(payload.get("stable_id") or "").strip()
     entry = get_registry_entry(stable_id)
     if entry is None:
@@ -470,6 +479,12 @@ def _evaluate_payload_v3(payload: dict[str, Any], session: SessionState) -> dict
     evidence = payload.get("evidence") or {}
     if not isinstance(evidence, dict):
         raise BnManagerHttpError(400, ERROR_CODES["invalid_request"], "Evidence must be an object.")
+    if any(not isinstance(node_id, str) or not node_id or not isinstance(state, str) or not state for node_id, state in evidence.items()):
+        raise BnManagerHttpError(
+            400,
+            ERROR_CODES["invalid_request"],
+            "Evidence names and states must be non-empty strings.",
+        )
     node_map = model.node_map()
     accepted = {}
     ignored = {}

@@ -1,0 +1,82 @@
+{
+  "openapi": "3.1.0",
+  "info": {"title": "INSIGHT Add New Patient API", "version": "2.0.0"},
+  "paths": {
+    "/api/add-new-patient/v2/contract": {
+      "get": {"operationId": "getPatientEncounterV2Contract", "responses": {"200": {"description": "Contract discovery"}}}
+    },
+    "/api/add-new-patient/v2/patients": {
+      "get": {
+        "operationId": "listPatientsV2",
+        "parameters": [
+          {"name": "pageSize", "in": "query", "schema": {"type": "integer", "minimum": 1, "maximum": 100, "default": 50}},
+          {"name": "pageToken", "in": "query", "schema": {"type": "string"}}
+        ],
+        "responses": {"200": {"description": "Paginated patients", "content": {"application/json": {"schema": {"$ref": "patient-encounter-v2.schema.json#/$defs/patientListResponse"}}}}}
+      },
+      "post": {
+        "operationId": "createPatientAndFirstEncounterV2",
+        "parameters": [{"$ref": "#/components/parameters/Idempotency-Key"}, {"$ref": "#/components/parameters/X-Schema-Version"}, {"$ref": "#/components/parameters/X-CSRF-Token"}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "patient-encounter-v2.schema.json#/$defs/createPatientEncounterRequest"}}}},
+        "responses": {"201": {"description": "Patient and first encounter created atomically", "content": {"application/json": {"schema": {"$ref": "patient-encounter-v2.schema.json#/$defs/createPatientEncounterResponse"}}}}, "409": {"$ref": "#/components/responses/Problem"}}
+      }
+    },
+    "/api/add-new-patient/v2/patients/search": {
+      "post": {
+        "operationId": "searchPatientsV2",
+        "parameters": [{"$ref": "#/components/parameters/X-Schema-Version"}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "patient-encounter-v2.schema.json#/$defs/patientSearchRequest"}}}},
+        "responses": {"200": {"description": "Paginated search results", "content": {"application/json": {"schema": {"$ref": "patient-encounter-v2.schema.json#/$defs/patientListResponse"}}}}}
+      }
+    },
+    "/api/add-new-patient/v2/patient-code-aliases/resolve": {
+      "post": {
+        "operationId": "resolvePatientCodeAliasV2",
+        "parameters": [{"$ref": "#/components/parameters/X-Schema-Version"}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "additionalProperties": false, "required": ["patientCode"], "properties": {"patientCode": {"type": "string", "pattern": "^[A-Za-z0-9]{6}$"}}}}}},
+        "responses": {"200": {"description": "Exact case-insensitive alias resolution", "content": {"application/json": {"schema": {"$ref": "patient-encounter-v2.schema.json#/$defs/patientCodeAlias"}}}}, "404": {"$ref": "#/components/responses/Problem"}, "409": {"$ref": "#/components/responses/Problem"}}
+      }
+    },
+    "/api/add-new-patient/v2/patients/{patientId}": {
+      "parameters": [{"$ref": "#/components/parameters/PatientId"}],
+      "get": {"operationId": "getPatientV2", "responses": {"200": {"description": "Patient", "headers": {"ETag": {"$ref": "#/components/headers/ETag"}}, "content": {"application/json": {"schema": {"$ref": "patient-encounter-v2.schema.json#/$defs/patient"}}}}, "400": {"$ref": "#/components/responses/Problem"}, "404": {"$ref": "#/components/responses/Problem"}}},
+      "patch": {
+        "operationId": "updatePatientV2",
+        "parameters": [{"$ref": "#/components/parameters/If-Match"}, {"$ref": "#/components/parameters/X-Schema-Version"}, {"$ref": "#/components/parameters/X-CSRF-Token"}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "additionalProperties": false, "minProperties": 1, "properties": {"firstName": {"type": "string", "minLength": 1, "maxLength": 80}, "lastName": {"type": "string", "minLength": 1, "maxLength": 80}, "sex": {"enum": ["Male", "Female"]}, "dob": {"type": "string", "format": "date"}, "phoneNumber": {"type": ["string", "null"]}}}}}},
+        "responses": {"200": {"description": "Updated patient", "headers": {"ETag": {"$ref": "#/components/headers/ETag"}}, "content": {"application/json": {"schema": {"$ref": "patient-encounter-v2.schema.json#/$defs/patient"}}}}, "412": {"$ref": "#/components/responses/Problem"}, "428": {"$ref": "#/components/responses/Problem"}}
+      }
+    },
+    "/api/add-new-patient/v2/encounters/{encounterId}": {
+      "get": {"operationId": "getEncounterV2", "parameters": [{"$ref": "#/components/parameters/EncounterId"}], "responses": {"200": {"description": "Encounter", "headers": {"ETag": {"$ref": "#/components/headers/ETag"}}, "content": {"application/json": {"schema": {"$ref": "patient-encounter-v2.schema.json#/$defs/encounter"}}}}, "400": {"$ref": "#/components/responses/Problem"}, "404": {"$ref": "#/components/responses/Problem"}}}
+    },
+    "/api/add-new-patient/v2/encounters/{encounterId}/intake-snapshot": {
+      "get": {"operationId": "getIntakeSnapshotV2", "parameters": [{"$ref": "#/components/parameters/EncounterId"}], "responses": {"200": {"description": "Encounter intake snapshot", "headers": {"ETag": {"$ref": "#/components/headers/ETag"}}, "content": {"application/json": {"schema": {"$ref": "patient-encounter-v2.schema.json#/$defs/intakeSnapshot"}}}}, "400": {"$ref": "#/components/responses/Problem"}, "404": {"$ref": "#/components/responses/Problem"}}}
+    }
+  },
+  "components": {
+    "parameters": {
+      "PatientId": {"name": "patientId", "in": "path", "required": true, "schema": {"type": "string", "format": "uuid"}},
+      "EncounterId": {"name": "encounterId", "in": "path", "required": true, "schema": {"type": "string", "format": "uuid"}},
+      "Idempotency-Key": {"name": "Idempotency-Key", "in": "header", "required": true, "schema": {"type": "string", "minLength": 16, "maxLength": 128, "pattern": "^[A-Za-z0-9._~-]+$"}},
+      "If-Match": {"name": "If-Match", "in": "header", "required": true, "schema": {"type": "string", "pattern": "^\"[!#-~]+\"$"}},
+      "X-Schema-Version": {"name": "X-Schema-Version", "in": "header", "required": true, "schema": {"type": "string", "pattern": "^2\\.[0-9]+\\.[0-9]+$"}},
+      "X-CSRF-Token": {"name": "X-CSRF-Token", "in": "header", "required": true, "schema": {"type": "string", "minLength": 1}}
+    },
+    "headers": {
+      "ETag": {"required": true, "schema": {"type": "string", "pattern": "^\"[!#-~]+\"$"}},
+      "X-Schema-Version": {"required": true, "schema": {"const": "2.0.0"}}
+    },
+    "schemas": {
+      "ProblemDetails": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "title", "status", "code", "requestId", "time"],
+        "properties": {"type": {"type": "string"}, "title": {"type": "string"}, "status": {"type": "integer"}, "code": {"type": "string"}, "requestId": {"type": "string", "format": "uuid"}, "time": {"type": "string", "format": "date-time"}, "errors": {"type": "object"}}
+      }
+    },
+    "responses": {
+      "Problem": {"description": "Typed failure without PHI", "content": {"application/problem+json": {"schema": {"$ref": "#/components/schemas/ProblemDetails"}}}}
+    }
+  }
+}

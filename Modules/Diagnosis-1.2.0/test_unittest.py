@@ -707,6 +707,18 @@ class TestClinicianAuthority(unittest.TestCase):
 # Auth rejection — ``auth.require_role`` fail-closed paths exercised
 # directly (no fake auth server). The end-to-end role coverage lives in
 # ``test_auth.py``; here we lock the dep-level contract.
+def _v2_auth_payload(role="psychiatrist"):
+    return {
+        "authenticated": True,
+        "authorized": True,
+        "interfaceVersion": "2.0.0",
+        "session": {"id": "22222222-2222-4222-8222-222222222222", "active": True, "expiresAt": "2999-01-01T00:00:00Z"},
+        "user": {"id": "11111111-1111-4111-8111-111111111111", "username": "test-user", "role": role},
+        "gates": {"passwordChangeRequired": False, "disclaimerRequired": False, "disclaimerVersion": "test-v1"},
+        "compatibility": {"legacyUserId": 1, "legacyRole": "user"},
+    }
+
+
 class TestAuthRejection(unittest.TestCase):
     def setUp(self):
         # Make ``_fetch_session`` cheap and deterministic — point it at a
@@ -736,36 +748,36 @@ class TestAuthRejection(unittest.TestCase):
         dep = self._dep("psychiatrist")
         req = _fake_request(headers={"cookie": "insight_session=x"})
         with mock.patch.object(diag_auth, "_fetch_session",
-                               return_value={"authenticated": False}):
+                               return_value=({"authenticated": False}, "2.0.0")):
             with self.assertRaises(diag_auth.HTTPException) as cm:
                 dep(req)
         self.assertEqual(cm.exception.status_code, 401)
 
-    def test_wrong_role_rejected_403(self):
+    def test_noncanonical_role_rejected_401(self):
         dep = self._dep("psychiatrist")
         req = _fake_request(headers={"cookie": "insight_session=x"})
-        payload = {"authenticated": True, "user_id": "u", "roles": ["nurse"]}
+        payload = _v2_auth_payload(role="nurse")
         with mock.patch.object(diag_auth, "_fetch_session",
-                               return_value=payload):
+                               return_value=(payload, "2.0.0")):
             with self.assertRaises(diag_auth.HTTPException) as cm:
                 dep(req)
-        self.assertEqual(cm.exception.status_code, 403)
+        self.assertEqual(cm.exception.status_code, 401)
 
     def test_matching_role_passes(self):
         dep = self._dep("psychiatrist", "admin")
         req = _fake_request(headers={"cookie": "insight_session=x"})
-        payload = {"authenticated": True, "user_id": "u",
-                   "roles": ["admin"], "session_id": "s"}
+        payload = _v2_auth_payload(role="admin")
         with mock.patch.object(diag_auth, "_fetch_session",
-                               return_value=payload):
+                               return_value=(payload, "2.0.0")):
             session = dep(req)
         self.assertIn("admin", session.roles)
 
     def test_missing_user_id_fails_closed_401(self):
         dep = self._dep("psychiatrist")
         req = _fake_request(headers={"cookie": "insight_session=x"})
-        payload = {"authenticated": True, "user_id": None, "roles": ["psychiatrist"]}
-        with mock.patch.object(diag_auth, "_fetch_session", return_value=payload):
+        payload = _v2_auth_payload(role="psychiatrist")
+        payload["user"]["id"] = None
+        with mock.patch.object(diag_auth, "_fetch_session", return_value=(payload, "2.0.0")):
             with self.assertRaises(diag_auth.HTTPException) as cm:
                 dep(req)
         self.assertEqual(cm.exception.status_code, 401)

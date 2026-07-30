@@ -8,6 +8,7 @@ from urllib.parse import urldefrag
 MODULE = Path(__file__).resolve().parents[1]
 OPENAPI_PATH = MODULE / "contracts/openapi/treatment-plan.openapi.v1.1.0.json"
 APP_PATH = MODULE / "treatment_plan/app.py"
+BN_ADAPTER_PATH = MODULE / "treatment_plan/bn_evaluation.py"
 HTTP_METHODS = {"get", "post", "put", "patch", "delete", "options", "head", "trace"}
 
 
@@ -22,7 +23,8 @@ class TreatmentPlanContractTests(unittest.TestCase):
         self.assertEqual("1.1.0", self.openapi["info"]["version"])
         compatibility = self.openapi["x-insight-compatibility"]
         self.assertEqual("breaking-contract-correction", compatibility["classification"])
-        self.assertFalse(compatibility["runtimeBehaviorChanged"])
+        self.assertTrue(compatibility["runtimeBehaviorChanged"])
+        self.assertFalse(compatibility["newClinicalBehavior"])
 
     def test_live_router_and_openapi_have_exact_operation_parity(self):
         live = set()
@@ -110,6 +112,38 @@ class TreatmentPlanContractTests(unittest.TestCase):
         self.assertIn("#/components/parameters/IfMatch", draft_parameters)
         self.assertIn("#/components/parameters/IfMatch", final_parameters)
         self.assertIn("#/components/parameters/IdempotencyKey", final_parameters)
+        bn_provider = next(
+            provider for provider in self.openapi["x-insight-provider-contracts"]
+            if provider["provider"] == "bn-manager"
+        )
+        self.assertEqual("POST /api/bn-manager/v3/evaluations", bn_provider["operation"])
+        bn_openapi = json.loads(
+            (OPENAPI_PATH.parent / bn_provider["openapi"]).resolve().read_text(encoding="utf-8")
+        )
+        self.assertIn("post", bn_openapi["paths"]["/evaluations"])
+        adapter_source = BN_ADAPTER_PATH.read_text(encoding="utf-8")
+        self.assertIn("/api/bn-manager/v3/evaluations", adapter_source)
+        self.assertNotIn("/api/bn-manager/v1/evaluations", adapter_source)
+
+    def test_plan_ids_are_uuids_and_request_id_matches_common_profile(self):
+        plan_id = self.openapi["components"]["parameters"]["PlanId"]
+        request_id = self.openapi["components"]["parameters"]["RequestId"]
+        self.assertEqual("uuid", plan_id["schema"]["format"])
+        self.assertTrue(request_id["required"])
+        self.assertEqual("uuid", request_id["schema"]["format"])
+
+        annotations = {
+            node.name: ast.unparse(argument.annotation)
+            for node in ast.walk(self.app_tree)
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+            for argument in node.args.args
+            if argument.arg == "plan_id" and argument.annotation is not None
+        }
+        self.assertEqual(
+            {"read_plan", "edit_draft", "finalize_plan", "read_plan_provenance", "read_plan_audit"},
+            set(annotations),
+        )
+        self.assertEqual({"UUID"}, set(annotations.values()))
 
     def test_runtime_response_envelopes_and_schema_headers_are_exact(self):
         plan_response = self.openapi["paths"]["/api/treatment-plan/v1/plans/{plan_id}"]["get"]["responses"]["200"]

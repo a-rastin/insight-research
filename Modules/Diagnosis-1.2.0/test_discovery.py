@@ -8,7 +8,7 @@ exercise the real role dependency (no env bypass) against the new
 Covers:
   - happy path: psychiatrist/admind cookie -> 200 + descriptor shape;
   - unknown moduleId -> 404 (clean, no stack trace);
-  - non-compliant role (nurse) -> 403;
+  - non-canonical role (nurse) -> 401 fail-closed;
   - no cookie at all -> 401 (auth fail-closed before we answer).
 
 Run: ``python -m test_discovery`` — no test framework, ponytail style.
@@ -42,21 +42,24 @@ from diagnosis.app import app
 SCENARIOS = {
     "psychiatrist": {
         "authenticated": True,
-        "user_id": "u-psy-1",
-        "roles": ["psychiatrist"],
-        "session_id": "s-1",
+        "authorized": True, "interfaceVersion": "2.0.0",
+        "session": {"id": "11111111-1111-4111-8111-111111111111", "active": True, "expiresAt": "2999-01-01T00:00:00Z"},
+        "user": {"id": "22222222-2222-4222-8222-222222222222", "username": "psy", "role": "psychiatrist"},
+        "gates": {"passwordChangeRequired": False, "disclaimerRequired": False, "disclaimerVersion": "test-v1"},
     },
     "admin": {
         "authenticated": True,
-        "user_id": "u-adm-1",
-        "roles": ["admin"],
-        "session_id": "s-2",
+        "authorized": True, "interfaceVersion": "2.0.0",
+        "session": {"id": "33333333-3333-4333-8333-333333333333", "active": True, "expiresAt": "2999-01-01T00:00:00Z"},
+        "user": {"id": "44444444-4444-4444-8444-444444444444", "username": "admin", "role": "admin"},
+        "gates": {"passwordChangeRequired": False, "disclaimerRequired": False, "disclaimerVersion": "test-v1"},
     },
     "nurse": {
         "authenticated": True,
-        "user_id": "u-rn-1",
-        "roles": ["nurse"],
-        "session_id": "s-3",
+        "authorized": True, "interfaceVersion": "2.0.0",
+        "session": {"id": "55555555-5555-4555-8555-555555555555", "active": True, "expiresAt": "2999-01-01T00:00:00Z"},
+        "user": {"id": "66666666-6666-4666-8666-666666666666", "username": "nurse", "role": "nurse"},
+        "gates": {"passwordChangeRequired": False, "disclaimerRequired": False, "disclaimerVersion": "test-v1"},
     },
 }
 
@@ -82,6 +85,7 @@ class _Handler(BaseHTTPRequestHandler):
         body = json.dumps(payload).encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
+        self.send_header("X-Schema-Version", "2.0.0")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -141,10 +145,10 @@ def test_unknown_module_id_returns_404(port: int):
     assert "detail" in r.json() and r.json()["detail"] == "Unknown module id", r.text
 
 
-def test_nurse_role_is_403(port: int):
+def test_nurse_role_is_401(port: int):
     c = _client(port, "nurse")
     r = c.get(DISCOVERY)
-    assert r.status_code == 403, ("nurse should be 403", r.status_code, r.text)
+    assert r.status_code == 401, ("non-canonical role should fail closed", r.status_code, r.text)
 
 
 def test_no_cookie_returns_401(port: int):
@@ -165,8 +169,8 @@ def main() -> None:
          lambda: test_admin_can_read_discovery(port)),
         ("test_unknown_module_id_returns_404",
          lambda: test_unknown_module_id_returns_404(port)),
-        ("test_nurse_role_is_403",
-         lambda: test_nurse_role_is_403(port)),
+        ("test_nurse_role_is_401",
+         lambda: test_nurse_role_is_401(port)),
         ("test_no_cookie_returns_401",
          lambda: test_no_cookie_returns_401(port)),
     ]

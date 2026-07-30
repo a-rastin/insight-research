@@ -320,11 +320,14 @@ class _Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):  # noqa: N802
         body = json.dumps({
-            "authenticated": True, "user_id": "u-1",
-            "roles": ["psychiatrist"], "session_id": "s-1",
+            "authenticated": True, "authorized": True, "interfaceVersion": "2.0.0",
+            "session": {"id": "11111111-1111-4111-8111-111111111111", "active": True, "expiresAt": "2999-01-01T00:00:00Z"},
+            "user": {"id": "22222222-2222-4222-8222-222222222222", "username": "psy", "role": "psychiatrist"},
+            "gates": {"passwordChangeRequired": False, "disclaimerRequired": False, "disclaimerVersion": "test-v1"},
         }).encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
+        self.send_header("X-Schema-Version", "2.0.0")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)

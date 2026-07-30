@@ -52,7 +52,8 @@ work only when `authorized` is `true` and `user.role` is permitted.
 integer user IDs remain internal keys and are exposed only as the explicitly
 deprecated `compatibility.legacyUserId` mapping. Roles are lowercase `admin`
 and `psychiatrist`; legacy `user` maps to `psychiatrist` only at the boundary.
-`expiresAt` is RFC 3339 UTC.
+`expiresAt` is canonical RFC 3339 UTC and always uses the uppercase `Z` suffix;
+numeric offsets such as `+00:00` are not valid v2 response values.
 
 ## Compatibility
 

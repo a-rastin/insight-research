@@ -83,12 +83,25 @@
       "differentFingerprintError": "DDI_IDEMPOTENCY_KEY_REUSED"
     },
     "unresolvedBehavior": "return-incomplete-coverage-and-no-negative-claim",
+    "coverageConsistency": {
+      "completeRequiresNoUnresolvedMedications": true,
+      "incompleteRequiresAtLeastOneUnresolvedMedication": true,
+      "resolvedMedicationsContainOnlyResolvedState": true,
+      "unresolvedMedicationsContainOnlyAmbiguousOrUnknownState": true
+    },
     "resultIsAdvisory": true
   },
   "findingsAndAudit": {
     "findingsImmutable": true,
     "findingKeepsEvidenceAndKnowledgeIdentity": true,
     "clinicalAuditAppendOnly": true,
+    "findingActionRequestExcludesServerOwnedFields": [
+      "actionId",
+      "alertId",
+      "actorId",
+      "actorRole",
+      "recordedAt"
+    ],
     "securityAuditSeparate": true,
     "allowedFindingActions": [
       "accepted",

@@ -8,7 +8,7 @@ ponytail: SQLite-backed repository adapter (`store.DiagnosisStore`) replaces
 the prior in-memory dict; single-process, WAL journal, route contract stable.
 
 Authentication: every protected route calls the Insight auth service at
-``AUTH_BASE_URL/api/auth/session`` and enforces role membership there —
+``AUTH_BASE_URL/api/auth/v2/session`` and enforces role membership there —
 this module never decodes JWTs and never reads the auth DB. Writes
 require ``psychiatrist``; reads accept ``psychiatrist`` or ``admin``.
 See ``auth.py`` for the contract and ``api.py`` for the wire-up.

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import json
 import unittest
 from pathlib import Path
 
@@ -114,6 +115,33 @@ class BnManagerContractTests(unittest.TestCase):
                         violations.append(f"{path.relative_to(ROOT)} imports {module}")
 
         self.assertEqual(violations, [])
+
+    def test_v3_machine_contract_publishes_actual_routes_and_strict_request(self) -> None:
+        contract_dir = ROOT / "contracts"
+        contract = json.loads((contract_dir / "bn-manager-v3.contract.json").read_text(encoding="utf-8"))
+        schema = json.loads((contract_dir / "bn-manager-v3.schema.json").read_text(encoding="utf-8"))
+        openapi = json.loads((contract_dir / "openapi-v3.json").read_text(encoding="utf-8"))
+
+        self.assertEqual(contract["interfaceVersion"], "3.0.0")
+        expected_paths = {"/models", "/models/{stable_id}", "/evaluations"}
+        self.assertEqual(set(openapi["paths"]), expected_paths)
+        app_tree = ast.parse((ROOT / "bn_manager_backend/main.py").read_text(encoding="utf-8"))
+        runtime_paths = {
+            ast.literal_eval(decorator.args[0]).removeprefix("/api/bn-manager/v3")
+            for node in ast.walk(app_tree)
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+            for decorator in node.decorator_list
+            if isinstance(decorator, ast.Call)
+            and isinstance(decorator.func, ast.Attribute)
+            and decorator.args
+            and isinstance(decorator.args[0], ast.Constant)
+            and str(decorator.args[0].value).startswith("/api/bn-manager/v3")
+        }
+        self.assertEqual(runtime_paths, expected_paths)
+        self.assertFalse(schema["$defs"]["evaluationRequest"]["additionalProperties"])
+        self.assertEqual(set(schema["$defs"]["evaluationRequest"]["properties"]), {"stable_id", "evidence"})
+        self.assertFalse(contract["callerModelText"]["allowedForV3Evaluation"])
+        self.assertEqual(contract["callerModelText"]["allowedRole"], "admin")
 
 
 if __name__ == "__main__":

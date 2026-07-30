@@ -1,0 +1,47 @@
+{
+  "moduleId": "medical-history",
+  "interfaceVersion": "2.0.0",
+  "schemaVersion": "2.0.0",
+  "assessmentType": "medical-history",
+  "statuses": {
+    "in-progress": "Some fields may remain unknown or not assessed; no missing value is interpreted as a negative finding.",
+    "completed": "Every required field has an explicit controlled value; unknown remains distinct from no.",
+    "not-assessed": "The assessment was not performed and contains no clinical history or medication entries."
+  },
+  "controlledClinicalStates": ["yes", "no", "unknown", "not-assessed"],
+  "controlledOptions": {
+    "pastMedicalHistory": ["Diabetes mellitus", "Hypertension", "Coronary artery disease", "Heart failure", "Chronic obstructive pulmonary disease", "Asthma", "Chronic kidney disease", "Stroke or TIA", "Cancer", "Depression", "Anxiety disorder", "Other"],
+    "antipsychotics": ["Aripiprazole", "Asenapine", "Brexpiprazole", "Cariprazine", "Chlorpromazine", "Clozapine", "Fluphenazine", "Haloperidol", "Iloperidone", "Lurasidone", "Olanzapine", "Paliperidone", "Perphenazine", "Quetiapine", "Risperidone", "Ziprasidone"],
+    "clozapineContraindications": ["Severe neutropenia", "Clozapine-induced myocarditis", "Unmanaged seizure disorder"]
+  },
+  "identity": {
+    "assessmentId": "UUID",
+    "patientId": "UUID",
+    "encounterId": "UUID"
+  },
+  "actor": {
+    "actorId": "UUID",
+    "role": "psychiatrist"
+  },
+  "medications": {
+    "originalTextRequired": true,
+    "maximum": 20,
+    "normalizationStateRequired": true,
+    "normalizedConceptOptional": true,
+    "normalizationStates": ["matched", "unresolved", "ambiguous", "not-assessed"],
+    "matchedIdentityRequires": ["conceptId", "display"]
+  },
+  "timestamps": ["createdAt", "updatedAt"],
+  "resourceVersion": "positive integer incremented on update",
+  "concurrency": {
+    "etag": "strong",
+    "ifMatchRequiredForUpdate": true
+  },
+  "idempotency": {
+    "header": "Idempotency-Key",
+    "requiredForCreate": true,
+    "sameKeySameRequest": "replay-original-response",
+    "sameKeyDifferentRequest": "409 COMMON_IDEMPOTENCY_KEY_REUSED",
+    "retentionSeconds": 86400
+  }
+}
