@@ -191,6 +191,21 @@ class BnManagerBackendTests(unittest.TestCase):
             self.assertEqual(model["clinical_use_status"], "research-only")
             self.assertNotIn("text", model)
             self.assertIn("mapping_version", model)
+        pharmacotherapy = next(model for model in models if model["stable_id"] == "bnm.pharmacotherapy")
+        self.assertEqual(pharmacotherapy["mapping_version"], "2.0.0")
+        self.assertEqual(pharmacotherapy["calibration_status"], "qualitative-uncalibrated")
+        self.assertEqual(pharmacotherapy["clinical_recommendation_use"], "excluded")
+        self.assertRegex(pharmacotherapy["mapping_hash"], r"^sha256:[0-9a-f]{64}$")
+
+    def test_uncalibrated_pharmacotherapy_evaluation_fails_closed(self) -> None:
+        response = self.admin_client.post(
+            "/api/bn-manager/v3/evaluations",
+            json={"stable_id": "bnm.pharmacotherapy", "evidence": {}},
+            headers={"x-csrf-token": "csrf-validate", "idempotency-key": "pharm-blocked"},
+        )
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.json()["error"]["code"], "BNM_SAFETY_REVIEW_REQUIRED")
+        self.assertEqual(response.json()["error"]["details"]["calibration_status"], "qualitative-uncalibrated")
 
     def test_v3_evaluation_is_traceable_and_idempotent(self) -> None:
         payload = {
@@ -224,12 +239,12 @@ class BnManagerBackendTests(unittest.TestCase):
         with patch("bn_manager_backend.main.evaluate_posterior", return_value=posterior):
             self.admin_client.post(
                 "/api/bn-manager/v3/evaluations",
-                json={"stable_id": "bnm.pharmacotherapy"},
+                json={"stable_id": "bnm.treatment-setting"},
                 headers=headers,
             )
         conflict = self.admin_client.post(
             "/api/bn-manager/v3/evaluations",
-            json={"stable_id": "bnm.treatment-setting"},
+            json={"stable_id": "bnm.involuntary-treatment-considerations"},
             headers=headers,
         )
         self.assertEqual(conflict.status_code, 409)

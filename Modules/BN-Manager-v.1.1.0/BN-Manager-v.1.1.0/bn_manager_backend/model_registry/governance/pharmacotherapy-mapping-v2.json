@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "1.0.0",
+  "mappingVersion": "2.0.0",
+  "stableId": "bnm.pharmacotherapy",
+  "model": {
+    "path": "xml/BN-Pharmacotherapy.xml",
+    "sha256": "ead00b30d6c832c91d3085ffdc58aea68073bf98786e177a4c05bbd878fecfd3"
+  },
+  "source": {
+    "id": "apa-schizophrenia-guideline-statement-4-extract",
+    "path": "BNs/Pharmacotherapy/Guideline-Pharmacotherapy.txt",
+    "sha256": "6fec8164a00e779f8120849297cdca52673fbd95314a56eca07833b88b2f09ff"
+  },
+  "calibration": {
+    "label": "qualitative-uncalibrated",
+    "clinicalRecommendationUse": "excluded",
+    "reason": "Candidate-priority and management-recommendation CPT rows are uniform placeholders; structural validity and inference do not establish clinical calibration."
+  },
+  "candidateEvaluation": {
+    "unit": "one explicitly identified antipsychotic candidate per evaluation",
+    "rankingAllowed": false,
+    "classPreferenceAllowed": false,
+    "automaticSelectionAllowed": false,
+    "candidateIdentityIsModelEvidence": false,
+    "resultSemantics": "Deterministic gates may exclude or block a candidate. A gate-passing result means eligible for psychiatrist comparison only; it is not a recommendation, rank, prescription, or order."
+  },
+  "hardGates": [
+    {
+      "id": "candidate-absolute-contraindication",
+      "node": "candidate_specific_hard_contraindication",
+      "state": "present",
+      "outcome": "excluded",
+      "precedence": 1000,
+      "sourceBasis": "The XML defines this candidate-level safety gate. Its value must come from approved labeling and deterministic safety services; the guideline extract must not be used to infer absence."
+    },
+    {
+      "id": "diagnosis-not-confirmed",
+      "node": "schizophrenia_diagnostic_context",
+      "state": "diagnosis_not_confirmed",
+      "outcome": "blocked",
+      "precedence": 900,
+      "sourceBasis": "APA Statement 4 applies to patients with schizophrenia (guideline lines 2-4)."
+    },
+    {
+      "id": "required-information-unknown",
+      "nodes": [
+        "schizophrenia_diagnostic_context",
+        "candidate_specific_hard_contraindication",
+        "prior_antipsychotic_experience",
+        "patient_preference_and_acceptability",
+        "side_effect_and_physical_health_fit",
+        "interaction_and_pharmacokinetic_fit",
+        "formulation_fit"
+      ],
+      "state": "unknown",
+      "outcome": "blocked",
+      "precedence": 800,
+      "sourceBasis": "Unknown information is preserved and cannot be converted to a favorable or absent finding."
+    }
+  ],
+  "nodeMappings": [
+    {
+      "node": "schizophrenia_diagnostic_context",
+      "role": "patient-state",
+      "sourceLines": [2, 3, 4],
+      "mapping": "Explicit clinician-confirmed schizophrenia context only; unknown remains unknown."
+    },
+    {
+      "node": "candidate_specific_hard_contraindication",
+      "role": "candidate-safety-gate",
+      "sourceLines": [43, 44, 45, 46],
+      "mapping": "Externally established candidate-specific absolute contraindication. Do not derive absence from the guideline extract."
+    },
+    {
+      "node": "prior_antipsychotic_experience",
+      "role": "patient-state",
+      "sourceLines": [15, 16, 42, 43],
+      "mapping": "Preserve prior symptom response and tolerability for the candidate."
+    },
+    {
+      "node": "patient_preference_and_acceptability",
+      "role": "patient-state",
+      "sourceLines": [15, 16, 17, 40, 41, 42],
+      "mapping": "Preserve the patient's explicit candidate preference or declination."
+    },
+    {
+      "node": "side_effect_and_physical_health_fit",
+      "role": "patient-state",
+      "sourceLines": [41, 42, 43, 44],
+      "mapping": "Candidate-specific side-effect and physical-health fit; concerning is not silently converted to favorable."
+    },
+    {
+      "node": "interaction_and_pharmacokinetic_fit",
+      "role": "patient-state",
+      "sourceLines": [44, 45, 46],
+      "mapping": "Candidate-specific DDI and pharmacokinetic fit supplied by authoritative safety inputs."
+    },
+    {
+      "node": "formulation_fit",
+      "role": "patient-state",
+      "sourceLines": [44, 45, 46],
+      "mapping": "Candidate formulation availability and acceptability."
+    },
+    {
+      "node": "antipsychotic_candidate_eligibility",
+      "role": "intervention-eligibility",
+      "sourceLines": [2, 3, 4],
+      "mapping": "Deterministic synthesis of diagnosis and candidate contraindication gates."
+    },
+    {
+      "node": "individualized_candidate_priority",
+      "role": "intervention-priority",
+      "sourceLines": [29, 30, 31, 32, 33, 34, 35, 36, 38, 39, 40, 41, 42, 43, 44, 45, 46],
+      "mapping": "Qualitative review factors only. The source explicitly does not support evidence-based antipsychotic ranking or FGA/SGA preference."
+    },
+    {
+      "node": "shared_decision_and_formulation_priority",
+      "role": "intervention-priority",
+      "sourceLines": [15, 16, 17, 40, 41, 44, 45],
+      "mapping": "Qualitative shared-decision and formulation review only."
+    },
+    {
+      "node": "management_recommendation",
+      "role": "clinical-action-pattern",
+      "sourceLines": [3, 4, 29, 30, 31, 32, 33, 34, 39, 40, 41, 42, 43, 44, 45, 46],
+      "mapping": "Not clinically selectable while CPTs remain uniform and uncalibrated."
+    }
+  ]
+}

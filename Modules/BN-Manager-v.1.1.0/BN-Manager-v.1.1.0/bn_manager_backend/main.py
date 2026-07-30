@@ -466,6 +466,17 @@ def _evaluate_payload_v3(payload: dict[str, Any], session: SessionState) -> dict
         raise BnManagerHttpError(
             404, ERROR_CODES["model_not_found"], "BN Manager registry model not found.", {"stable_id": stable_id}
         )
+    if entry.clinical_recommendation_use == "excluded":
+        raise BnManagerHttpError(
+            422,
+            ERROR_CODES["safety_review_required"],
+            "Pharmacotherapy model evaluation is excluded from clinical recommendation use.",
+            {
+                "stable_id": entry.stable_id,
+                "calibration_status": entry.calibration_status,
+                "mapping_version": entry.mapping_version,
+            },
+        )
     model = _load_model({"stable_id": stable_id}, allow_text=False)
     messages = [
         asdict(message)

@@ -29,7 +29,11 @@
         "semantic_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
         "content_hash": {"$ref": "#/$defs/sha256"},
         "schema_version": {"const": "BIF-0.3"},
-        "schema_content_hash": {"$ref": "#/$defs/sha256"}
+        "schema_content_hash": {"$ref": "#/$defs/sha256"},
+        "calibration_status": {"enum": ["qualitative-uncalibrated"]},
+        "clinical_recommendation_use": {"enum": ["excluded"]},
+        "mapping_path": {"const": "governance/pharmacotherapy-mapping-v2.json"},
+        "mapping_hash": {"$ref": "#/$defs/sha256"}
       }
     },
     "meta": {

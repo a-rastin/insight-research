@@ -8,6 +8,8 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-035: Reconcile BN Pharmacotherapy XML semantics and provenance (In
+  progress).
 - INS-030: Implement the approved structured suicide-risk module (In progress).
 - INS-029: Connect Medical History UI and medication-resolution feedback (In
   progress).
@@ -303,6 +305,36 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-035 BN Pharmacotherapy XML reconciliation (In progress). Mapping version
+  `2.0.0` now hash-locks the exact APA Statement 4 extract and unchanged
+  canonical registry XML, maps every XML node once to source line references,
+  distinguishes patient state, candidate safety gate, intervention eligibility,
+  intervention priority, and clinical-action roles, and validates through a
+  versioned Draft 2020-12 schema. Candidate semantics are explicitly
+  one-candidate-at-a-time: they do not rank medications, prefer FGA versus SGA,
+  treat candidate identity as model evidence, or automatically select therapy.
+  A pure deterministic evaluator gives absolute candidate contraindication
+  precedence, blocks unconfirmed diagnosis and missing/unknown required facts,
+  and treats a gate-passing candidate only as eligible for psychiatrist
+  comparison. Five golden cases cover eligible, contraindicated, unconfirmed,
+  unknown, and review-factor paths. Because candidate-priority and final
+  recommendation CPT rows are uniform placeholders, registry discovery now
+  publishes mapping hash/version, `qualitative-uncalibrated`, and `excluded`;
+  v3 Pharmacotherapy posterior evaluation fails closed with
+  `BNM_SAFETY_REVIEW_REQUIRED`. Focused governance/provider tests passed 28/28
+  with `UV_CACHE_DIR=/tmp/insight-uv-cache uv run --with httpx2 python -B -m
+  unittest tests.test_pharmacotherapy_governance tests.test_contract
+  tests.test_bn_manager_backend -v`; the full BN Manager suite passed 55/55;
+  workspace source/schema tests passed 4/4; model-manifest checks passed 5/5;
+  safety-precedence checks passed 7/7; and final root discovery passed 69/69.
+  Changed JSON syntax, Python compilation, and
+  `git diff --check` passed. The protected guideline and XML bytes were not
+  modified. Clinical/model-owner approval, calibrated and validated CPTs,
+  authoritative labeling/DDI inputs for candidate contraindications, and a
+  consumer migration away from the Treatment Plan's synthetic Pharmacotherapy
+  vocabulary remain unresolved. The next step is clinical/model-owner review
+  and calibration evidence; Pharmacotherapy must remain excluded until those
+  gates pass and consumer mappings are reconciled.
 - INS-030 approved structured suicide-risk module (In progress). The independent
   `Modules/Suicide-Risk-1.0.0/` Node service now publishes interface/schema
   `1.0.0`, module-owned SQLite persistence with immutable attributed versions,

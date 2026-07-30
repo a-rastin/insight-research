@@ -30,7 +30,7 @@
     "/evaluations": {
       "post": {
         "operationId": "createBnEvaluationV3",
-        "description": "Evaluate one registered model. Caller model text and undeclared request fields are rejected.",
+        "description": "Evaluate one registered model. Caller model text and undeclared request fields are rejected. The qualitative-uncalibrated Pharmacotherapy model is excluded from clinical recommendation evaluation and returns 422.",
         "security": [{"cookieSession": [], "csrfToken": []}],
         "parameters": [{"$ref": "#/components/parameters/IdempotencyKey"}],
         "requestBody": {

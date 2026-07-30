@@ -22,6 +22,9 @@ class ModelRegistryEntry:
     mapping_version: str = "1.0.0"
     engine_version: str = "clinical-graph-models/3.0.0"
     schema_path: str = XML_SCHEMA_PATH
+    calibration_status: str | None = None
+    clinical_recommendation_use: str | None = None
+    mapping_path: str | None = None
 
     def payload(self) -> dict[str, str]:
         payload = asdict(self)
@@ -35,6 +38,15 @@ class ModelRegistryEntry:
                 "schema_content_hash": f"sha256:{sha256(schema_bytes).hexdigest()}",
             }
         )
+        if self.mapping_path is not None:
+            mapping_bytes = resolve_owned_registry_file(self.mapping_path).read_bytes()
+            payload["mapping_hash"] = f"sha256:{sha256(mapping_bytes).hexdigest()}"
+        else:
+            payload.pop("mapping_path")
+        if self.calibration_status is None:
+            payload.pop("calibration_status")
+        if self.clinical_recommendation_use is None:
+            payload.pop("clinical_recommendation_use")
         return payload
 
 
@@ -46,6 +58,10 @@ MODEL_REGISTRY: tuple[ModelRegistryEntry, ...] = (
         target_node="management_recommendation",
         active_version="1.0.0",
         status="active",
+        mapping_version="2.0.0",
+        calibration_status="qualitative-uncalibrated",
+        clinical_recommendation_use="excluded",
+        mapping_path="governance/pharmacotherapy-mapping-v2.json",
     ),
     ModelRegistryEntry(
         stable_id="bnm.treatment-setting",

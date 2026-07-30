@@ -30,6 +30,8 @@ The canonical schema is `bn_manager_backend/model_registry/schemas/XSD.xml`. The
 
 Two supplied networks use a single neutral probability row for selected conditional tables. The compiler broadcasts that row across every parent-state combination. This preserves the source XML and makes the compact qualitative CPTs dimensionally valid and evaluable. Full CPTs are never rewritten.
 
+The Pharmacotherapy model is governed by mapping version `2.0.0`. Its source-to-node mapping and source/model hashes are recorded in `bn_manager_backend/model_registry/governance/pharmacotherapy-mapping-v2.json` and validated by the adjacent Draft 2020-12 schema. The model evaluates one explicitly identified candidate at a time; it does not support medication ranking, FGA-versus-SGA preference, or automatic selection. Its candidate-priority and management CPTs are uniform placeholders, so discovery labels it `qualitative-uncalibrated` and `excluded` from clinical recommendation use. V3 posterior evaluation therefore fails closed with `BNM_SAFETY_REVIEW_REQUIRED`; deterministic candidate gates remain separately testable and cannot convert an eligible candidate into a recommendation.
+
 ## Run
 
 Requires Python 3.11 or newer.
@@ -79,7 +81,7 @@ validation route.
 V3 discovery is available at `GET /api/bn-manager/v3/models` and
 `GET /api/bn-manager/v3/models/{stable_id}`. It returns semantic version,
 content hash, BIF/XSD identity, engine version, lifecycle and clinical-use
-status, target, and mapping version without returning model text. Evaluation
+status, target, mapping version/hash, and calibration status without returning model text. Evaluation
 returns accepted and ignored evidence, warnings, posterior, mapping version,
 evaluation UUID, and UTC evaluation time.
 

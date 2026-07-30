@@ -18,6 +18,7 @@ testpaths = ["tests"]
 
 [tool.setuptools.package-data]
 bn_manager_backend = [
+    "model_registry/**/*.json",
     "model_registry/**/*.xml",
     "model_registry/**/*.xsd",
 ]

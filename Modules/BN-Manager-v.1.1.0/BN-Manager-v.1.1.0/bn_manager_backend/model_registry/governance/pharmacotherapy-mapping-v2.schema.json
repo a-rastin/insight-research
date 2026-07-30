@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://insight.invalid/schemas/pharmacotherapy-mapping-v2.schema.json",
+  "title": "INSIGHT Pharmacotherapy source-to-node mapping v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "mappingVersion",
+    "stableId",
+    "model",
+    "source",
+    "calibration",
+    "candidateEvaluation",
+    "hardGates",
+    "nodeMappings"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "mappingVersion": {"const": "2.0.0"},
+    "stableId": {"const": "bnm.pharmacotherapy"},
+    "model": {"$ref": "#/$defs/model"},
+    "source": {"$ref": "#/$defs/source"},
+    "calibration": {"$ref": "#/$defs/calibration"},
+    "candidateEvaluation": {"$ref": "#/$defs/candidateEvaluation"},
+    "hardGates": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {"$ref": "#/$defs/hardGate"}
+    },
+    "nodeMappings": {
+      "type": "array",
+      "minItems": 11,
+      "maxItems": 11,
+      "items": {"$ref": "#/$defs/nodeMapping"}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"const": "xml/BN-Pharmacotherapy.xml"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "sha256"],
+      "properties": {
+        "id": {"const": "apa-schizophrenia-guideline-statement-4-extract"},
+        "path": {"const": "BNs/Pharmacotherapy/Guideline-Pharmacotherapy.txt"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "calibration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "clinicalRecommendationUse", "reason"],
+      "properties": {
+        "label": {"const": "qualitative-uncalibrated"},
+        "clinicalRecommendationUse": {"const": "excluded"},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    },
+    "candidateEvaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "rankingAllowed",
+        "classPreferenceAllowed",
+        "automaticSelectionAllowed",
+        "candidateIdentityIsModelEvidence",
+        "resultSemantics"
+      ],
+      "properties": {
+        "unit": {"const": "one explicitly identified antipsychotic candidate per evaluation"},
+        "rankingAllowed": {"const": false},
+        "classPreferenceAllowed": {"const": false},
+        "automaticSelectionAllowed": {"const": false},
+        "candidateIdentityIsModelEvidence": {"const": false},
+        "resultSemantics": {"type": "string", "minLength": 1}
+      }
+    },
+    "hardGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "state", "outcome", "precedence", "sourceBasis"],
+      "properties": {
+        "id": {
+          "enum": [
+            "candidate-absolute-contraindication",
+            "diagnosis-not-confirmed",
+            "required-information-unknown"
+          ]
+        },
+        "node": {"type": "string", "minLength": 1},
+        "nodes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "state": {"type": "string", "minLength": 1},
+        "outcome": {"enum": ["excluded", "blocked"]},
+        "precedence": {"type": "integer", "minimum": 1},
+        "sourceBasis": {"type": "string", "minLength": 1}
+      },
+      "oneOf": [
+        {"required": ["node"], "not": {"required": ["nodes"]}},
+        {"required": ["nodes"], "not": {"required": ["node"]}}
+      ]
+    },
+    "nodeMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node", "role", "sourceLines", "mapping"],
+      "properties": {
+        "node": {"type": "string", "minLength": 1},
+        "role": {
+          "enum": [
+            "patient-state",
+            "candidate-safety-gate",
+            "intervention-eligibility",
+            "intervention-priority",
+            "clinical-action-pattern"
+          ]
+        },
+        "sourceLines": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "integer", "minimum": 1}
+        },
+        "mapping": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

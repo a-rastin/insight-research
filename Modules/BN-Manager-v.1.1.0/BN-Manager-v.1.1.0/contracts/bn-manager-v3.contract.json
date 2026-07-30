@@ -21,7 +21,15 @@
     "additionalPropertiesAllowed": false,
     "callerModelTextAllowed": false,
     "idempotencyScope": ["authenticated-actor", "key"],
-    "returnsAcceptedAndIgnoredEvidence": true
+    "returnsAcceptedAndIgnoredEvidence": true,
+    "pharmacotherapyClinicalRecommendationUse": "excluded-until-calibrated-and-approved"
+  },
+  "pharmacotherapyGovernance": {
+    "mappingVersion": "2.0.0",
+    "mappingPath": "governance/pharmacotherapy-mapping-v2.json",
+    "calibrationStatus": "qualitative-uncalibrated",
+    "candidateSemantics": "one-candidate-at-a-time-without-ranking-or-automatic-selection",
+    "hardGatesPrecedePosterior": true
   },
   "callerModelText": {
     "allowedOperation": "POST /api/bn-manager/v1/models/validate",

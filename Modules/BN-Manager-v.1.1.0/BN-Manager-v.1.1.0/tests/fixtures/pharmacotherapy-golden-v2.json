@@ -1,0 +1,86 @@
+{
+  "mappingVersion": "2.0.0",
+  "cases": [
+    {
+      "id": "eligible-candidate-is-not-ranked",
+      "candidateId": "candidate-a",
+      "evidence": {
+        "schizophrenia_diagnostic_context": "schizophrenia_confirmed",
+        "candidate_specific_hard_contraindication": "absent",
+        "prior_antipsychotic_experience": "effective_and_tolerable",
+        "patient_preference_and_acceptability": "accepts_candidate",
+        "side_effect_and_physical_health_fit": "favorable",
+        "interaction_and_pharmacokinetic_fit": "favorable",
+        "formulation_fit": "acceptable_formulation_available"
+      },
+      "disposition": "eligible-for-clinician-comparison",
+      "reasonCode": "hard-gates-cleared",
+      "reviewSignals": []
+    },
+    {
+      "id": "contraindication-outranks-favorable-factors",
+      "candidateId": "candidate-b",
+      "evidence": {
+        "schizophrenia_diagnostic_context": "schizophrenia_confirmed",
+        "candidate_specific_hard_contraindication": "present",
+        "prior_antipsychotic_experience": "effective_and_tolerable",
+        "patient_preference_and_acceptability": "accepts_candidate",
+        "side_effect_and_physical_health_fit": "favorable",
+        "interaction_and_pharmacokinetic_fit": "favorable",
+        "formulation_fit": "acceptable_formulation_available"
+      },
+      "disposition": "excluded",
+      "reasonCode": "candidate-absolute-contraindication",
+      "reviewSignals": []
+    },
+    {
+      "id": "unconfirmed-diagnosis-blocks",
+      "candidateId": "candidate-c",
+      "evidence": {
+        "schizophrenia_diagnostic_context": "diagnosis_not_confirmed",
+        "candidate_specific_hard_contraindication": "absent"
+      },
+      "disposition": "blocked",
+      "reasonCode": "diagnosis-not-confirmed",
+      "reviewSignals": []
+    },
+    {
+      "id": "unknown-contraindication-fails-closed",
+      "candidateId": "candidate-d",
+      "evidence": {
+        "schizophrenia_diagnostic_context": "schizophrenia_confirmed",
+        "candidate_specific_hard_contraindication": "unknown",
+        "prior_antipsychotic_experience": "no_prior_trial",
+        "patient_preference_and_acceptability": "accepts_candidate",
+        "side_effect_and_physical_health_fit": "favorable",
+        "interaction_and_pharmacokinetic_fit": "favorable",
+        "formulation_fit": "acceptable_formulation_available"
+      },
+      "disposition": "blocked",
+      "reasonCode": "required-information-unavailable",
+      "reviewSignals": ["unknown:candidate_specific_hard_contraindication"]
+    },
+    {
+      "id": "review-factors-do-not-become-ranking",
+      "candidateId": "candidate-e",
+      "evidence": {
+        "schizophrenia_diagnostic_context": "schizophrenia_confirmed",
+        "candidate_specific_hard_contraindication": "absent",
+        "prior_antipsychotic_experience": "ineffective_or_intolerable",
+        "patient_preference_and_acceptability": "prefers_alternative",
+        "side_effect_and_physical_health_fit": "concerning",
+        "interaction_and_pharmacokinetic_fit": "concerning",
+        "formulation_fit": "formulation_mismatch"
+      },
+      "disposition": "eligible-for-clinician-comparison",
+      "reasonCode": "hard-gates-cleared",
+      "reviewSignals": [
+        "prior_antipsychotic_experience:ineffective_or_intolerable",
+        "patient_preference_and_acceptability:prefers_alternative",
+        "side_effect_and_physical_health_fit:concerning",
+        "interaction_and_pharmacokinetic_fit:concerning",
+        "formulation_fit:formulation_mismatch"
+      ]
+    }
+  ]
+}
