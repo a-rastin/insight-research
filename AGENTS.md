@@ -142,3 +142,5 @@ or allow the assistant to modify clinical records directly.
   3. Implement only the packet; do not opportunistically refactor adjacent code.
   4. Run the focused tests, the module’s full suite, and applicable common-contract checks.
   5. Git commit changes with informative comments.
+
+Do not make any change to the files in the "root/research/Modules" folder. Copy that file to the "root/research/insight-research/Modules" and make your changes there.
