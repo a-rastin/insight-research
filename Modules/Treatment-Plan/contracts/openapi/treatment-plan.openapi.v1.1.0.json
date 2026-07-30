@@ -1,0 +1,336 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "INSIGHT Treatment Plan live API",
+    "version": "1.1.0",
+    "description": "Contract for the routes implemented by treatment_plan.app. This contract records current runtime behavior; it does not add recommendation-run, schema-serving, contract-discovery, or supersession routes."
+  },
+  "servers": [{"url": "/"}],
+  "x-insight-compatibility": {
+    "classification": "breaking-contract-correction",
+    "supersedes": "treatment-plan.openapi.v1.0.0.json",
+    "runtimeBehaviorChanged": false,
+    "removedUndocumentedRuntimeClaims": [
+      "GET /api/treatment-plan/v1/contract",
+      "GET /api/treatment-plan/v1/schemas/{name}/{version}",
+      "POST /api/treatment-plan/v1/recommendation-runs",
+      "GET /api/treatment-plan/v1/recommendation-runs/{runId}",
+      "POST /api/treatment-plan/v1/plans/{planId}/supersede"
+    ]
+  },
+  "x-insight-provider-contracts": [
+    {
+      "provider": "authentication",
+      "operation": "GET /api/auth/v2/session",
+      "schema": "../../../Auth/docs/auth-session-v2.schema.json",
+      "use": "Current server-side session, role, account, password, and disclaimer authorization"
+    },
+    {
+      "provider": "ddi-checker",
+      "operation": "POST /api/ddi/v1/checks",
+      "openapi": "../../../DDI-Checker-1.2.0/contracts/openapi-v1.json",
+      "use": "Finalization-time medication safety revalidation"
+    },
+    {
+      "provider": "bn-manager",
+      "operation": "POST /api/v3/models/{model_id}/evaluate",
+      "implementationIssue": "INS-019",
+      "use": "Registry-governed Bayesian evaluation"
+    }
+  ],
+  "tags": [
+    {"name": "operations"},
+    {"name": "clinical-plans"},
+    {"name": "support"}
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "getTreatmentPlanHealth",
+        "x-insight-implementation-issue": "INS-020",
+        "tags": ["operations"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Process is live",
+            "content": {"application/json": {"schema": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/Health"}}}
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "operationId": "getTreatmentPlanReadiness",
+        "x-insight-implementation-issue": "INS-020",
+        "tags": ["operations"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Repository is reachable",
+            "content": {"application/json": {"schema": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/Readiness"}}}
+          },
+          "503": {"$ref": "#/components/responses/RuntimeError"}
+        }
+      }
+    },
+    "/api/treatment-plan/v1/session": {
+      "get": {
+        "operationId": "getTreatmentPlanSession",
+        "x-insight-implementation-issue": "INS-020",
+        "tags": ["clinical-plans"],
+        "security": [{"cookieSession": []}],
+        "responses": {
+          "200": {
+            "description": "Authorized Treatment Plan actor",
+            "content": {"application/json": {"schema": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/Session"}}}
+          },
+          "401": {"$ref": "#/components/responses/RuntimeError"},
+          "503": {"$ref": "#/components/responses/RuntimeError"}
+        }
+      }
+    },
+    "/api/treatment-plan/v1/plans/{plan_id}": {
+      "get": {
+        "operationId": "getTreatmentPlan",
+        "x-insight-implementation-issue": "INS-020",
+        "tags": ["clinical-plans"],
+        "security": [{"cookieSession": []}],
+        "parameters": [{"$ref": "#/components/parameters/PlanId"}],
+        "responses": {
+          "200": {
+            "description": "Current review view reconstructed from the immutable primary plan and append-only edits",
+            "headers": {
+              "ETag": {"$ref": "#/components/headers/ETag"},
+              "X-Schema-Version": {"$ref": "#/components/headers/PlanViewSchemaVersion"}
+            },
+            "content": {"application/json": {"schema": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/PlanView"}}}
+          },
+          "401": {"$ref": "#/components/responses/RuntimeError"},
+          "404": {"$ref": "#/components/responses/RuntimeError"},
+          "503": {"$ref": "#/components/responses/RuntimeError"}
+        }
+      }
+    },
+    "/api/treatment-plan/v1/plans/{plan_id}/draft": {
+      "patch": {
+        "operationId": "editTreatmentPlanDraft",
+        "x-insight-implementation-issue": "INS-020",
+        "tags": ["clinical-plans"],
+        "description": "Psychiatrist-only mutation. Cookie authorization and X-CSRF-Token are validated server-side; If-Match prevents lost updates.",
+        "security": [{"cookieSession": [], "csrfToken": []}],
+        "parameters": [
+          {"$ref": "#/components/parameters/PlanId"},
+          {"$ref": "#/components/parameters/IfMatch"}
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/EditDraftRequest"}}}
+        },
+        "responses": {
+          "200": {
+            "description": "Updated review view",
+            "headers": {
+              "ETag": {"$ref": "#/components/headers/ETag"},
+              "X-Schema-Version": {"$ref": "#/components/headers/PlanViewSchemaVersion"}
+            },
+            "content": {"application/json": {"schema": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/PlanView"}}}
+          },
+          "401": {"$ref": "#/components/responses/RuntimeError"},
+          "404": {"$ref": "#/components/responses/RuntimeError"},
+          "412": {"$ref": "#/components/responses/RuntimeError"},
+          "422": {"$ref": "#/components/responses/RuntimeError"},
+          "428": {"$ref": "#/components/responses/RuntimeError"},
+          "503": {"$ref": "#/components/responses/RuntimeError"}
+        }
+      }
+    },
+    "/api/treatment-plan/v1/plans/{plan_id}/finalize": {
+      "post": {
+        "operationId": "finalizeTreatmentPlan",
+        "x-insight-implementation-issue": "INS-020",
+        "tags": ["clinical-plans"],
+        "description": "Psychiatrist-only immutable finalization. The actor-scoped command is reauthorized and safety is revalidated server-side. Exact retries return the original result; conflicting reuse returns 409.",
+        "security": [{"cookieSession": [], "csrfToken": []}],
+        "parameters": [
+          {"$ref": "#/components/parameters/PlanId"},
+          {"$ref": "#/components/parameters/IfMatch"},
+          {"$ref": "#/components/parameters/IdempotencyKey"},
+          {"$ref": "#/components/parameters/RequestId"},
+          {"$ref": "#/components/parameters/CorrelationId"}
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/FinalizeRequest"}}}
+        },
+        "responses": {
+          "201": {
+            "description": "Immutable Final Treatment Plan",
+            "headers": {
+              "Idempotency-Key": {"$ref": "#/components/headers/IdempotencyKey"},
+              "X-Schema-Version": {"$ref": "#/components/headers/FinalPlanSchemaVersion"}
+            },
+            "content": {"application/json": {"schema": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/FinalPlan"}}}
+          },
+          "401": {"$ref": "#/components/responses/RuntimeError"},
+          "404": {"$ref": "#/components/responses/RuntimeError"},
+          "409": {"$ref": "#/components/responses/RuntimeError"},
+          "412": {"$ref": "#/components/responses/RuntimeError"},
+          "422": {"$ref": "#/components/responses/RuntimeError"},
+          "428": {"$ref": "#/components/responses/RuntimeError"},
+          "503": {"$ref": "#/components/responses/RuntimeError"}
+        }
+      }
+    },
+    "/api/treatment-plan/v1/plans/{plan_id}/provenance": {
+      "get": {
+        "operationId": "getTreatmentPlanProvenance",
+        "x-insight-implementation-issue": "INS-020",
+        "tags": ["clinical-plans"],
+        "security": [{"cookieSession": []}],
+        "parameters": [{"$ref": "#/components/parameters/PlanId"}],
+        "responses": {
+          "200": {
+            "description": "Zero or one clinical provenance record",
+            "headers": {"X-Schema-Version": {"$ref": "#/components/headers/FinalPlanSchemaVersion"}},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "maxItems": 1,
+                  "items": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/Provenance"}
+                }
+              }
+            }
+          },
+          "401": {"$ref": "#/components/responses/RuntimeError"},
+          "404": {"$ref": "#/components/responses/RuntimeError"},
+          "500": {"$ref": "#/components/responses/RuntimeError"},
+          "503": {"$ref": "#/components/responses/RuntimeError"}
+        }
+      }
+    },
+    "/api/treatment-plan/v1/plans/{plan_id}/audit": {
+      "get": {
+        "operationId": "getTreatmentPlanSecurityAudit",
+        "x-insight-implementation-issue": "INS-020",
+        "tags": ["support"],
+        "description": "Requires explicit audit-read authorization; clinical provenance is not returned.",
+        "security": [{"cookieSession": []}],
+        "parameters": [{"$ref": "#/components/parameters/PlanId"}],
+        "responses": {
+          "200": {
+            "description": "Security audit events",
+            "headers": {"X-Schema-Version": {"$ref": "#/components/headers/FinalPlanSchemaVersion"}},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/AuditEvent"}
+                }
+              }
+            }
+          },
+          "401": {"$ref": "#/components/responses/RuntimeError"},
+          "503": {"$ref": "#/components/responses/RuntimeError"}
+        }
+      }
+    },
+    "/api/treatment-plan/v1/observability/dashboard": {
+      "get": {
+        "operationId": "getTreatmentPlanObservabilityDashboard",
+        "x-insight-implementation-issue": "INS-020",
+        "tags": ["support"],
+        "description": "Requires explicit support-read authorization.",
+        "security": [{"cookieSession": []}],
+        "responses": {
+          "200": {
+            "description": "PHI-safe operational metrics and alerts",
+            "content": {"application/json": {"schema": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/Dashboard"}}}
+          },
+          "401": {"$ref": "#/components/responses/RuntimeError"},
+          "503": {"$ref": "#/components/responses/RuntimeError"}
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "operationId": "getTreatmentPlanPrometheusMetrics",
+        "x-insight-implementation-issue": "INS-020",
+        "tags": ["support"],
+        "description": "Requires explicit support-read authorization.",
+        "security": [{"cookieSession": []}],
+        "responses": {
+          "200": {
+            "description": "Prometheus text exposition",
+            "content": {"text/plain": {"schema": {"type": "string"}}}
+          },
+          "401": {"$ref": "#/components/responses/RuntimeError"},
+          "503": {"$ref": "#/components/responses/RuntimeError"}
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "cookieSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "session",
+        "description": "Opaque Authentication cookie; Treatment Plan revalidates it through GET /api/auth/v2/session."
+      },
+      "csrfToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-CSRF-Token"
+      }
+    },
+    "parameters": {
+      "PlanId": {
+        "name": "plan_id",
+        "in": "path",
+        "required": true,
+        "schema": {"type": "string"}
+      },
+      "IfMatch": {
+        "name": "If-Match",
+        "in": "header",
+        "required": true,
+        "schema": {"type": "string", "minLength": 1}
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {"type": "string", "minLength": 1}
+      },
+      "RequestId": {
+        "name": "X-Request-ID",
+        "in": "header",
+        "required": true,
+        "schema": {"type": "string"}
+      },
+      "CorrelationId": {
+        "name": "X-Correlation-ID",
+        "in": "header",
+        "required": false,
+        "schema": {"type": "string", "format": "uuid"}
+      }
+    },
+    "headers": {
+      "ETag": {"schema": {"type": "string", "minLength": 1}},
+      "PlanViewSchemaVersion": {"schema": {"const": "1.1.0"}},
+      "FinalPlanSchemaVersion": {"schema": {"const": "1.0.0"}},
+      "IdempotencyKey": {"schema": {"type": "string", "minLength": 1}}
+    },
+    "responses": {
+      "RuntimeError": {
+        "description": "Current FastAPI error envelope",
+        "content": {
+          "application/json": {
+            "schema": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/FastApiError"}
+          }
+        }
+      }
+    }
+  }
+}

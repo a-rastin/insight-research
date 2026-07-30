@@ -8,6 +8,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-020: Reconcile Treatment Plan OpenAPI with live routes (In progress).
 - INS-019: Publish BN evaluation and registry-governance v3 contract (In
   progress).
 - INS-017: Publish Medical History assessment v2 contract (In progress).
@@ -244,6 +245,29 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-020 Treatment Plan OpenAPI reconciliation packet (In progress).
+  OpenAPI `1.1.0` now matches the ten unconditional routes in the live FastAPI
+  router, publishes exact current response envelopes and schema-version
+  headers, references the real Authentication and DDI provider contracts, and
+  records the BN Manager v3 provider operation. It documents current
+  cookie-authentication, role, CSRF, `If-Match`, idempotency, request/correlation
+  header, and error-envelope behavior without adding runtime behavior. The
+  compatibility record classifies removal of five previously claimed but
+  unimplemented operations as a breaking contract correction. The versioned
+  runtime-envelope schema and both JSON contracts passed syntax checks and
+  Draft 2020-12 schema validation. Focused TP-05 lint, compatibility,
+  live-router parity, operation-issue mapping, provider-path, response-envelope,
+  and recursive external-reference checks passed 6/6 with `python3 -B -m
+  unittest tests/test_tp05_contracts.py -v`. Common REST profile checks passed
+  8/8. Treatment Plan full discovery ran 22 cases: 15 passed and seven modules
+  failed during import because pre-existing tracked runtime files, including
+  `treatment_plan/safety_policy.py` and `treatment_plan/migration.py`, are absent
+  from the mirrored repository. Root discovery ran 64 tests with 62 passing and
+  the same two unrelated capability-matrix failures for missing issue headings
+  and a stale project-overview hash. Runtime error envelopes still use FastAPI's
+  legacy `{"detail": ...}` shape rather than the common RFC 9457 profile; fixing
+  runtime behavior belongs to a later implementation packet, so INS-020 remains
+  in progress.
 - INS-019 BN evaluation and registry-governance v3 contract packet (In
   progress). The mirrored standalone BN Manager now publishes v3 registry
   discovery and evaluation routes. Discovery exposes stable ID, semantic
