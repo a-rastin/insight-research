@@ -6,7 +6,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node test_repository.js && node test_configuration.js && node test_v2_api.js && node test_api.js"
+    "test": "node test_repository.js && node test_configuration.js && node test_v2_api.js && node test_api.js && node test_ui.js"
   },
   "dependencies": {
     "express": "^4.21.2"

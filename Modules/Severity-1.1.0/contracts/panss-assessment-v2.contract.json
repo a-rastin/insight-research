@@ -75,6 +75,17 @@
     "readiness": "/readyz",
     "readinessChecks": ["configuration", "SQLite integrity and migration version", "Authentication dependency"]
   },
+  "uiIntegration": {
+    "global": "InsightSeverity",
+    "lifecycle": ["mount", "unmount"],
+    "hostContext": {
+      "required": ["patientId", "encounterId"],
+      "optional": ["assessmentId"]
+    },
+    "defaultApiBasePath": "/api/severity/v2",
+    "identityPrivacy": "Patient aliases are not accepted, displayed, stored in browser storage, or placed in browser URLs.",
+    "clinicalAuthority": "The browser renders persisted server evaluation and scores; local item selections provide completion progress only."
+  },
   "provenance": {
     "required": ["sourceModule", "createdAt", "updatedAt", "createdRequestId", "updatedRequestId", "scaleVersion", "ruleVersion"],
     "appendOnlyLedger": "Every accepted version records the authenticated actor UUID, request UUID, timestamp, resource version, and immutable assessment snapshot in module-owned storage."

@@ -2,6 +2,26 @@
 
 > Read this first. Everything you need to use, modify, or extend this module is below. If a section doesn't answer your question, the source file named in that section will.
 
+## INS-027 Severity UI integration
+
+The standalone alias lookup described in the historical sections below has been
+removed. `public/severity-ui.js` now exposes bounded `mount` and `unmount`
+lifecycle functions through both ES module exports and `window.InsightSeverity`.
+The host supplies canonical `patientId`, `encounterId`, and an optional existing
+`assessmentId`; invalid or absent context fails visibly without a clinical
+request. The UI uses only gateway-relative v2 requests with cookie credentials,
+CSRF, idempotent creates, and ETag updates. It renders persisted server evaluation
+and scores, never stores clinical context in browser storage or URLs, and aborts
+requests and removes listeners on unmount. Passed/skipped and completed states
+are textually distinct. Errors are semantic urgent alerts and remain visible
+until a subsequent server action succeeds. The 30 native score controls preserve
+keyboard operation, 44px targets, visible focus, and reduced-motion behavior.
+
+`test_ui.js` covers lifecycle/privacy/accessibility source contracts and drives
+the UI API client through real HTTP completion, pass, load, and validation-error
+paths. Treat all patient-code UI, browser-storage, browser scoring, URL mutation,
+and auto-hiding notification descriptions later in this file as historical only.
+
 ## INS-026 persistence and security replacement
 
 The legacy JSON architecture described later in this historical handoff has been
@@ -26,9 +46,9 @@ migration state, and Authentication reachability.
 
 The patient-code v1 routes return
 `410 SEVERITY_LEGACY_IDENTITY_UNMAPPED`; they cannot safely write a canonical
-assessment. The standalone UI remains pending its separate UUID-context consumer
-migration. Treat the JSON persistence, open-CORS, no-auth, and v1 route details in
-the historical sections below as pre-INS-026 background only.
+assessment. The standalone UI now uses the UUID-context v2 consumer described
+above. Treat the JSON persistence, open-CORS, no-auth, and v1 route details in the
+historical sections below as pre-INS-026 background only.
 
 ---
 

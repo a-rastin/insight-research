@@ -8,6 +8,8 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-027: Rebuild Severity UI integration without PHI browser storage (In
+  progress).
 - INS-026: Replace Severity JSON persistence with module-owned SQLite and
   security controls (In progress).
 - INS-025: Implement server-authoritative PANSS evaluation (In progress).
@@ -296,6 +298,35 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-027 Severity UI integration without PHI browser storage (In progress).
+  The bounded packet replaces patient-code lookup, query/history mutation,
+  browser recents, and v1 calls with host-provided canonical Patient and
+  Encounter UUID context and an optional Assessment UUID. The dependency-light
+  frontend now exposes ES-module and frozen `window.InsightSeverity` mount/unmount
+  APIs, confines rendering and listeners to the supplied root, aborts active
+  requests during teardown, and permits only gateway-relative v2 API paths. It
+  uses cookie credentials, CSRF, idempotent creates, ETag updates, validates
+  returned identity/version/status, and displays only server-persisted evaluation
+  state and scores; local ratings provide completion progress but no clinical
+  interpretation. Completed and passed/skipped states are textually distinct,
+  skipped explicitly infers no score, and request/context errors remain visible
+  semantic urgent alerts until a later server action succeeds. All 30 score
+  controls remain native keyboard buttons with textual labels, 44px targets,
+  visible focus, non-color status text, WCAG AA-tested palette pairs, and
+  reduced-motion suppression. The UI contract, README, and handoff now describe
+  the host lifecycle and privacy boundary. The isolated full `npm test` suite
+  passed repository, migration/import, configuration, server evaluator, auth,
+  CSRF, CORS, concurrency, idempotency, legacy-failure, UI lifecycle/privacy/
+  accessibility, and real HTTP UI completion/pass/load/error checks. JavaScript
+  syntax, contract JSON syntax, Draft 2020-12 schema checking, browser storage/
+  URL scans, common REST profile checks (8/8), root discovery (65/65), and both
+  repository `git diff --check` commands passed. Pre-existing tracked
+  `node_modules` deletions and untracked `graphify-out/` were preserved. No file
+  under `insight-research/doc/`, protected clinical/model source, runtime data,
+  or generated artifact was read or modified. A real Dashboard/gateway host
+  harness supplying live UUID context is not present in this repository, so that
+  integrated browser run remains the next verification step and INS-027 stays in
+  progress.
 - INS-026 Severity database and security replacement (In progress). The bounded
   packet replaces both writable JSON stores with a Node `DatabaseSync`
   repository and two ordered transactional SQLite migrations. Canonical v2
