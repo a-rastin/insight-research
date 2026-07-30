@@ -11,6 +11,7 @@ INSIGHT is a clinical decision support system for psychiatrists managing patient
 1. **Create a modular, interoperable clinical workflow:** Every INSIGHT module must run and test independently while exchanging versioned data only through REST APIs, using one canonical Patient UUID and Encounter UUID across the system and never querying another module's database.
 2. **Generate reproducible and explainable decision support:** For every recommendation run, INSIGHT must preserve an immutable, schema-versioned clinical input snapshot and expose the patient facts, deterministic policies, DDI knowledge-base version, Bayesian model version, posterior results, limitations, and approved evidence metadata supporting the Primary Treatment Plan.
 3. **Preserve psychiatrist authority and enforce safety throughout the plan lifecycle:** Psychiatrists must be able to accept or modify the system draft, with attributable edits, required rationale, concurrency protection, server-side safety and DDI revalidation, immutable finalized plans, and prospective supersession during follow-up rather than alteration of prior plans.
+4. **The final app must be located in this path: "root/research/insight-research"
 
 ## Core User Flow
 
