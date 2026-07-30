@@ -1,7 +1,7 @@
-﻿{
+{
   "module": "Medical History",
   "datasetVersion": "2.0.0",
-  "storage": { "type": "json", "correlationKey": "code" },
+  "storage": { "type": "sqlite", "correlationKeys": ["patientId", "encounterId", "assessmentId"], "codeRole": "compatibility-alias-only", "databaseSchemaVersion": 2 },
   "submission": {
     "code": { "type": "string", "length": 6, "required": true },
     "pastMedicalHistory": { "type": "string_array", "required": true, "optionsSource": "GET /api/internal/medical-history/options" },

@@ -1,7 +1,11 @@
 ﻿const http = require("http");
 const fs = require("fs/promises");
+const fsSync = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const { authenticationReachable, fetchSession } = require("./auth");
+const { mintCsrf, verifyCsrf } = require("./csrf");
+const { MedicalHistoryRepository, canonicalJson } = require("./repository");
 
 const PORT = Number(process.env.PORT || 4173);
 const ROOT_DIR = __dirname;
@@ -9,8 +13,15 @@ const PUBLIC_DIR = path.join(ROOT_DIR, "public");
 const DATA_DIR = process.env.MEDICAL_HISTORY_DATA_DIR || path.join(ROOT_DIR, "data");
 const SESSIONS_FILE = path.join(DATA_DIR, "activation_sessions.json");
 const SUBMISSIONS_FILE = path.join(DATA_DIR, "medical_history_submissions.json");
-const SCHEMA_FILE = path.join(DATA_DIR, "medical_history_schema.json");
+const SCHEMA_FILE = path.join(ROOT_DIR, "data", "medical_history_schema.json");
 const V2_FILE = process.env.MEDICAL_HISTORY_V2_DATA_FILE || path.join(DATA_DIR, "medical_history_assessments_v2.json");
+const DATABASE_PATH = process.env.MEDICAL_HISTORY_DB_PATH || path.join(DATA_DIR, "medical-history.db");
+const AUTH_BASE_URL = process.env.MEDICAL_HISTORY_AUTH_BASE_URL || "http://127.0.0.1:8101";
+const AUTH_TIMEOUT_MS = Number(process.env.MEDICAL_HISTORY_AUTH_TIMEOUT_MS || 2000);
+const ENVIRONMENT = process.env.NODE_ENV || "development";
+const PRODUCTION = ENVIRONMENT === "production";
+const CSRF_SECRET = process.env.MEDICAL_HISTORY_CSRF_SECRET || (PRODUCTION ? "" : "medical-history-development-csrf-secret");
+const ALLOWED_ORIGINS = new Set((process.env.MEDICAL_HISTORY_ALLOWED_ORIGINS || "").split(",").map((value) => value.trim()).filter(Boolean));
 const CONTRACTS_DIR = path.join(ROOT_DIR, "contracts");
 const INTERFACE_VERSION = "2.0.0";
 const SCHEMA_VERSION = "2.0.0";
@@ -47,6 +58,30 @@ const MIME_TYPES = {
   ".ico": "image/x-icon"
 };
 
+function validateConfiguration() {
+  if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) throw new Error("PORT must be a valid TCP port");
+  if (!Number.isFinite(AUTH_TIMEOUT_MS) || AUTH_TIMEOUT_MS < 100 || AUTH_TIMEOUT_MS > 30000) {
+    throw new Error("MEDICAL_HISTORY_AUTH_TIMEOUT_MS is invalid");
+  }
+  let authUrl;
+  try {
+    authUrl = new URL(AUTH_BASE_URL);
+  } catch {
+    throw new Error("MEDICAL_HISTORY_AUTH_BASE_URL must be an absolute HTTP URL");
+  }
+  if (!["http:", "https:"].includes(authUrl.protocol)) throw new Error("MEDICAL_HISTORY_AUTH_BASE_URL must use HTTP or HTTPS");
+  if (CSRF_SECRET.length < 32) throw new Error("MEDICAL_HISTORY_CSRF_SECRET must contain at least 32 characters");
+  if (ALLOWED_ORIGINS.has("*")) throw new Error("MEDICAL_HISTORY_ALLOWED_ORIGINS cannot contain a wildcard");
+  for (const origin of ALLOWED_ORIGINS) {
+    const parsed = new URL(origin);
+    if (parsed.origin !== origin || !["http:", "https:"].includes(parsed.protocol)) {
+      throw new Error("MEDICAL_HISTORY_ALLOWED_ORIGINS must contain exact HTTP origins");
+    }
+  }
+}
+
+let repository;
+
 function isValidCode(code) {
   return typeof code === "string" && /^[A-Za-z0-9]{6}$/.test(code.trim());
 }
@@ -57,9 +92,6 @@ function normalizeCode(code) {
 
 async function ensureDataFiles() {
   await fs.mkdir(DATA_DIR, { recursive: true });
-  await ensureJsonFile(SESSIONS_FILE, []);
-  await ensureJsonFile(SUBMISSIONS_FILE, []);
-  await ensureJsonFile(V2_FILE, { assessments: {}, idempotency: {} });
 }
 
 async function ensureJsonFile(filePath, defaultValue) {
@@ -113,10 +145,6 @@ function sendJson(res, status, payload, headers = {}) {
   res.writeHead(status, {
     "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "no-store",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET,POST,PUT,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Schema-Version, X-Request-ID, X-Correlation-ID, X-Causation-ID, Idempotency-Key, If-Match",
-    "Access-Control-Expose-Headers": "ETag, X-Schema-Version, X-Request-ID, X-Correlation-ID",
     ...headers
   });
   res.end(JSON.stringify(payload, null, 2));
@@ -131,6 +159,39 @@ function requestContext(req) {
     requestId: isUuid(req.headers["x-request-id"]) ? req.headers["x-request-id"] : crypto.randomUUID(),
     correlationId: isUuid(req.headers["x-correlation-id"]) ? req.headers["x-correlation-id"] : null
   };
+}
+
+function cookies(req) {
+  return Object.fromEntries((req.headers.cookie || "").split(";").map((part) => part.trim()).filter(Boolean).map((part) => {
+    const separator = part.indexOf("=");
+    if (separator < 0) return [part, ""];
+    try {
+      return [part.slice(0, separator), decodeURIComponent(part.slice(separator + 1))];
+    } catch {
+      return [part.slice(0, separator), ""];
+    }
+  }));
+}
+
+async function authorize(req, res, context, requireWrite = false) {
+  const result = await fetchSession(AUTH_BASE_URL, req.headers.cookie, AUTH_TIMEOUT_MS);
+  if (result.unavailable) {
+    sendProblem(res, context, 503, "COMMON_DEPENDENCY_UNAVAILABLE", "Authentication unavailable", "Authentication could not verify the session.");
+    return null;
+  }
+  if (!result.session) {
+    sendProblem(res, context, 401, "COMMON_AUTHENTICATION_REQUIRED", "Authentication required", "A current authorized session is required.");
+    return null;
+  }
+  if (result.session.role !== "psychiatrist") {
+    sendProblem(res, context, 403, "COMMON_FORBIDDEN", "Forbidden", "Psychiatrist authority is required.");
+    return null;
+  }
+  if (requireWrite && !verifyCsrf(CSRF_SECRET, result.session.sessionId, cookies(req).medical_history_csrf, req.headers["x-csrf-token"])) {
+    sendProblem(res, context, 403, "COMMON_CSRF_REJECTED", "CSRF validation failed", "A valid Medical History CSRF token is required.");
+    return null;
+  }
+  return result.session;
 }
 
 function sendV2(res, status, payload, context, headers = {}) {
@@ -172,14 +233,6 @@ function assessmentEtag(assessment) {
   return `"medical-history-assessment-${assessment.assessmentId}-v${assessment.resourceVersion}"`;
 }
 
-function canonicalJson(value) {
-  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
-  if (value !== null && typeof value === "object") {
-    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(",")}}`;
-  }
-  return JSON.stringify(value);
-}
-
 function hasExactKeys(value, required, allowed, label, errors) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     errors.push(`${label} must be an object`);
@@ -192,14 +245,6 @@ function hasExactKeys(value, required, allowed, label, errors) {
 
 function validNullableString(value, maximum) {
   return value === null || (typeof value === "string" && value.length <= maximum);
-}
-
-function pruneIdempotency(store) {
-  const cutoff = Date.now() - 86400000;
-  for (const [key, record] of Object.entries(store.idempotency)) {
-    const createdAt = Date.parse(record.createdAt);
-    if (!Number.isFinite(createdAt) || createdAt <= cutoff) delete store.idempotency[key];
-  }
 }
 
 function validateV2Write(body, creating) {
@@ -302,13 +347,14 @@ function canonicalV2Assessment(body, context, existing) {
     resourceVersion: existing ? existing.resourceVersion + 1 : 1,
     provenance: {
       sourceModule: "medical-history",
+      optionSetVersion: "2.0.0",
       createdRequestId: existing?.provenance.createdRequestId || context.requestId,
       updatedRequestId: context.requestId
     }
   };
 }
 
-async function createV2Assessment(req, res, context) {
+async function createV2Assessment(req, res, context, session, aliasCode = null) {
   if (!requireV2Schema(req, res, context)) return;
   const key = req.headers["idempotency-key"];
   if (typeof key !== "string" || !/^[A-Za-z0-9._~-]{16,128}$/.test(key)) {
@@ -321,24 +367,22 @@ async function createV2Assessment(req, res, context) {
     sendProblem(res, context, 400, "MEDICAL_HISTORY_INVALID_ASSESSMENT", "Invalid medical history assessment", "The assessment does not satisfy schema 2.0.0.", errors);
     return;
   }
+  if (body.actor.actorId !== session.actorId || body.actor.role !== session.role) {
+    sendProblem(res, context, 403, "COMMON_ACTOR_MISMATCH", "Actor mismatch", "Assessment actor must match the authenticated psychiatrist.");
+    return;
+  }
   const fingerprint = crypto.createHash("sha256").update(canonicalJson(body)).digest("hex");
-  const store = await readJson(V2_FILE, { assessments: {}, idempotency: {} });
-  pruneIdempotency(store);
-  const prior = store.idempotency[key];
-  if (prior) {
-    if (prior.fingerprint !== fingerprint) {
+  try {
+    const assessment = canonicalV2Assessment(body, context);
+    const result = repository.createIdempotent({ actorId: session.actorId, key, fingerprint, assessment, requestId: context.requestId, aliasCode });
+    if (result.conflict) {
       sendProblem(res, context, 409, "COMMON_IDEMPOTENCY_KEY_REUSED", "Idempotency key reused", "Idempotency-Key was already used with different input.");
       return;
     }
-    const assessment = prior.response;
-    sendV2(res, 201, assessment, context, { ETag: assessmentEtag(assessment) });
-    return;
+    sendV2(res, 201, result.assessment, context, { ETag: assessmentEtag(result.assessment) });
+  } catch {
+    sendProblem(res, context, 503, "MEDICAL_HISTORY_STORAGE_UNAVAILABLE", "Medical History storage unavailable", "The assessment could not be persisted.");
   }
-  const assessment = canonicalV2Assessment(body, context);
-  store.assessments[assessment.assessmentId] = assessment;
-  store.idempotency[key] = { fingerprint, response: assessment, createdAt: assessment.createdAt };
-  await writeJson(V2_FILE, store);
-  sendV2(res, 201, assessment, context, { ETag: assessmentEtag(assessment) });
 }
 
 async function getV2Assessment(res, assessmentId, context) {
@@ -346,34 +390,22 @@ async function getV2Assessment(res, assessmentId, context) {
     sendProblem(res, context, 400, "MEDICAL_HISTORY_INVALID_ASSESSMENT_ID", "Invalid assessment identifier", "assessmentId must be a UUID.");
     return;
   }
-  const store = await readJson(V2_FILE, { assessments: {}, idempotency: {} });
-  const assessment = store.assessments[assessmentId];
-  if (!assessment) {
-    sendProblem(res, context, 404, "MEDICAL_HISTORY_ASSESSMENT_NOT_FOUND", "Assessment not found", "No medical history assessment exists for that identifier.");
-    return;
+  try {
+    const assessment = repository.get(assessmentId);
+    if (!assessment) {
+      sendProblem(res, context, 404, "MEDICAL_HISTORY_ASSESSMENT_NOT_FOUND", "Assessment not found", "No medical history assessment exists for that identifier.");
+      return;
+    }
+    sendV2(res, 200, assessment, context, { ETag: assessmentEtag(assessment) });
+  } catch {
+    sendProblem(res, context, 503, "MEDICAL_HISTORY_STORAGE_UNAVAILABLE", "Medical History storage unavailable", "The assessment could not be read.");
   }
-  sendV2(res, 200, assessment, context, { ETag: assessmentEtag(assessment) });
 }
 
-async function updateV2Assessment(req, res, assessmentId, context) {
+async function updateV2Assessment(req, res, assessmentId, context, session) {
   if (!requireV2Schema(req, res, context)) return;
   if (!isUuid(assessmentId)) {
     sendProblem(res, context, 400, "MEDICAL_HISTORY_INVALID_ASSESSMENT_ID", "Invalid assessment identifier", "assessmentId must be a UUID.");
-    return;
-  }
-  const store = await readJson(V2_FILE, { assessments: {}, idempotency: {} });
-  const current = store.assessments[assessmentId];
-  if (!current) {
-    sendProblem(res, context, 404, "MEDICAL_HISTORY_ASSESSMENT_NOT_FOUND", "Assessment not found", "No medical history assessment exists for that identifier.");
-    return;
-  }
-  const ifMatch = req.headers["if-match"];
-  if (!ifMatch) {
-    sendProblem(res, context, 428, "COMMON_PRECONDITION_REQUIRED", "Precondition required", "If-Match is required for assessment updates.");
-    return;
-  }
-  if (ifMatch !== assessmentEtag(current)) {
-    sendProblem(res, context, 412, "COMMON_PRECONDITION_FAILED", "Precondition failed", "If-Match does not match the current resource version.");
     return;
   }
   const body = await parseBody(req);
@@ -382,10 +414,39 @@ async function updateV2Assessment(req, res, assessmentId, context) {
     sendProblem(res, context, 400, "MEDICAL_HISTORY_INVALID_ASSESSMENT", "Invalid medical history assessment", "The assessment does not satisfy schema 2.0.0.", errors);
     return;
   }
-  const assessment = canonicalV2Assessment(body, context, current);
-  store.assessments[assessmentId] = assessment;
-  await writeJson(V2_FILE, store);
-  sendV2(res, 200, assessment, context, { ETag: assessmentEtag(assessment) });
+  if (body.actor.actorId !== session.actorId || body.actor.role !== session.role) {
+    sendProblem(res, context, 403, "COMMON_ACTOR_MISMATCH", "Actor mismatch", "Assessment actor must match the authenticated psychiatrist.");
+    return;
+  }
+  const ifMatch = req.headers["if-match"];
+  if (!ifMatch) {
+    sendProblem(res, context, 428, "COMMON_PRECONDITION_REQUIRED", "Precondition required", "If-Match is required for assessment updates.");
+    return;
+  }
+  try {
+    const current = repository.get(assessmentId);
+    if (!current) {
+      sendProblem(res, context, 404, "MEDICAL_HISTORY_ASSESSMENT_NOT_FOUND", "Assessment not found", "No medical history assessment exists for that identifier.");
+      return;
+    }
+    if (ifMatch !== assessmentEtag(current)) {
+      sendProblem(res, context, 412, "COMMON_PRECONDITION_FAILED", "Precondition failed", "If-Match does not match the current resource version.");
+      return;
+    }
+    const assessment = canonicalV2Assessment(body, context, current);
+    const result = repository.update({ assessmentId, expectedVersion: current.resourceVersion, assessment, actorId: session.actorId, requestId: context.requestId });
+    if (result.missing) {
+      sendProblem(res, context, 404, "MEDICAL_HISTORY_ASSESSMENT_NOT_FOUND", "Assessment not found", "No medical history assessment exists for that identifier.");
+      return;
+    }
+    if (result.stale) {
+      sendProblem(res, context, 412, "COMMON_PRECONDITION_FAILED", "Precondition failed", "Assessment changed after it was read.");
+      return;
+    }
+    sendV2(res, 200, result.assessment, context, { ETag: assessmentEtag(result.assessment) });
+  } catch {
+    sendProblem(res, context, 503, "MEDICAL_HISTORY_STORAGE_UNAVAILABLE", "Medical History storage unavailable", "The assessment could not be persisted.");
+  }
 }
 
 function sendError(res, status, message, details) {
@@ -398,33 +459,28 @@ async function activateMedicalHistory(req, res) {
     sendError(res, 422, "Activation code must be exactly 6 alphanumeric characters.");
     return;
   }
+  if (!isUuid(body.patientId) || !isUuid(body.encounterId)) {
+    sendError(res, 422, "Activation requires canonical patientId and encounterId UUIDs.");
+    return;
+  }
 
   const code = normalizeCode(body.code);
   const now = new Date();
   const expiresAt = new Date(now.getTime() + 2 * 60 * 60 * 1000);
-  const sessions = await readJson(SESSIONS_FILE, []);
-  const existingIndex = sessions.findIndex((session) => session.code === code && session.status !== "expired");
+  const alias = repository.putAlias({ code, patientId: body.patientId, encounterId: body.encounterId, expiresAt: expiresAt.toISOString() });
   const activation = {
     activationId: crypto.randomUUID(),
     code,
-    status: "active",
+    status: alias.status,
     receivedAt: now.toISOString(),
-    expiresAt: expiresAt.toISOString(),
+    expiresAt: alias.expiresAt,
     context: {
-      patientId: body.patientId || null,
-      encounterId: body.encounterId || null,
+      patientId: alias.patientId,
+      encounterId: alias.encounterId,
       requestedByModule: body.requestedByModule || null,
       returnUrl: body.returnUrl || null
     }
   };
-
-  if (existingIndex >= 0) {
-    sessions[existingIndex] = activation;
-  } else {
-    sessions.push(activation);
-  }
-
-  await writeJson(SESSIONS_FILE, sessions);
   sendJson(res, 201, {
     ...activation,
     launchUrl: `/?code=${encodeURIComponent(code)}`
@@ -438,22 +494,25 @@ async function getActivation(req, res, code) {
   }
 
   const normalizedCode = normalizeCode(code);
-  const sessions = await readJson(SESSIONS_FILE, []);
-  const activation = sessions.find((session) => session.code === normalizedCode);
+  const alias = repository.getAlias(normalizedCode);
 
-  if (!activation) {
+  if (!alias) {
     sendError(res, 404, "No active Medical History session found for this code.");
     return;
   }
 
-  if (new Date(activation.expiresAt).getTime() < Date.now()) {
-    activation.status = "expired";
-    await writeJson(SESSIONS_FILE, sessions);
+  if (Date.parse(alias.expiresAt) < Date.now()) {
     sendError(res, 410, "This Medical History activation code has expired.");
     return;
   }
 
-  sendJson(res, 200, activation);
+  sendJson(res, 200, {
+    code: alias.code,
+    status: alias.status,
+    expiresAt: alias.expiresAt,
+    submissionId: alias.assessmentId,
+    context: { patientId: alias.patientId, encounterId: alias.encounterId }
+  });
 }
 
 function validateSubmission(body) {
@@ -484,7 +543,7 @@ function validateSubmission(body) {
   }
   return errors;
 }
-async function submitMedicalHistory(req, res) {
+async function submitMedicalHistory(req, res, context, session) {
   const body = await parseBody(req);
   const errors = validateSubmission(body);
   if (errors.length) {
@@ -493,56 +552,62 @@ async function submitMedicalHistory(req, res) {
   }
 
   const code = normalizeCode(body.code);
-  const sessions = await readJson(SESSIONS_FILE, []);
-  const activation = sessions.find((session) => session.code === code);
-  if (!activation || activation.status === "expired") {
+  const alias = repository.getAlias(code);
+  if (!alias || Date.parse(alias.expiresAt) < Date.now()) {
     sendError(res, 404, "Submit requires an active Medical History activation code.");
     return;
   }
-
-  const submissions = await readJson(SUBMISSIONS_FILE, []);
-  const submission = {
-    submissionId: crypto.randomUUID(),
-    code,
-    patientId: activation.context.patientId,
-    encounterId: activation.context.encounterId,
+  const v2Body = {
+    patientId: alias.patientId,
+    encounterId: alias.encounterId,
+    status: "completed",
     pastMedicalHistory: body.pastMedicalHistory.map(String),
-    drugs: body.drugs.map((drug) => ({
-      name: String(drug.name).trim(),
-      dose: drug.dose ? String(drug.dose).trim() : "",
-      route: drug.route ? String(drug.route).trim() : "",
-      frequency: drug.frequency ? String(drug.frequency).trim() : ""
+    medications: body.drugs.map((drug) => ({
+      originalText: String(drug.name).trim(),
+      doseText: drug.dose ? String(drug.dose).trim() : null,
+      routeText: drug.route ? String(drug.route).trim() : null,
+      frequencyText: drug.frequency ? String(drug.frequency).trim() : null,
+      normalizedIdentity: { state: "not-assessed", conceptId: null, display: null, terminologyVersion: null }
     })),
-    substantialSuicideRisk: body.substantialSuicideRisk,
-    priorAntipsychoticTherapy: body.priorAntipsychoticTherapy,
-    priorAntipsychoticTherapySuccessful: body.priorAntipsychoticTherapy ? body.priorAntipsychoticTherapySuccessful : null,
+    substantialSuicideRisk: body.substantialSuicideRisk ? "yes" : "no",
+    priorAntipsychoticTherapy: body.priorAntipsychoticTherapy ? "yes" : "no",
+    priorAntipsychoticTherapySuccessful: body.priorAntipsychoticTherapy ? (body.priorAntipsychoticTherapySuccessful ? "yes" : "no") : "not-assessed",
     antipsychotic: body.priorAntipsychoticTherapy ? body.antipsychotic : null,
-    clozapineContraindication: body.clozapineContraindication,
+    clozapineContraindication: body.clozapineContraindication ? "yes" : "no",
     clozapineContraindications: body.clozapineContraindication ? body.clozapineContraindications.map(String) : [],
-    recurrentNonAdherenceDeterioration: body.recurrentNonAdherenceDeterioration,
-    submittedAt: new Date().toISOString(),
-    submittedBy: body.submittedBy || "standalone-ui",
-    source: body.source || "medical-history-module"
+    recurrentNonAdherenceDeterioration: body.recurrentNonAdherenceDeterioration ? "yes" : "no",
+    actor: { actorId: session.actorId, role: session.role }
   };
-
-  submissions.push(submission);
-  activation.status = "submitted";
-  activation.submissionId = submission.submissionId;
-  activation.submittedAt = submission.submittedAt;
-
-  await writeJson(SUBMISSIONS_FILE, submissions);
-  await writeJson(SESSIONS_FILE, sessions);
-  sendJson(res, 201, submission);
+  const assessment = canonicalV2Assessment(v2Body, context);
+  const fingerprint = crypto.createHash("sha256").update(canonicalJson(v2Body)).digest("hex");
+  const result = repository.createIdempotent({
+    actorId: session.actorId,
+    key: req.headers["idempotency-key"] || `legacy-${context.requestId}`,
+    fingerprint,
+    assessment,
+    requestId: context.requestId,
+    aliasCode: code
+  });
+  if (result.conflict) {
+    sendProblem(res, context, 409, "COMMON_IDEMPOTENCY_KEY_REUSED", "Idempotency key reused", "Idempotency-Key was already used with different input.");
+    return;
+  }
+  sendJson(res, 201, { ...body, code, submissionId: result.assessment.assessmentId, patientId: alias.patientId, encounterId: alias.encounterId, submittedAt: result.assessment.createdAt });
 }
 
 async function listSubmissions(req, res, url) {
-  const submissions = await readJson(SUBMISSIONS_FILE, []);
   const code = url.searchParams.get("code");
-  if (code) {
-    sendJson(res, 200, submissions.filter((submission) => submission.code === normalizeCode(code)));
+  if (!code || !isValidCode(code)) {
+    sendError(res, 422, "A valid activation code alias is required.");
     return;
   }
-  sendJson(res, 200, submissions);
+  const alias = repository.getAlias(normalizeCode(code));
+  if (!alias?.assessmentId) {
+    sendJson(res, 200, []);
+    return;
+  }
+  const assessment = repository.get(alias.assessmentId);
+  sendJson(res, 200, assessment ? [{ code: alias.code, submissionId: assessment.assessmentId, patientId: assessment.patientId, encounterId: assessment.encounterId }] : []);
 }
 
 async function serveStatic(req, res, url) {
@@ -572,9 +637,24 @@ async function serveStatic(req, res, url) {
 async function route(req, res) {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const context = requestContext(req);
+  const origin = req.headers.origin;
+
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Schema-Version, X-Request-ID, X-Correlation-ID, X-Causation-ID, Idempotency-Key, If-Match, X-CSRF-Token");
+    res.setHeader("Access-Control-Expose-Headers", "ETag, X-Schema-Version, X-Request-ID, X-Correlation-ID");
+  }
 
   if (req.method === "OPTIONS") {
-    sendJson(res, 204, {});
+    if (origin && ALLOWED_ORIGINS.has(origin)) {
+      res.writeHead(204);
+      res.end();
+    } else {
+      sendJson(res, 403, { error: { message: "Origin is not allowed." } });
+    }
     return;
   }
 
@@ -589,7 +669,17 @@ async function route(req, res) {
   }
 
   if (req.method === "GET" && url.pathname === "/readyz") {
-    sendV2(res, 200, { status: "ready", service: "medical-history", moduleVersion: MODULE_VERSION, time: new Date().toISOString(), checks: [{ name: "assessment-store", status: "ready" }] }, context);
+    try {
+      const storageReady = repository.readiness();
+      const authReady = await authenticationReachable(AUTH_BASE_URL, AUTH_TIMEOUT_MS);
+      if (!storageReady || !authReady) {
+        sendProblem(res, context, 503, "MEDICAL_HISTORY_NOT_READY", "Medical History is not ready", "A required local or Authentication dependency is unavailable.");
+        return;
+      }
+      sendV2(res, 200, { status: "ready", service: "medical-history", moduleVersion: MODULE_VERSION, schemaVersion: SCHEMA_VERSION, time: new Date().toISOString() }, context);
+    } catch {
+      sendProblem(res, context, 503, "MEDICAL_HISTORY_NOT_READY", "Medical History is not ready", "A required local or Authentication dependency is unavailable.");
+    }
     return;
   }
 
@@ -619,17 +709,51 @@ async function route(req, res) {
   }
 
   if (req.method === "POST" && url.pathname === "/api/medical-history/v2/assessments") {
-    await createV2Assessment(req, res, context);
+    const session = await authorize(req, res, context, true);
+    if (session) await createV2Assessment(req, res, context, session);
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/medical-history/v2/csrf") {
+    const session = await authorize(req, res, context);
+    if (!session) return;
+    const token = mintCsrf(CSRF_SECRET, session.sessionId);
+    sendV2(res, 200, { token }, context, {
+      "Set-Cookie": `medical_history_csrf=${encodeURIComponent(token)}; Path=/api/medical-history; SameSite=Strict${PRODUCTION ? "; Secure" : ""}`
+    });
+    return;
+  }
+
+  const latestMatch = url.pathname.match(/^\/api\/medical-history\/v2\/encounters\/([0-9a-f-]{36})\/assessments\/latest$/);
+  if (req.method === "GET" && latestMatch) {
+    const session = await authorize(req, res, context);
+    if (!session) return;
+    if (!isUuid(latestMatch[1])) {
+      sendProblem(res, context, 400, "MEDICAL_HISTORY_INVALID_ENCOUNTER_ID", "Invalid encounter identifier", "encounterId must be a UUID.");
+      return;
+    }
+    try {
+      const assessment = repository.latest(latestMatch[1]);
+      if (!assessment) {
+        sendProblem(res, context, 404, "MEDICAL_HISTORY_ASSESSMENT_NOT_FOUND", "Assessment not found", "No medical history assessment exists for that encounter.");
+        return;
+      }
+      sendV2(res, 200, assessment, context, { ETag: assessmentEtag(assessment) });
+    } catch {
+      sendProblem(res, context, 503, "MEDICAL_HISTORY_STORAGE_UNAVAILABLE", "Medical History storage unavailable", "The assessment could not be read.");
+    }
     return;
   }
 
   const v2AssessmentMatch = url.pathname.match(/^\/api\/medical-history\/v2\/assessments\/([0-9a-f-]{36})$/);
   if (req.method === "GET" && v2AssessmentMatch) {
-    await getV2Assessment(res, v2AssessmentMatch[1], context);
+    const session = await authorize(req, res, context);
+    if (session) await getV2Assessment(res, v2AssessmentMatch[1], context);
     return;
   }
   if (req.method === "PUT" && v2AssessmentMatch) {
-    await updateV2Assessment(req, res, v2AssessmentMatch[1], context);
+    const session = await authorize(req, res, context, true);
+    if (session) await updateV2Assessment(req, res, v2AssessmentMatch[1], context, session);
     return;
   }
 
@@ -644,23 +768,27 @@ async function route(req, res) {
   }
 
   if (req.method === "POST" && url.pathname === "/api/internal/medical-history/activate") {
-    await activateMedicalHistory(req, res);
+    const session = await authorize(req, res, context, true);
+    if (session) await activateMedicalHistory(req, res);
     return;
   }
 
   const activationMatch = url.pathname.match(/^\/api\/internal\/medical-history\/activation\/([A-Za-z0-9]{1,20})$/);
   if (req.method === "GET" && activationMatch) {
-    await getActivation(req, res, activationMatch[1]);
+    const session = await authorize(req, res, context);
+    if (session) await getActivation(req, res, activationMatch[1]);
     return;
   }
 
   if (req.method === "POST" && url.pathname === "/api/internal/medical-history/submissions") {
-    await submitMedicalHistory(req, res);
+    const session = await authorize(req, res, context, true);
+    if (session) await submitMedicalHistory(req, res, context, session);
     return;
   }
 
   if (req.method === "GET" && url.pathname === "/api/internal/medical-history/submissions") {
-    await listSubmissions(req, res, url);
+    const session = await authorize(req, res, context);
+    if (session) await listSubmissions(req, res, url);
     return;
   }
 
@@ -672,18 +800,32 @@ async function route(req, res) {
   sendError(res, 405, "Method not allowed.");
 }
 
-ensureDataFiles()
+Promise.resolve()
+  .then(() => validateConfiguration())
+  .then(() => ensureDataFiles())
   .then(() => {
-    http
+    fsSync.mkdirSync(path.dirname(DATABASE_PATH), { recursive: true });
+    repository = new MedicalHistoryRepository(DATABASE_PATH, [
+      { name: "medical-history-activation-aliases-json", kind: "aliases", path: SESSIONS_FILE },
+      { name: "medical-history-v1-submissions-json", kind: "legacy", path: SUBMISSIONS_FILE },
+      { name: "medical-history-v2-assessments-json", kind: "v2", path: V2_FILE }
+    ]);
+    const server = http
       .createServer((req, res) => {
         route(req, res).catch((error) => {
           const status = error.status || 500;
-          sendError(res, status, error.message || "Internal server error");
+          sendError(res, status, status === 500 ? "Internal server error" : error.message);
         });
       })
-      .listen(PORT, () => {
-        console.log(`Medical History module running at http://localhost:${PORT}`);
+      .listen(PORT, "127.0.0.1", () => {
+        console.log(`Medical History module running at http://127.0.0.1:${PORT}`);
       });
+    const shutdown = () => server.close(() => {
+      repository.close();
+      process.exit(0);
+    });
+    process.on("SIGTERM", shutdown);
+    process.on("SIGINT", shutdown);
   })
   .catch((error) => {
     console.error("Failed to start Medical History module:", error);

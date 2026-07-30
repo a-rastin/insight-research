@@ -1,6 +1,6 @@
 # Medical History Module
 
-Standalone Node.js module that collects a patient's medical history and saves each submission under a six-character activation/sample code.
+Standalone Node.js module that stores versioned medical-history assessments under canonical Patient, Encounter, and Assessment UUIDs. Six-character activation codes are compatibility aliases only.
 
 ## Run and test
 
@@ -9,7 +9,7 @@ npm start
 npm test
 ```
 
-Open `http://localhost:4173`, activate with a six-character alphanumeric code, complete the form, and submit. Node.js 18 or newer is required.
+Open `http://localhost:4173`, activate with a six-character code plus canonical Patient and Encounter UUID context, complete the form, and submit. Node.js 22.5 or newer is required for native SQLite.
 
 ## Collected information
 
@@ -24,18 +24,20 @@ Conditional questions are hidden until applicable. The server independently vali
 
 ## Correlation and persistence
 
-A parent module activates this module with `POST /api/internal/medical-history/activate`. Codes are normalized to uppercase. Submissions are appended to `data/medical_history_submissions.json` and can be retrieved by code:
+A parent module may activate the compatibility UI with `POST /api/internal/medical-history/activate`. Codes are normalized to uppercase and resolve to canonical Patient and Encounter UUIDs. They are never clinical storage keys.
 
 ```http
 GET /api/internal/medical-history/submissions?code=A1B2C3
 ```
 
-Runtime files remain JSON arrays:
+The authoritative store is module-owned SQLite at `data/medical-history.db`, configurable with `MEDICAL_HISTORY_DB_PATH`. Ordered migrations create current assessments, immutable attributed versions, actor-scoped idempotency records, aliases, import metadata, and quarantine records.
+
+The previous JSON arrays are one-time import sources only:
 
 - `data/activation_sessions.json`
 - `data/medical_history_submissions.json`
 
-Set `MEDICAL_HISTORY_DATA_DIR` to use another runtime data directory (used by the isolated test suite).
+Corrupt JSON aborts startup and cannot replace visible database state with an empty store. Canonical records import once by source hash; unmapped records are quarantined rather than assigned guessed UUIDs. A source that changes after import fails closed.
 
 ## Internal REST API
 
@@ -73,9 +75,11 @@ remain the legacy standalone adapter.
 
 - `GET /api/medical-history/v1/contract`
 - `GET /api/medical-history/v2/contract/{document|schema|openapi}`
+- `GET /api/medical-history/v2/csrf`
 - `POST /api/medical-history/v2/assessments`
 - `GET /api/medical-history/v2/assessments/{assessmentId}`
 - `PUT /api/medical-history/v2/assessments/{assessmentId}`
+- `GET /api/medical-history/v2/encounters/{encounterId}/assessments/latest`
 
 V2 requires canonical Patient, Encounter, Assessment, and psychiatrist Actor
 UUIDs. Clinical yes/no fields use the controlled values `yes`, `no`, `unknown`,
@@ -89,6 +93,8 @@ Mutable resources return a strong `ETag`; updates require the current value in
 `If-Match`. Responses include timestamps, actor attribution, provenance, and an
 incrementing `resourceVersion`. Published artifacts are under `contracts/`.
 
+Every clinical read and write revalidates the opaque cookie through Authentication `GET /api/auth/v2/session`; only a current psychiatrist session is accepted. Writes additionally require the signed, session-bound double-submit token from the CSRF endpoint. Credentialed CORS is emitted only for exact origins configured in `MEDICAL_HISTORY_ALLOWED_ORIGINS`. Production requires `MEDICAL_HISTORY_CSRF_SECRET` with at least 32 characters. `MEDICAL_HISTORY_AUTH_BASE_URL` and `MEDICAL_HISTORY_AUTH_TIMEOUT_MS` configure Authentication.
+
 ## Production note
 
-This is prototype storage, not production-ready PHI infrastructure. Production deployment needs authentication, authorization, restricted CORS, encrypted/database persistence, audit logging, concurrency-safe writes, and appropriate clinical governance.
+Database-at-rest encryption, backup/restore operations, retention policy, and clinical governance approval remain deployment gates outside this packet.

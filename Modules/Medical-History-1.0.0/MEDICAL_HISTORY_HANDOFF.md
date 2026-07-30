@@ -2,9 +2,9 @@
 
 ## Architecture
 
-This is a dependency-free standalone Node.js module. `server.js` owns activation, validation, JSON persistence, lookup, and static serving. `public/index.html`, `public/app.js`, and `public/styles.css` implement the browser flow. `data/medical_history_schema.json` is the integration contract. `test/server.test.js` runs the real HTTP server against a temporary data directory.
+This is a dependency-free standalone Node.js 22.5+ module. `server.js` owns HTTP routing and authoritative validation, `repository.js` owns native SQLite persistence and ordered import, `auth.js` owns Authentication v2 session validation, and `csrf.js` owns signed double-submit tokens. `public/index.html`, `public/app.js`, and `public/styles.css` implement the compatibility browser flow.
 
-The stable boundary is `/api/internal/medical-history/*`. Another module should activate with a six-character code, open the returned `launchUrl`, and retrieve submissions using `GET /submissions?code={code}`. Codes are normalized to uppercase and stored on every submission.
+The canonical boundary is `/api/medical-history/v2/*`. The `/api/internal/medical-history/*` activation-code boundary remains a thin compatibility adapter; a code resolves to canonical Patient and Encounter UUIDs and never owns clinical state.
 
 ## Submission model (v2)
 
@@ -37,7 +37,7 @@ All four primary Yes/No questions default to No. Prior therapy = Yes reveals the
 
 ## Persistence and testing
 
-Default runtime data is stored in `data/activation_sessions.json` and `data/medical_history_submissions.json`. `MEDICAL_HISTORY_DATA_DIR` overrides the directory so tests can run without touching real module data.
+Default runtime data is stored in module-owned `data/medical-history.db`. The old activation, submission, and v2 JSON files are ordered one-time import sources. Imports are source-hash guarded; corrupt or post-import-modified sources fail startup, and records without canonical identity are retained in quarantine.
 
 Verification:
 
@@ -47,13 +47,7 @@ node --check public/app.js
 npm test
 ```
 
-The v2 UUID resource is stored separately in
-`medical_history_assessments_v2.json` (or the
-`MEDICAL_HISTORY_V2_DATA_FILE` override). `test_v2_api.js` verifies canonical
-UUIDs, actor attribution, explicit uncertainty, original medication text,
-normalization state, idempotent create behavior, resource versions, and strong
-ETag preconditions. The contract, Draft 2020-12 schema, and OpenAPI document are
-in `contracts/`.
+`test_repository.js` verifies fresh migration, JSON import, quarantine, corruption rollback, provenance, and transactional concurrency. `test_configuration.js` verifies production fail-closed startup. `test_v2_api.js` verifies Authentication role/revocation behavior, CSRF, restricted CORS, canonical identity, explicit uncertainty, idempotency, strong ETags, concurrent updates, latest reads, and readiness dependency failure. The contract, Draft 2020-12 schema, and OpenAPI document are in `contracts/`.
 
 The integration tests cover option lists, a fully populated conditional submission, all-default No answers, code normalization/retrieval, the 20-drug maximum, and invalid conditional combinations.
 
@@ -69,4 +63,4 @@ When changing a collected field, keep these synchronized:
 6. `README.md` and this handoff.
 7. `graphify-out` via `graphify --update`.
 
-Do not rename the internal REST routes without coordinating every parent-module integration. Runtime JSON storage is suitable only for a prototype; production PHI requires hardened identity, access control, persistence, encryption, audit, and retention controls.
+Do not rename the internal compatibility routes without coordinating every parent-module integration. Do not restore JSON as an authoritative writer. Production PHI still requires approved encryption-at-rest, backup/restore, retention, and governance controls.

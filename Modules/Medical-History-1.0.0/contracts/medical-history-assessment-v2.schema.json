@@ -182,9 +182,10 @@
             "provenance": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["sourceModule", "createdRequestId", "updatedRequestId"],
+              "required": ["sourceModule", "optionSetVersion", "createdRequestId", "updatedRequestId"],
               "properties": {
                 "sourceModule": {"const": "medical-history"},
+                "optionSetVersion": {"const": "2.0.0"},
                 "createdRequestId": {"$ref": "#/$defs/uuid"},
                 "updatedRequestId": {"$ref": "#/$defs/uuid"}
               }

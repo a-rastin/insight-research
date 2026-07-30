@@ -7,9 +7,9 @@
     "scripts":  {
                     "start":  "node server.js",
                     "dev":  "node server.js",
-                    "test":  "node --test test/server.test.js && node test_v2_api.js"
+                    "test":  "node test_repository.js && node test_configuration.js && node --test test/server.test.js && node test_v2_api.js"
                 },
     "engines":  {
-                    "node":  "\u003e=18"
+                    "node":  "\u003e=22.5"
                 }
 }

@@ -33,6 +33,23 @@
   },
   "timestamps": ["createdAt", "updatedAt"],
   "resourceVersion": "positive integer incremented on update",
+  "persistence": {
+    "repository": "module-owned SQLite",
+    "databaseSchemaVersion": 2,
+    "legacyJson": "ordered one-time import with corrupt-source failure and quarantine",
+    "activationCodes": "compatibility aliases only"
+  },
+  "security": {
+    "sessionProvider": "GET /api/auth/v2/session",
+    "roles": ["psychiatrist"],
+    "csrf": "signed session-bound double-submit on writes",
+    "cors": "exact configured origins with credentials"
+  },
+  "provenance": {
+    "sourceModule": "medical-history",
+    "optionSetVersion": "2.0.0",
+    "actorSource": "authenticated session"
+  },
   "concurrency": {
     "etag": "strong",
     "ifMatchRequiredForUpdate": true

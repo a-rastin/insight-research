@@ -8,6 +8,8 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-028: Replace Medical History JSON with v2 repository and security (In
+  progress).
 - INS-027: Rebuild Severity UI integration without PHI browser storage (In
   progress).
 - INS-026: Replace Severity JSON persistence with module-owned SQLite and
@@ -298,6 +300,39 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-028 Medical History v2 repository and security replacement (In progress).
+  Medical History now uses a module-owned native SQLite repository with two
+  ordered transactional migrations, WAL, strict migration-history checks,
+  current assessments, immutable actor/request-attributed versions,
+  actor-scoped idempotency, compatibility aliases, import metadata, and
+  quarantine. Existing activation, submission, and v2 JSON files are ordered
+  one-time import sources: canonical records and aliases retain UUID identity,
+  unmapped or invalid records are quarantined without guessed values, corrupt
+  or post-import-modified sources fail startup, and a failed import cannot
+  replace visible database state with an empty store. The canonical create,
+  UUID read/update, and Encounter-bound latest routes revalidate Authentication
+  v2 on every request, permit only current psychiatrists, bind body attribution
+  to the authenticated actor, require session-bound signed double-submit CSRF
+  on writes, and expose credentialed CORS only to exact configured origins.
+  Creates are transactionally idempotent, updates compare resource versions
+  again under `BEGIN IMMEDIATE`, strong ETags prevent lost writes, liveness is
+  dependency-free, readiness checks SQLite migration/integrity and
+  Authentication reachability, and storage failures return explicit safe
+  problem responses. Existing controlled-option, conditional, 20-medication,
+  explicit-uncertainty, and medication-normalization validation remains
+  authoritative; activation codes are compatibility aliases over canonical
+  UUID assessments only. The full `npm test` suite passed repository fresh,
+  canonical/legacy import, alias import, changed-source, corrupt-source,
+  quarantine, configuration, existing validation, auth/role/revocation, CSRF,
+  CORS, idempotency, ETag/concurrency, latest, and readiness checks. Changed
+  JavaScript syntax passed `node --check`; all four JSON artifacts passed
+  `python3 -m json.tool`; the assessment schema passed Draft 2020-12 schema
+  checking; common REST profile checks passed 8/8; root discovery passed 65/65;
+  and `git diff --check` passed. Database-at-rest encryption, backup/restore,
+  retention operations, and controlled-clinical governance remain deployment
+  gates; those release-level controls are the next work and keep INS-028 marked
+  in progress. No file under `insight-research/doc/`, protected model/clinical
+  source, runtime data, or generated `graphify-out/` was read or modified.
 - INS-027 Severity UI integration without PHI browser storage (In progress).
   The bounded packet replaces patient-code lookup, query/history mutation,
   browser recents, and v1 calls with host-provided canonical Patient and

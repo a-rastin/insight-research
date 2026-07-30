@@ -8,6 +8,7 @@
     "/api/medical-history/v2/contract/document": {"get": {"operationId": "medicalHistoryContractDocument", "responses": {"200": {"description": "Medical History v2 contract document"}}}},
     "/api/medical-history/v2/contract/schema": {"get": {"operationId": "medicalHistoryContractSchema", "responses": {"200": {"description": "Medical History v2 JSON Schema"}}}},
     "/api/medical-history/v2/contract/openapi": {"get": {"operationId": "medicalHistoryOpenApi", "responses": {"200": {"description": "Medical History v2 OpenAPI document"}}}},
+    "/api/medical-history/v2/csrf": {"get": {"operationId": "medicalHistoryCsrf", "responses": {"200": {"description": "Session-bound CSRF token"}, "401": {"description": "Authentication required"}}}},
     "/api/medical-history/v2/assessments": {
       "post": {
         "operationId": "createMedicalHistoryAssessmentV2",
@@ -18,6 +19,10 @@
         "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "./medical-history-assessment-v2.schema.json#/$defs/assessmentWrite"}}}},
         "responses": {"201": {"description": "Created"}, "400": {"description": "Invalid request"}, "409": {"description": "Idempotency conflict"}}
       }
+    },
+    "/api/medical-history/v2/encounters/{encounterId}/assessments/latest": {
+      "parameters": [{"name": "encounterId", "in": "path", "required": true, "schema": {"type": "string", "format": "uuid"}}],
+      "get": {"operationId": "getLatestMedicalHistoryAssessmentV2", "responses": {"200": {"description": "Latest assessment for encounter"}, "401": {"description": "Authentication required"}, "404": {"description": "Not found"}}}
     },
     "/api/medical-history/v2/assessments/{assessmentId}": {
       "parameters": [{"name": "assessmentId", "in": "path", "required": true, "schema": {"type": "string", "format": "uuid"}}],
