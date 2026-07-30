@@ -370,87 +370,41 @@ Pure logic, no I/O. Read this to understand the DSM-5-TR rules.
 
 ## 4. The web page (`static/index.html`)
 
-Single HTML file, **no build step**. Vanilla JS via `fetch`. The
-served page is an **embeddable module UI** matching the "Add New
-Patient" pattern: a constructor `createDiagnosisModule({root,
-apiBaseUrl})` the host mounts into a `HTMLElement` root. The standalone
-`GET /` shell bootstraps that same fn against `document.body` (`embedded:
-false`); the larger Insight dashboard imports `window.createDiagnosisModule`
-from this file and calls it with `{root, apiBaseUrl: "", embedded: true}`
-so it gets neither a second topbar nor a navigation placeholder. The
-route layer (page seam, etc.) is *unchanged*; the refactor touches only
-the served bytes.
+Single HTML file, **no build step**. INS-024 connects the embedded UI only to
+the canonical v2 assessment interface:
 
-Read top to bottom; the structure is:
+- `createDiagnosisModule({root, apiBaseUrl, embedded, patientId,
+  encounterId})` accepts canonical UUID context from the host and returns
+  `{mount, unmount, setAssessmentContext}`.
+- The UI never accepts a patient code, reads a query string, writes history,
+  or places a patient alias in a URL. The host owns navigation and context.
+- Startup loads criteria metadata, obtains CSRF from the stamped meta element
+  or `/diagnosis/_csrf`, reads the latest Encounter assessment, and initializes
+  it through `POST /api/diagnosis/v2/assessments` only when latest returns 404.
+- Every write uses schema `2.0.0`; create uses an idempotency key; update uses
+  the current strong ETag in `If-Match`; cookies and CSRF remain enforced.
+- The browser does not evaluate criteria. It renders the v2 server evaluation,
+  and `evaluation.met` only gates availability of the separately clicked
+  confirm action. Bypass is a separate confirmed action and is attributed by
+  the server-authenticated psychiatrist identity.
+- Checkbox changes persist `clinicianDecision: null`; explicit confirm and
+  bypass actions persist their own decision object. A rejected write restores
+  the last server state and shows a focused `role="alert"` failure instead of
+  appearing saved.
+- Native checkboxes and buttons preserve keyboard behavior, focus is moved to
+  the workspace after successful context load and to errors on failure, and
+  visible focus/reduced-motion/mobile-target rules are present.
+- `unmount()` aborts in-flight requests, clears pending timers, removes every
+  module listener, and clears only the supplied root. Context switches abort
+  the preceding request before loading the new Encounter.
+- Embedded mode omits `.dm-topbar`; neither mode mutates browser navigation.
 
-1. CSS — uses DESIGN.md tokens verbatim (see §7 below). Inter for body,
-   JetBrains Mono for patient-code/score quantities. Teal (`#0A9E8F`)
-   is the single locked accent. Body has NO `padding` / `min-height` —
-   the module's `.diagnosis-module` wrapper owns its own padding (no
-   host chrome pollution).
-2. HTML — ONE mount point: ``<div id="diagnosis-root"></div>`` (no
-   baked standalone ``<header class="topbar">`` / no "Back to dashboard"
-   button — host owns navigation).
-3. `<script>` — exposes `window.createDiagnosisModule(opts)` and
-   bootstraps the standalone shell. Inside the fn:
-   - **Embedded contract**: `{root, apiBaseUrl, embedded, initialCode}`
-     in; returns `{mount, unmount, setPatientCode}`. When
-     ``embedded===true`` the fn skips the ``.dm-topbar`` chrome (the
-     Insight dashboard already shows its page header) and skips
-     ``history.replaceState`` on host URL (the host owns session+back
-     navigation). The fn scopes its DOM inside ``root`` only.
-   - **`loadMeta()`** fetches ``<apiBaseUrl>/diagnosis/_meta``, renders the
-     criteria tree. `_meta` ALSO returns a **`rules` contract**
-     (`criteria.meta_contract`): the server's own DSM-5-TR primitives
-     (symptom / core / duration / guard ids + the symptom / core
-     thresholds). The fn stores it into the `rules` closure and
-     consumes it from `renderLocalEvaluation` — it does NOT reimplement
-     the rules in JS. Server evaluation stays the single source of
-     truth; the frontend's optimistic tiles are a projection of
-     `rules` + the checked ids, verified equivalent to `evaluate()`
-     across every id subset by
-     `test_unittest.test_meta_rules_match_engine_every_subset`.
-   - **`readCsrfToken()`** runs before `loadMeta()` and pulls the token
-     out of `<meta name="csrf-token">` (injected by the server on
-     `GET /`) into `csrfToken`. The `csrfHeaders()` helper stamps
-     `X-CSRF-Token: <token>` on every PUT/POST — `onChange`,
-     `loadSession` (init), and `sendDecision` (confirm / bypass).
-     Missing the header returns 403; the page is boot-stamped, so no
-     extra fetch is needed. Embedded-only hosts that load just the JS
-     must stamp the meta tag themselves OR call `/diagnosis/_csrf` first;
-     the fn never re-implements the CSRF mint.
-   - **`loadSession(code)`** POSTs `/init` (ignore failure — session may
-     already exist), GETs `/diagnosis/{code}` (404 is fine just after
-     init), renders.
-   - **`onChange()`** — debounced (350ms) PUT of
-     `{checked, decision:lastDecision}` on every checkbox toggle.
-     Optimistic local render first (`renderLocalEvaluation` consumes
-     the server `rules` contract — NOT a mirror of `evaluate()`
-     logic), then server render.
-   - **Decision buttons**: "Diagnosis is clear" (sends `decision:"confirmed"`,
-     only enabled when Criterion A is met — **`confirm-btn.disabled = !aMet`**)
-     and "Diagnosis is clear (bypass)" (sends `decision:"definite"`,
-     always enabled, shows a `confirm()` dialog).
-   - **No host-navigation button** anymore. The previous shell baked a
-     ``Back to dashboard`` placeholder at index.html line 224 (now gone);
-     the host dashboard owns its own return link. **`history.replaceState`
-     is gated by ``!embedded``** in ``_setInitialCode``, so the embedded
-     host URL is preserved.
-
-Known cosmetic wart in `renderServer`: the `guardsMet` calculation has a
-dead `|| e.met === true` branch that always evaluates to truthy. The badge
-logic in `updateBadge` is what actually drives the visible state. Don't
-"clean up" `renderServer`'s guardsMet line without testing the badge path.
-
-The embeddable UI contract is locked by ``test_embed.py``: it asserts the
-served bytes expose the constructor, contain no host navigation
-placeholder, contain no baked standalone topbar at first paint, gate the
-standalone chrome on `!embedded`, return a `mount`+`unmount` handle, and
-leave the route layer (pathset, literal-before-`/{code}` order) untouched.
-`test_csrf.test_html_page_carries_meta_token` still locks the page-seam
-CSRF meta stamp.
-
-The `/` route in `api.py` serves this file via `_read_page()`.
+`test_embed.py` locks these UI contracts and verifies JavaScript syntax with
+Node. `test_diagnosis_v2_contracts.py` covers the v2 HTTP, UUID-only URL,
+clinician-authority, failure/precondition, and legacy/server evaluation-
+equivalence behavior. `test_csrf.test_html_page_carries_meta_token` continues
+to lock the page-seam CSRF stamp. The `/` route serves this file through
+`_read_page()`.
 
 ---
 

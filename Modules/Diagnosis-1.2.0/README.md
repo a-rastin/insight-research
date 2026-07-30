@@ -201,7 +201,7 @@ app.include_router(router, prefix="/diagnosis")
 When mounted, the HTML page at `/diagnosis/` calls the same-origin API, so no
 CORS or absolute URLs are required.
 
-### Embeddable module UI — `createDiagnosisModule({root, apiBaseUrl})`
+### Embeddable module UI — v2 assessment context
 
 The web page is an embeddable module UI matching the "Add New Patient"
 pattern. The served HTML does NOT bake a standalone shell — it ships a
@@ -214,28 +214,34 @@ const inst = createDiagnosisModule({
   root: document.getElementById("diagnosis-root"),
   apiBaseUrl: "",       // same-origin root for the mounted case
   embedded: false,      // true inside the larger Insight dashboard
-  initialCode: "P-0427-A", // optional pre-load patient code
+  patientId: "<canonical-patient-uuid>",
+  encounterId: "<canonical-encounter-uuid>",
 });
 inst.mount();           // paint criteria UI inside `root`
 // inst.unmount();      // tear down DOM + listeners on host navigation away
-// inst.setPatientCode("P-0427-A");  // load a different patient live
+// inst.setAssessmentContext({patientId, encounterId}); // switch context
 ```
 
 Contract the host passes / receives:
 - `{HTMLElement}  root`        — mount target; the standalone shell passes `document.body`.
 - `{string}       apiBaseUrl`  — prefix for every API call (`/diagnosis` if cross-origin; `""` same-origin).
 - `{boolean}      embedded`    — when true, the module emits no `Insight / .dm-topbar` header (the host dashboard already shows its own) and never mutates `history`.
-- returns `{ mount(): void, unmount(): void, setPatientCode(code): void }` for clean teardown + live panel swaps.
+- `{string} patientId` and `{string} encounterId` — canonical UUID context supplied by the host; never read from a query string.
+- returns `{ mount(): void, unmount(): void, setAssessmentContext(context): void }` for clean teardown + live Encounter swaps.
 
 Contract the module preserves (do NOT regress):
-- `/diagnosis/_meta` `rules` contract stays the single source of truth
-  for the optimistic display — the JS NEVER reimplements the DSM logic
-  in JavaScript (HANDOFF §9.12).
+- The UI renders only the v2 server evaluation. It does not project or
+  reimplement the DSM rules in JavaScript.
 - The CSRF token still comes from `<meta name="csrf-token">` (stamped
-  by the page seam on serve); every PUT/POST carries `X-CSRF-Token`.
-- The "Diagnosis is clear" button is `disabled` unless Criterion A is
-  met; the bypass button is **always enabled** — clinician authority over
-  the checklist (HANDOFF §6).
+  by the page seam on serve) or `/diagnosis/_csrf`; every PUT/POST carries
+  `X-CSRF-Token`, and every v2 write carries `X-Schema-Version: 2.0.0`.
+- The confirm button is enabled only from the latest server-returned
+  `evaluation.met`, but confirmation still requires an explicit clinician
+  click. The bypass button remains a separate explicit action.
+- Failed initialization or update remains visible and focusable; the UI never
+  presents a failed write as saved.
+- `unmount()` aborts requests, clears pending work, removes all listeners, and
+  clears only the supplied root.
 - The module NEVER mutates the host URL, NEVER bakes a host topbar,
   NEVER ships a host-navigation placeholder button (the host owns the
   return-to-dashboard link).
@@ -272,11 +278,12 @@ serve preserved, no host chrome, no host-navigation placeholder).
   new deps); the inline `_demo()` shim in `criteria.py` runs those cases
   before the standalone server boots, so a rule regression fails fast.
 - **Web page** — single HTML file, vanilla JS, token CSS from `DESIGN.md`.
-  No build step. Talks to the API via `fetch`. Exposes
-  `createDiagnosisModule({root, apiBaseUrl})` so the larger Insight
-  dashboard can mount the module UI inside its own host panel without
-  baking a second standalone topbar or shipping a host-navigation
-  placeholder. See "Embeddable module UI" above and `test_embed.py`.
+  No build step. Exposes `createDiagnosisModule({root, apiBaseUrl,
+  patientId, encounterId})` so the larger INSIGHT host supplies canonical
+  UUID context directly. It calls only Diagnosis v2 assessment routes,
+  renders server evaluation, requires explicit clinician confirm/bypass,
+  never mutates navigation, and supports complete teardown. See "Embeddable
+  module UI" above and `test_embed.py`.
 - **CSRF** — write routes (PUT + POST `/init`) are gated by a signed
   double-submit token (HMAC-SHA256, per-process secret). See `diagnosis/csrf.py`
   and `test_csrf.py`. The HTML page stamps the token into a `<meta>` tag
@@ -346,5 +353,5 @@ existing `reset_*_for_tests` hooks — the singleton itself is frozen.
   `test_unittest.TestClinicianAuthority` and HANDOFF §6.1. The boot self-check
   loads it via `diagnosis/api.py::_http_selfcheck` and fails fast on any
   regression.
-- All text follows the Insight visual system (Inter body, JetBrains Mono for
-  the patient code/score quantities, teal as the single locked accent).
+- All text follows the INSIGHT visual system (Inter-compatible body text,
+  monospaced clinical quantities, teal as the single locked accent).

@@ -8,6 +8,8 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-024: Connect embedded Diagnosis UI to v2 assessment context (In
+  progress).
 - INS-023: Migrate Diagnosis storage and routes to assessment UUIDs (In
   progress).
 - Capability completion packets INS-011 and INS-067 through INS-082 (In
@@ -291,6 +293,28 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-024 embedded Diagnosis UI v2 assessment-context migration (In progress).
+  The bounded packet now replaces patient-code state and alias query strings
+  with host-provided Patient and Encounter UUID context. The embedded UI reads
+  or idempotently initializes only v2 Encounter-bound assessments, validates
+  returned context/schema, carries CSRF, schema, idempotency, and ETag headers,
+  renders only server evaluation, and records confirm/bypass only through
+  explicit clinician actions. Failed persistence restores the last server
+  state and remains visible in a focused alert; context switches and unmount
+  abort requests, clear timers, remove listeners, and never mutate host
+  navigation. Focused embed acceptance and JavaScript syntax checks passed
+  15/15 with `python3 -B -m test_embed`; v2 HTTP, UUID-only URL,
+  server/legacy evaluation-equivalence, authority, concurrency, migration, and
+  failure checks passed 12/12 with `python3 -B -m unittest
+  test_diagnosis_v2_contracts.py -v`; v2 security passed 3/3. The full
+  documented Diagnosis surface passed 157 checks across its isolated commands;
+  common REST profile checks passed 8/8 and root discovery passed 65/65.
+  Changed Python compilation and both repository `git diff --check` commands
+  passed. No file under `insight-research/doc/`, protected clinical/model
+  source, runtime database, or generated `graphify-out/` was read or modified.
+  A real Dashboard/gateway browser integration run remains pending because this
+  repository has no configured host harness that supplies live UUID context;
+  that is the next integration verification step.
 - INS-023 Diagnosis assessment UUID storage and route migration (In progress).
   Diagnosis now applies an ordered, idempotent v2 storage migration that stages
   every unmapped code-keyed session in a lossless quarantine instead of

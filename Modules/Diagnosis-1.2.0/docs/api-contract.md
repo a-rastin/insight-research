@@ -163,8 +163,9 @@ tag in the page head and a matching `csrf` cookie on the response so the
 JS can echo it back on the next write without an extra fetch.
 
 ### Request
-No body. No query parameters required. (The shell reads `?code=...` for
-the initial patient code; the served HTML is unaffected.)
+No body and no patient query parameters. The host supplies canonical Patient
+and Encounter UUIDs directly to the embedded constructor; the page never reads
+patient context from or writes it to browser location/history.
 
 ### Response
 - **200** — `Content-Type: text/html; charset=utf-8`. Body is the
@@ -180,10 +181,19 @@ the initial patient code; the served HTML is unaffected.)
 - **401** — not authenticated (`{"detail": "Not authenticated"}`).
 - **403** — authenticated but neither `psychiatrist` nor `admin`.
 
-The page contract (single mount point `#diagnosis-root`,
-`window.createDiagnosisModule({root, apiBaseUrl})`, no host chrome /
-nav placeholder) is locked by `test_embed.py`. The CSRF meta stamp is
-locked by `test_csrf.test_html_page_carries_meta_token`.
+The page contract is a single mount point `#diagnosis-root` and
+`window.createDiagnosisModule({root, apiBaseUrl, patientId, encounterId,
+embedded})`. It returns `mount()`, `unmount()`, and
+`setAssessmentContext({patientId, encounterId})`. Patient and Encounter values
+must be canonical UUIDs supplied by the host. The UI calls only v2 assessment
+routes, never places aliases in a URL, never mutates host navigation, renders
+only server-returned evaluation, and requires a separate explicit click for a
+`confirmed` or `bypass` clinician decision. It retains the last persisted
+server state and exposes a focused visible alert when initialization or update
+persistence fails. `unmount()` aborts in-flight requests, clears timers,
+removes every registered listener, and clears only the supplied root. The
+contract is locked by `test_embed.py`; the CSRF meta stamp remains locked by
+`test_csrf.test_html_page_carries_meta_token`.
 
 ---
 
