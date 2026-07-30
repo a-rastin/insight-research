@@ -283,77 +283,36 @@ class PatientRepository:
         return patient_dict, [intake_row(row) for row in intake_rows]
 
     def create_patient(self, patient: dict[str, Any], created_by_user_id: str) -> dict[str, Any]:
-        now = now_iso()
-        encounter_date = patient.get("encounterDate") or now
-        intake_id = str(uuid4())
-        encounter_id = str(uuid4())
-        with self.adapter.connect() as conn:
-            conn.execute(
-                """
-                INSERT INTO patients
-                  (id, patient_code, first_name, last_name, sex, dob, phone_number, created_by_user_id, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    patient["id"],
-                    patient["patientCode"],
-                    patient["firstName"],
-                    patient["lastName"],
-                    patient["sex"],
-                    patient["dob"],
-                    patient.get("phoneNumber") or None,
-                    created_by_user_id,
-                    now,
-                    now,
-                ),
-            )
-            conn.execute(
-                """
-                INSERT INTO patient_code_aliases
-                  (alias_id, patient_id, patient_code, created_by_user_id, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                (str(uuid4()), patient["id"], patient["patientCode"], created_by_user_id, now, now),
-            )
-            conn.execute(
-                """
-                INSERT INTO encounters
-                  (encounter_id, patient_id, encounter_type, occurred_at, created_by_user_id, created_at, updated_at)
-                VALUES (?, ?, 'initial', ?, ?, ?, ?)
-                """,
-                (encounter_id, patient["id"], encounter_date, created_by_user_id, now, now),
-            )
-            conn.execute(
-                """
-                INSERT INTO patient_intake_records
-                  (
-                    id, patient_id, encounter_date, presenting_complaint, provisional_diagnosis,
-                    treatment_history, allergies_snapshot, current_medications_snapshot,
-                    suicidality, substance_use, created_by_user_id, created_at, updated_at
-                  )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    intake_id,
-                    patient["id"],
-                    encounter_date,
-                    patient["presentingComplaint"],
-                    patient["provisionalDiagnosis"],
-                    json.dumps(patient.get("treatmentHistory") or []),
-                    json.dumps(patient.get("allergies") or []),
-                    json.dumps(patient.get("currentMedications") or []),
-                    canonical_suicidality((patient.get("riskFlags") or {}).get("suicidality")),
-                    1 if (patient.get("riskFlags") or {}).get("substanceUse", False) else 0,
-                    created_by_user_id,
-                    now,
-                    now,
-                ),
-            )
-            conn.execute(
-                "UPDATE patient_intake_records SET encounter_id = ? WHERE id = ?",
-                (encounter_id, intake_id),
-            )
-        return self.get_patient(patient["id"])  # type: ignore[return-value]
+        encounter_date = patient.get("encounterDate") or now_iso()
+        data = {
+            "patient": {
+                "patientCode": patient["patientCode"],
+                "firstName": patient["firstName"],
+                "lastName": patient["lastName"],
+                "sex": patient["sex"],
+                "dob": patient["dob"],
+                "phoneNumber": patient.get("phoneNumber") or None,
+            },
+            "encounter": {"encounterType": "initial", "occurredAt": encounter_date},
+            "intakeSnapshot": {
+                "presentingComplaint": patient["presentingComplaint"],
+                "provisionalDiagnosis": patient["provisionalDiagnosis"],
+                "treatmentHistory": patient.get("treatmentHistory") or [],
+                "allergies": patient.get("allergies") or [],
+                "currentMedications": patient.get("currentMedications") or [],
+                "riskFlags": patient.get("riskFlags") or {},
+            },
+        }
+        adapter_key = f"legacy-adapter-{uuid4()}"
+        fingerprint = json.dumps(data, sort_keys=True, separators=(",", ":"))
+        body, _ = self.create_patient_encounter_v2(
+            data,
+            created_by_user_id,
+            adapter_key,
+            fingerprint,
+            operation="legacy-create-patient-adapter",
+        )
+        return self.get_patient(body["patient"]["patientId"])  # type: ignore[return-value]
 
     def existing_codes(self) -> set[str]:
         with self.adapter.connect() as conn:
@@ -454,8 +413,9 @@ class PatientRepository:
         actor_id: str,
         idempotency_key: str,
         request_fingerprint: str,
+        *,
+        operation: str = "create-patient-first-encounter-v2",
     ) -> tuple[dict[str, Any], bool]:
-        operation = "create-patient-first-encounter-v2"
         try:
             with self.adapter.connect() as conn:
                 conn.execute("BEGIN IMMEDIATE")

@@ -27,13 +27,17 @@ UUIDs, resource versions, strong ETags, and owner provenance.
 - `PATCH /api/add-new-patient/v2/patients/{patientId}` requires a strong
   `If-Match`; missing and stale preconditions return `428` and `412`.
 - All exchanged timestamps use RFC 3339 UTC `Z`. Every JSON response advertises
-  `X-Schema-Version: 2.0.0`.
+  `X-Schema-Version: 2.0.0`. V2 responses also return UUID `X-Request-ID` and
+  `X-Correlation-ID` headers; typed failures use the common RFC 9457 problem
+  details shape without patient identifiers or request paths.
 
 Existing `patient_intake_records.id` values become v2 intake snapshot IDs.
 Migration creates one separately generated Encounter UUID per intake row and
 stores the source `legacyIntakeId` explicitly. It never groups or infers
 encounters from `encounter_date`. Invalid UUID identities or case-insensitive
-patient-code collisions stop migration without partial writes.
+patient-code collisions stop migration without partial writes. Ordered
+`patient-intake-v1` and `patient-encounter-v2` migration records are committed
+in the same transaction as their schema and data changes.
 
 ## Future Seam: Recorded-Acceptance Feedback
 

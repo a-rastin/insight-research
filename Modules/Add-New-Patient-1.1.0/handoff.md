@@ -139,11 +139,14 @@ should use the nested shape.
    an auth URL and `ADD_NEW_PATIENT_MOCK_AUTH=0`.
 7. CSRF token required on all write methods.
 8. Test data must not linger in the SQLite file.
+9. Ordered schema migrations and legacy-to-v2 resource backfills commit or roll
+   back as one transaction; legacy create delegates to the v2 resource writer.
 
 ## Known limitations (not bugs)
 
-- No pagination on `GET /api/patients`.
-- No `PUT/PATCH/DELETE` endpoints.
+- No pagination on legacy `GET /api/patients`; v2 list/search are paginated.
+- No legacy `PUT/PATCH/DELETE` endpoints; v2 Patient supports ETag-protected
+  `PATCH`.
 - SQLite single-process safe; multi-process needs a stronger adapter.
 - No server-side request logging.
 

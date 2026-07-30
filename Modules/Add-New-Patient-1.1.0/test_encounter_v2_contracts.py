@@ -294,6 +294,163 @@ class PatientEncounterV2ContractTest(unittest.TestCase):
             self.assertEqual(search[0], 200)
             self.assertEqual([item["patientCodeAlias"]["patientCode"] for item in search[1]["items"]], ["PAGE02"])
 
+    def test_request_ids_problem_details_auth_and_csrf(self) -> None:
+        supplied_request_id = str(uuid4())
+        with AddNewPatientServer() as base:
+            contract = request_v2(
+                base,
+                f"{V2}/contract",
+                headers={"x-request-id": supplied_request_id},
+            )
+            self.assertEqual(contract[2]["x-request-id"], supplied_request_id)
+            self.assertEqual(contract[2]["x-correlation-id"], supplied_request_id)
+
+            unauthenticated = request_v2(base, f"{V2}/patients")
+            self.assertEqual(unauthenticated[0], 401)
+            self.assertEqual(unauthenticated[2]["content-type"].split(";", 1)[0], "application/problem+json")
+            self.assertEqual(unauthenticated[1]["code"], "AUTHENTICATION_SESSION_REQUIRED")
+            self.assertEqual(unauthenticated[1]["requestId"], unauthenticated[2]["x-request-id"])
+            self.assertEqual(
+                set(unauthenticated[1]),
+                {"type", "title", "status", "code", "requestId"},
+            )
+
+            csrf_rejected = request_v2(
+                base,
+                f"{V2}/patients",
+                "POST",
+                {**PSY_HEADER, "x-schema-version": "2.0.0", "idempotency-key": "encounter-v2-csrf-0001"},
+                valid_v2_payload("CSRF01"),
+            )
+            self.assertEqual(csrf_rejected[0], 403)
+            self.assertEqual(csrf_rejected[1]["code"], "CSRF_TOKEN_INVALID")
+            self.assertEqual(csrf_rejected[2]["x-schema-version"], "2.0.0")
+
+            unauthenticated_write = request_v2(
+                base,
+                f"{V2}/patients",
+                "POST",
+                {"x-schema-version": "2.0.0", "idempotency-key": "encounter-v2-auth-0001"},
+                valid_v2_payload("AUTH01"),
+            )
+            self.assertEqual(unauthenticated_write[0], 401)
+            self.assertEqual(unauthenticated_write[1]["code"], "AUTHENTICATION_SESSION_REQUIRED")
+
+    def test_v2_write_rejects_authenticated_admin(self) -> None:
+        from test_add_new_patient_backend import (
+            ADMIN_SESSION_ID,
+            ADMIN_USER_ID,
+            MockAuthenticationServer,
+            auth_payload,
+        )
+
+        with MockAuthenticationServer() as mock_auth:
+            mock_auth.set_payload(
+                "admin-session",
+                auth_payload(
+                    session={"id": ADMIN_SESSION_ID},
+                    user={"id": ADMIN_USER_ID, "username": "admin", "role": "admin"},
+                    compatibility={"legacyUserId": 2, "legacyRole": None},
+                ),
+            )
+            with AddNewPatientServer(auth_session_url=mock_auth.url) as base:
+                headers = {
+                    **csrf_headers(base, {"x-auth-session": "admin-session"}),
+                    "x-schema-version": "2.0.0",
+                    "idempotency-key": "encounter-v2-admin-0001",
+                }
+                rejected = request_v2(
+                    base,
+                    f"{V2}/patients",
+                    "POST",
+                    headers,
+                    valid_v2_payload("ADMIN1"),
+                )
+                self.assertEqual(rejected[0], 403)
+                self.assertEqual(rejected[1]["code"], "AUTHORIZATION_ROLE_REQUIRED")
+
+    def test_legacy_create_is_equivalent_v2_adapter(self) -> None:
+        from test_add_new_patient_backend import request_json
+
+        server = AddNewPatientServer()
+        with server as base:
+            legacy_payload = {
+                "demographics": {
+                    "patientCode": "LEGACY",
+                    "firstName": "Jane",
+                    "lastName": "Doe",
+                    "sex": "Female",
+                    "dob": "1986-07-29",
+                    "phoneNumber": "5551234567",
+                },
+                "clinical": {
+                    "encounterDate": "2026-07-29T10:00:00Z",
+                    "presentingComplaint": "Clinical intake fixture.",
+                    "provisionalDiagnosis": "F20.9",
+                    "treatmentHistory": [],
+                    "allergies": [],
+                    "currentMedications": [],
+                    "riskFlags": {"suicidality": "suicidality_none", "substanceUse": False},
+                },
+            }
+            legacy_status, legacy_body = request_json(
+                base,
+                "/api/patients",
+                "POST",
+                csrf_headers(base, PSY_HEADER),
+                legacy_payload,
+            )
+            self.assertEqual(legacy_status, 201)
+            legacy_patient_id = legacy_body["patient"]["id"]
+            with sqlite3.connect(server.db_path) as conn:
+                conn.row_factory = sqlite3.Row
+                encounter = conn.execute(
+                    "SELECT encounter_id FROM encounters WHERE patient_id = ?",
+                    (legacy_patient_id,),
+                ).fetchone()
+            self.assertIsNotNone(encounter)
+            patient = request_v2(base, f"{V2}/patients/{legacy_patient_id}", headers=PSY_HEADER)[1]
+            encounter_body = request_v2(
+                base,
+                f"{V2}/encounters/{encounter['encounter_id']}",
+                headers=PSY_HEADER,
+            )[1]
+            snapshot = request_v2(
+                base,
+                f"{V2}/encounters/{encounter['encounter_id']}/intake-snapshot",
+                headers=PSY_HEADER,
+            )[1]
+            self.assertEqual(patient["firstName"], legacy_payload["demographics"]["firstName"])
+            self.assertEqual(encounter_body["occurredAt"], legacy_payload["clinical"]["encounterDate"])
+            self.assertEqual(snapshot["presentingComplaint"], legacy_payload["clinical"]["presentingComplaint"])
+
+    def test_atomic_create_rolls_back_all_resources_on_failure(self) -> None:
+        from add_new_patient_backend.db import SQLiteAdapter
+        from add_new_patient_backend.repository import PatientRepository
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            db_path = str(Path(tempdir) / "rollback.sqlite3")
+            adapter = SQLiteAdapter(db_path)
+            repository = PatientRepository(adapter)
+            repository.initialize()
+            with adapter.connect() as conn:
+                conn.execute(
+                    """
+                    CREATE TRIGGER reject_intake BEFORE INSERT ON patient_intake_records
+                    BEGIN SELECT RAISE(ABORT, 'injected intake failure'); END
+                    """
+                )
+            with self.assertRaises(sqlite3.IntegrityError):
+                repository.create_patient_encounter_v2(
+                    valid_v2_payload("ROLLBK"),
+                    str(uuid4()),
+                    "encounter-v2-rollback-0001",
+                    "rollback-fingerprint",
+                )
+            with sqlite3.connect(db_path) as conn:
+                for table in ("patients", "patient_code_aliases", "encounters", "patient_intake_records", "idempotency_records"):
+                    self.assertEqual(conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0], 0)
+
 
 class PatientEncounterV2MigrationTest(unittest.TestCase):
     def create_v1_fixture(self, db_path: str, codes: list[str] | None = None) -> tuple[str, str]:
@@ -341,6 +498,23 @@ class PatientEncounterV2MigrationTest(unittest.TestCase):
             self.assertNotEqual(encounter["encounter_id"], intake_id)
             self.assertEqual(snapshot["encounter_id"], encounter["encounter_id"])
             self.assertEqual(encounter["occurred_at"], "2026-07-01T10:00:00Z")
+            with sqlite3.connect(db_path) as conn:
+                migrations = conn.execute("SELECT version, name FROM schema_migrations ORDER BY version").fetchall()
+            self.assertEqual(migrations, [(1, "patient-intake-v1"), (2, "patient-encounter-v2")])
+
+    def test_fresh_database_applies_ordered_migrations(self) -> None:
+        from add_new_patient_backend.db import LATEST_SCHEMA_VERSION, SQLiteAdapter
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            db_path = str(Path(tempdir) / "fresh.sqlite3")
+            adapter = SQLiteAdapter(db_path)
+            adapter.initialize()
+            adapter.initialize()
+            with sqlite3.connect(db_path) as conn:
+                versions = [row[0] for row in conn.execute("SELECT version FROM schema_migrations ORDER BY version")]
+                tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+            self.assertEqual(versions, list(range(1, LATEST_SCHEMA_VERSION + 1)))
+            self.assertTrue({"patients", "patient_code_aliases", "encounters", "patient_intake_records"}.issubset(tables))
 
     def test_migration_stops_on_case_insensitive_alias_collision(self) -> None:
         from add_new_patient_backend.db import SQLiteAdapter
@@ -352,7 +526,10 @@ class PatientEncounterV2MigrationTest(unittest.TestCase):
                 SQLiteAdapter(db_path).initialize()
             with sqlite3.connect(db_path) as conn:
                 tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+                patient_count = conn.execute("SELECT COUNT(*) FROM patients").fetchone()[0]
             self.assertNotIn("patient_code_aliases", tables)
+            self.assertNotIn("schema_migrations", tables)
+            self.assertEqual(patient_count, 2)
 
 
 if __name__ == "__main__":

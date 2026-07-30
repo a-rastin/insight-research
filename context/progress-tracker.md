@@ -22,6 +22,30 @@ Update this file after every meaningful implementation change.
 
 ## Completed
 
+- INS-021 implements Patient and Encounter v2 in the Add New Patient owner.
+  Ordered `patient-intake-v1` and `patient-encounter-v2` migration records now
+  apply schema and backfill changes atomically; collision or invalid-row failure
+  preserves the pre-upgrade database. Legacy creation is a thin request/response
+  adapter over the authoritative atomic Patient, alias, Encounter, and intake
+  snapshot transaction. Authenticated UUID-only v2 create/read/list/search
+  routes provide actor-scoped idempotency, strong ETags, request/correlation
+  IDs, common RFC 9457 problem details, schema negotiation, psychiatrist-only
+  CSRF-protected writes, and encounter-bound reads for Treatment Plan. No new
+  URL contains a patient alias, no patient identifier is added to errors or
+  logs, and pre-existing protected `graphify-out/` changes were preserved.
+  Focused migration, rollback, collision, pagination, idempotency, ETag,
+  auth/CSRF, request-trace, contract, and legacy-equivalence tests passed with
+  `python3 -B -m unittest test_encounter_v2_contracts.py -v` (12 tests). The
+  legacy backend suite passed with `python3 -B -m unittest
+  test_add_new_patient_backend.py -v` (43 tests), equivalent full backend
+  coverage is 55 tests, frontend tests passed with `node --test
+  test_frontend.mjs` (3 tests), common REST profile tests passed with `python3
+  -B -m unittest tests/test_common_rest_profile.py -v` (8 tests), and root
+  discovery passed with `python3 -B -m unittest discover -s tests -v` (65
+  tests). Both v2 JSON artifacts passed `python3 -m json.tool`, changed Python
+  files passed `python3 -m py_compile`, and intended module paths passed `git
+  diff --check`. Consumer rollout remains a separate packet; controlled
+  clinical deployment remains blocked by the system-level gates recorded below.
 - INS-013 upgrades Authentication to schema version 7 and publishes
   `GET /api/auth/v2/session` plus its Draft 2020-12 response schema and current
   contract. The standalone app, tests, static UI, configuration, and

@@ -83,6 +83,15 @@ CREATE TABLE IF NOT EXISTS idempotency_records (
 );
 """
 
+MIGRATION_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS schema_migrations (
+  version INTEGER PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  applied_at TEXT NOT NULL
+)
+"""
+LATEST_SCHEMA_VERSION = 2
+
 PATIENT_IDENTITY_COLUMNS = {
     "id",
     "patient_code",
@@ -173,13 +182,30 @@ class SQLiteAdapter:
             conn.close()
 
     def initialize(self) -> None:
-        with self.connect() as conn:
-            existing_tables = {row["name"] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()}
-            if "patients" in existing_tables:
-                migrate_patients_to_identity_table(conn)
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON")
+        try:
+            conn.execute("BEGIN IMMEDIATE")
+            conn.execute(MIGRATION_TABLE_SQL)
+            applied = {
+                row["version"]
+                for row in conn.execute("SELECT version FROM schema_migrations").fetchall()
+            }
+            if 1 not in applied:
+                migrate_patient_intake_v1(conn)
+                record_migration(conn, 1, "patient-intake-v1")
+            if 2 not in applied:
                 preflight_v2_migration(conn)
-            conn.executescript(SCHEMA)
-            migrate_v2_contracts(conn)
+                execute_sql_script(conn, SCHEMA)
+                migrate_v2_contracts(conn)
+                record_migration(conn, 2, "patient-encounter-v2")
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
 
     def ping(self) -> bool:
         with self.connect() as conn:
@@ -191,12 +217,40 @@ def now_iso() -> str:
     return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
+def execute_sql_script(conn: sqlite3.Connection, script: str) -> None:
+    for statement in script.split(";"):
+        if statement.strip():
+            conn.execute(statement)
+
+
+def record_migration(conn: sqlite3.Connection, version: int, name: str) -> None:
+    conn.execute(
+        "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)",
+        (version, name, now_iso()),
+    )
+
+
+def migrate_patient_intake_v1(conn: sqlite3.Connection) -> None:
+    tables = {
+        row["name"]
+        for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()
+    }
+    if "patients" in tables:
+        migrate_patients_to_identity_table(conn)
+    else:
+        conn.execute(PATIENT_TABLE_SQL)
+    conn.execute(INTAKE_TABLE_SQL)
+
+
 def migrate_patients_to_identity_table(conn: sqlite3.Connection) -> None:
     columns = {row["name"] for row in conn.execute("PRAGMA table_info(patients)").fetchall()}
     if PATIENT_IDENTITY_COLUMNS.issubset(columns) and not (columns & LEGACY_INTAKE_COLUMNS) and "age" not in columns:
         return
 
     rows = conn.execute("SELECT * FROM patients ORDER BY created_at ASC").fetchall()
+    for row in rows:
+        if "dob" not in row.keys() or not row["dob"]:
+            raise RuntimeError("Cannot migrate patient without date of birth")
     conn.execute("ALTER TABLE patients RENAME TO patients_legacy")
     conn.execute(PATIENT_TABLE_SQL)
     conn.execute(INTAKE_TABLE_SQL)
@@ -206,8 +260,6 @@ def migrate_patients_to_identity_table(conn: sqlite3.Connection) -> None:
         created_at = row["created_at"] if "created_at" in row_keys else now_iso()
         updated_at = row["updated_at"] if "updated_at" in row_keys else created_at
         created_by_user_id = row["created_by_user_id"] if "created_by_user_id" in row_keys else "unknown"
-        if "dob" not in row_keys:
-            continue
         conn.execute(
             """
             INSERT INTO patients
@@ -312,7 +364,8 @@ def migrate_v2_contracts(conn: sqlite3.Connection) -> None:
     if "resource_version" not in patient_columns:
         conn.execute("ALTER TABLE patients ADD COLUMN resource_version INTEGER NOT NULL DEFAULT 1")
 
-    conn.executescript(
+    execute_sql_script(
+        conn,
         """
         CREATE TABLE IF NOT EXISTS patient_code_aliases (
           alias_id TEXT PRIMARY KEY,
@@ -346,7 +399,7 @@ def migrate_v2_contracts(conn: sqlite3.Connection) -> None:
           created_at TEXT NOT NULL,
           PRIMARY KEY (actor_id, operation, idempotency_key)
         );
-        """
+        """,
     )
 
     intake_columns = {row["name"] for row in conn.execute("PRAGMA table_info(patient_intake_records)").fetchall()}

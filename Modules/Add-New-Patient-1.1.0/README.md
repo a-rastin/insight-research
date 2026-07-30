@@ -62,7 +62,9 @@ python -m unittest test_encounter_v2_contracts.py
 
 V2 uses UUID-only resource paths, body-based patient-code resolution/search,
 atomic idempotent patient plus first-encounter creation, strong ETags, paginated
-lists, strict UTC timestamps, and versioned provenance. See
+lists, strict UTC timestamps, versioned provenance, ordered transactional
+migrations, request tracing, and RFC 9457 problem details. Legacy creation is a
+request/response adapter over the same v2 persistence transaction. See
 `docs/api-contract.md` and `schema/patient-encounter-v2.openapi.json`.
 
 ## Embed Contract

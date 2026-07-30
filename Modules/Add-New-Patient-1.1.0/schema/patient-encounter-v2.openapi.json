@@ -65,18 +65,20 @@
     },
     "headers": {
       "ETag": {"required": true, "schema": {"type": "string", "pattern": "^\"[!#-~]+\"$"}},
-      "X-Schema-Version": {"required": true, "schema": {"const": "2.0.0"}}
+      "X-Schema-Version": {"required": true, "schema": {"const": "2.0.0"}},
+      "X-Request-ID": {"required": true, "schema": {"type": "string", "format": "uuid"}},
+      "X-Correlation-ID": {"required": true, "schema": {"type": "string", "format": "uuid"}}
     },
     "schemas": {
       "ProblemDetails": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["type", "title", "status", "code", "requestId", "time"],
-        "properties": {"type": {"type": "string"}, "title": {"type": "string"}, "status": {"type": "integer"}, "code": {"type": "string"}, "requestId": {"type": "string", "format": "uuid"}, "time": {"type": "string", "format": "date-time"}, "errors": {"type": "object"}}
+        "required": ["type", "title", "status", "code", "requestId"],
+        "properties": {"type": {"type": "string", "pattern": "^urn:insight:problem:[a-z0-9-]+$"}, "title": {"type": "string"}, "status": {"type": "integer", "minimum": 400, "maximum": 599}, "code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{2,63}$"}, "requestId": {"type": "string", "format": "uuid"}, "errors": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["code", "message"], "properties": {"code": {"type": "string"}, "field": {"type": "string"}, "message": {"type": "string"}}}}}
       }
     },
     "responses": {
-      "Problem": {"description": "Typed failure without PHI", "content": {"application/problem+json": {"schema": {"$ref": "#/components/schemas/ProblemDetails"}}}}
+      "Problem": {"description": "Typed failure without PHI", "headers": {"X-Schema-Version": {"$ref": "#/components/headers/X-Schema-Version"}, "X-Request-ID": {"$ref": "#/components/headers/X-Request-ID"}, "X-Correlation-ID": {"$ref": "#/components/headers/X-Correlation-ID"}}, "content": {"application/problem+json": {"schema": {"$ref": "#/components/schemas/ProblemDetails"}}}}
     }
   }
 }

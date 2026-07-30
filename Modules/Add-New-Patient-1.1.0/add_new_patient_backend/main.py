@@ -80,17 +80,69 @@ def validation_error_key(loc: tuple[Any, ...]) -> str:
 
 @app.middleware("http")
 async def csrf_middleware(request: Request, call_next: Any) -> JSONResponse:
+    request.state.request_id = trace_id(request.headers.get("x-request-id"))
+    request.state.correlation_id = trace_id(
+        request.headers.get("x-correlation-id"),
+        fallback=request.state.request_id,
+    )
     if (
         request.method in CSRF_WRITE_METHODS
         and request.url.path not in CSRF_EXEMPT_POST_PATHS
         and not request_has_valid_csrf(request)
     ):
-        return csrf_error()
-    return await call_next(request)
+        if request.url.path.startswith(V2_PREFIX):
+            try:
+                identity = await fetch_auth_identity(request)
+            except AuthSessionError:
+                response = problem_response(
+                    request,
+                    502,
+                    "AUTHENTICATION_SESSION_UNAVAILABLE",
+                    "Authentication service is unavailable.",
+                )
+            else:
+                if not identity:
+                    response = problem_response(
+                        request,
+                        401,
+                        "AUTHENTICATION_SESSION_REQUIRED",
+                        "Authentication is required.",
+                    )
+                elif identity["user"]["role"] != PSYCHIATRIST_ROLE:
+                    response = problem_response(
+                        request,
+                        403,
+                        "AUTHORIZATION_ROLE_REQUIRED",
+                        "A psychiatrist session is required.",
+                    )
+                else:
+                    response = problem_response(request, 403, "CSRF_TOKEN_INVALID", "CSRF validation failed.")
+        else:
+            response = csrf_error()
+    else:
+        response = await call_next(request)
+    response.headers["X-Request-ID"] = request.state.request_id
+    response.headers["X-Correlation-ID"] = request.state.correlation_id
+    return response
 
 
 @app.exception_handler(HTTPException)
-async def http_exception_handler(_: Request, exc: HTTPException) -> JSONResponse:
+async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    if request.url.path.startswith(V2_PREFIX):
+        legacy_error = exc.detail.get("error") if isinstance(exc.detail, dict) else None
+        code = {
+            "authentication_session_required": "AUTHENTICATION_SESSION_REQUIRED",
+            "authentication_session_unavailable": "AUTHENTICATION_SESSION_UNAVAILABLE",
+            "psychiatrist_or_admin_required": "AUTHORIZATION_ROLE_REQUIRED",
+            "psychiatrist_required": "AUTHORIZATION_ROLE_REQUIRED",
+        }.get(legacy_error, "COMMON_HTTP_ERROR")
+        title = {
+            401: "Authentication is required.",
+            403: "The authenticated user is not authorized.",
+            404: "Resource was not found.",
+            405: "Method is not allowed.",
+        }.get(exc.status_code, "Request could not be completed.")
+        return problem_response(request, exc.status_code, code, title)
     if isinstance(exc.detail, dict) and "error" in exc.detail:
         return JSONResponse(status_code=exc.status_code, content=exc.detail)
     if isinstance(exc.detail, dict):
@@ -109,7 +161,17 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             msg = msg.replace("Value error, ", "")
             errors[field] = msg
     if request.url.path.startswith(V2_PREFIX):
-        return problem_response(request, 422, "PATIENT_CONTRACT_VALIDATION_FAILED", "Request failed validation.", errors)
+        problem_errors = [
+            {"code": "PATIENT_FIELD_INVALID", "field": field, "message": message}
+            for field, message in errors.items()
+        ]
+        return problem_response(
+            request,
+            422,
+            "PATIENT_CONTRACT_VALIDATION_FAILED",
+            "Request failed validation.",
+            problem_errors,
+        )
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={"message": "Patient data failed validation.", "errors": errors},
@@ -149,12 +211,22 @@ async def require_psychiatrist_session(request: Request) -> dict[str, Any]:
     return identity
 
 
-def request_id(request: Request) -> str:
-    supplied = request.headers.get("x-request-id", "")
+async def require_v2_psychiatrist_session(request: Request) -> dict[str, Any]:
+    identity = await require_authenticated_session(request)
+    if identity["user"]["role"] != PSYCHIATRIST_ROLE:
+        raise json_error(403, "psychiatrist_required")
+    return identity
+
+
+def trace_id(supplied: str | None, *, fallback: str | None = None) -> str:
     try:
-        return str(UUID(supplied))
+        return str(UUID(supplied or ""))
     except ValueError:
-        return str(uuid4())
+        return fallback or str(uuid4())
+
+
+def request_id(request: Request) -> str:
+    return getattr(request.state, "request_id", trace_id(request.headers.get("x-request-id")))
 
 
 def v2_headers(**extra: str) -> dict[str, str]:
@@ -166,15 +238,14 @@ def problem_response(
     status_code: int,
     code: str,
     title: str,
-    errors: dict[str, str] | None = None,
+    errors: list[dict[str, str]] | None = None,
 ) -> JSONResponse:
     body: dict[str, Any] = {
-        "type": f"https://insight.local/problems/{code.lower().replace('_', '-')}",
+        "type": f"urn:insight:problem:{code.lower().replace('_', '-')}",
         "title": title,
         "status": status_code,
         "code": code,
         "requestId": request_id(request),
-        "time": now_iso(),
     }
     if errors:
         body["errors"] = errors
@@ -412,7 +483,7 @@ async def resolve_patient_code_alias_v2(
 async def create_patient_encounter_v2(
     request: Request,
     payload: PatientEncounterCreateV2,
-    identity: dict[str, Any] = Depends(require_psychiatrist_session),
+    identity: dict[str, Any] = Depends(require_v2_psychiatrist_session),
 ) -> JSONResponse:
     schema_error = require_v2_request_schema(request)
     if schema_error:
@@ -477,7 +548,7 @@ async def update_patient_v2(
     request: Request,
     patient_id: str,
     payload: PatientPatchV2,
-    _: dict[str, Any] = Depends(require_psychiatrist_session),
+    _: dict[str, Any] = Depends(require_v2_psychiatrist_session),
 ) -> JSONResponse:
     schema_error = require_v2_request_schema(request)
     if schema_error:
