@@ -1,0 +1,82 @@
+{
+  "moduleId": "suicide-risk",
+  "moduleVersion": "1.0.0",
+  "interfaceVersion": "1.0.0",
+  "schemaVersion": "1.0.0",
+  "assessmentType": "psychiatrist-suicide-risk-assertion",
+  "scope": "INS-030",
+  "clinicalBoundary": {
+    "instrument": "C-SSRS",
+    "instrumentCompletionClaimed": false,
+    "sourceLicensingStatus": "unavailable",
+    "questionsDefined": false,
+    "scoringDefined": false,
+    "riskScoreAlwaysNull": true,
+    "psychiatristAssertionRequired": true
+  },
+  "riskStates": [
+    "unknown",
+    "unavailable",
+    "conflicting",
+    "imminent-suicide-risk",
+    "substantial-suicide-risk-requiring-urgent-evaluation"
+  ],
+  "sourceTraceability": [
+    {
+      "field": "riskState: unknown|unavailable",
+      "source": "contracts/clinical-ownership-v1.json#/instrumentGovernance/allowedMissingStates"
+    },
+    {
+      "field": "riskState: conflicting",
+      "source": "contracts/treatment-plan-safety-policy-v1.json#/uncertaintyPolicy/clinicallyRequiredInputStates"
+    },
+    {
+      "field": "riskState: imminent-suicide-risk|substantial-suicide-risk-requiring-urgent-evaluation",
+      "source": "contracts/treatment-plan-safety-policy-v1.json#/emergencyPolicy/triggerStates"
+    },
+    {
+      "field": "safetyDisposition",
+      "source": "contracts/treatment-plan-safety-policy-v1.json#/emergencyPolicy and #/gateDecisionTable"
+    },
+    {
+      "field": "patientId|encounterId|assessmentId|actor",
+      "source": "context/ai-workflow-rules.md#/Identity, Persistence, and Concurrency"
+    }
+  ],
+  "forbiddenContent": [
+    "instrument questions",
+    "instrument answers",
+    "computed or submitted score",
+    "invented threshold",
+    "location-specific emergency instruction",
+    "negative, normal, safe, absent, or low-risk inference"
+  ],
+  "routes": {
+    "create": "POST /api/suicide-risk/v1/assessments",
+    "read": "GET /api/suicide-risk/v1/assessments/{assessmentId}",
+    "update": "PUT /api/suicide-risk/v1/assessments/{assessmentId}",
+    "latest": "GET /api/suicide-risk/v1/encounters/{encounterId}/assessments/latest",
+    "treatmentPlanSnapshot": "GET /api/suicide-risk/v1/encounters/{encounterId}/snapshot"
+  },
+  "persistence": {
+    "repository": "module-owned SQLite",
+    "databaseSchemaVersion": 1,
+    "immutableVersions": true
+  },
+  "security": {
+    "sessionProvider": "GET /api/auth/v2/session",
+    "allowedRole": "psychiatrist",
+    "csrf": "signed session-bound double-submit on writes",
+    "cors": "exact configured origins with credentials",
+    "phiInUrlsLogsOrBrowserStorage": false
+  },
+  "concurrency": {
+    "etag": "strong",
+    "ifMatchRequiredForUpdate": true
+  },
+  "idempotency": {
+    "header": "Idempotency-Key",
+    "requiredForCreate": true,
+    "retentionSeconds": 86400
+  }
+}

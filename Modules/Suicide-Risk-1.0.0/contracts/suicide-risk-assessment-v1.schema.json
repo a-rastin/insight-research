@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:insight:schema:suicide-risk-assessment:1.0.0",
+  "title": "INSIGHT Suicide Risk Assessment v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["interfaceVersion", "schemaVersion", "assessmentId", "patientId", "encounterId", "assessmentType", "instrument", "riskState", "riskScore", "safetyDisposition", "actor", "createdAt", "updatedAt", "resourceVersion", "provenance"],
+  "properties": {
+    "interfaceVersion": { "const": "1.0.0" },
+    "schemaVersion": { "const": "1.0.0" },
+    "assessmentId": { "$ref": "#/$defs/uuid" },
+    "patientId": { "$ref": "#/$defs/uuid" },
+    "encounterId": { "$ref": "#/$defs/uuid" },
+    "assessmentType": { "const": "psychiatrist-suicide-risk-assertion" },
+    "instrument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "completionClaimed", "sourceLicensingStatus", "questionsDefined", "scoringDefined"],
+      "properties": {
+        "name": { "const": "C-SSRS" },
+        "completionClaimed": { "const": false },
+        "sourceLicensingStatus": { "const": "unavailable" },
+        "questionsDefined": { "const": false },
+        "scoringDefined": { "const": false }
+      }
+    },
+    "riskState": { "$ref": "#/$defs/riskState" },
+    "riskScore": { "type": "null" },
+    "safetyDisposition": { "$ref": "#/$defs/disposition" },
+    "actor": { "$ref": "#/$defs/actor" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "resourceVersion": { "type": "integer", "minimum": 1 },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceModule", "policyVersion", "governanceVersion", "createdRequestId", "updatedRequestId"],
+      "properties": {
+        "sourceModule": { "const": "suicide-risk" },
+        "policyVersion": { "const": "insight.treatment-plan-safety-policy/1.0.0" },
+        "governanceVersion": { "const": "insight.clinical-ownership/1.0.0" },
+        "createdRequestId": { "$ref": "#/$defs/uuid" },
+        "updatedRequestId": { "$ref": "#/$defs/uuid" }
+      }
+    }
+  },
+  "$defs": {
+    "uuid": { "type": "string", "format": "uuid" },
+    "riskState": {
+      "enum": ["unknown", "unavailable", "conflicting", "imminent-suicide-risk", "substantial-suicide-risk-requiring-urgent-evaluation"]
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actorId", "role"],
+      "properties": { "actorId": { "$ref": "#/$defs/uuid" }, "role": { "const": "psychiatrist" } }
+    },
+    "disposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "code", "routinePlanningAllowed", "overrideAllowed", "persistentUntilResolved", "guidance"],
+      "properties": {
+        "outcome": { "enum": ["blocked", "emergency-blocked"] },
+        "code": { "enum": ["TP_SUICIDE_RISK_UNAVAILABLE", "TP_REQUIRED_DATA_CONFLICTING", "TP_EMERGENCY_ACTION_REQUIRED"] },
+        "routinePlanningAllowed": { "const": false },
+        "overrideAllowed": { "const": false },
+        "persistentUntilResolved": { "const": true },
+        "guidance": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

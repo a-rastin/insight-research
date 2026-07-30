@@ -8,6 +8,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-030: Implement the approved structured suicide-risk module (In progress).
 - INS-029: Connect Medical History UI and medication-resolution feedback (In
   progress).
 - INS-028: Replace Medical History JSON with v2 repository and security (In
@@ -302,6 +303,42 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-030 approved structured suicide-risk module (In progress). The independent
+  `Modules/Suicide-Risk-1.0.0/` Node service now publishes interface/schema
+  `1.0.0`, module-owned SQLite persistence with immutable attributed versions,
+  actor-scoped idempotent creates, strong ETag updates, Encounter latest reads,
+  and a Treatment Plan snapshot containing owner, resource version, ETag, and
+  content hash. Every protected request revalidates Authentication v2; only a
+  current psychiatrist is authorized, writes require session-bound signed
+  double-submit CSRF, credentialed CORS permits only exact configured origins,
+  readiness checks local storage and Authentication, and safe problem responses
+  exclude patient identifiers. The bounded host-context UI uses no browser
+  storage or navigation identity, starts with no selected assertion, retains
+  failed saves, and communicates blocked and urgent states with persistent text,
+  native keyboard controls, visible focus, 44px targets, responsive layout, and
+  reduced-motion behavior. Because no approved C-SSRS source/licensing handoff
+  exists, the contract explicitly claims no instrument completion and defines
+  no question, answer, score, threshold, negative/low-risk state, or
+  location-specific emergency instruction. It permits only `unknown`,
+  `unavailable`, and `conflicting`, plus the two exact psychiatrist-asserted
+  urgent trigger states already accepted by INS-010; server-derived disposition
+  applies the exact fail-closed INS-010 codes and general emergency guidance.
+  Source-to-field, forbidden-field, missing/conflicting/urgent, authority,
+  repository, auth/role/CSRF, CORS, ETag/concurrency, idempotency, latest,
+  snapshot, readiness, accessibility, lifecycle, and no-PHI checks passed with
+  `npm test` (six Node test-runner cases plus HTTP and UI acceptance scripts).
+  JavaScript syntax passed `node --check`; all three JSON artifacts passed
+  `python3 -m json.tool`; the assessment schema passed Draft 2020-12 schema
+  checking; common REST profile checks passed 8/8; ownership and Treatment Plan
+  safety-policy checks passed 11/11; root discovery passed 65/65; and `git diff
+  --check` passed. No file under `insight-research/doc/`, protected
+  clinical/model source, runtime data, or generated `graphify-out/` was read or
+  modified. An approved C-SSRS source/license and named clinical governance,
+  database-at-rest encryption, backup/restore, retention, and a live
+  Dashboard/gateway host integration remain blocked or unverified, so INS-030
+  stays in progress; the next step is to obtain that handoff before adding any
+  instrument content and run the existing bounded UI through the configured
+  host.
 - INS-029 Medical History UI and medication-resolution feedback (In progress).
   The bounded Medical History frontend now exposes frozen
   `window.InsightMedicalHistory` mount/unmount APIs and consumes host-supplied

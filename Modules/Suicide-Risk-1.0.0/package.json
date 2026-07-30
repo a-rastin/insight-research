@@ -1,0 +1,14 @@
+{
+  "name": "insight-suicide-risk-module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Fail-closed encounter-scoped suicide-risk assessment service",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/domain.test.js test/repository.test.js && node test/http.test.js && node test/ui.test.mjs"
+  },
+  "engines": {
+    "node": ">=22.5"
+  }
+}

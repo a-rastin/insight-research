@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>INSIGHT Suicide Risk</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main id="suicide-risk-root"></main>
+  <script type="module">
+    import { mount } from "./app.js";
+    document.querySelector("#suicide-risk-root").innerHTML = '<section class="standalone-message"><h1>Suicide Risk</h1><p>This module requires authenticated Patient, Encounter, and Actor UUID context from the INSIGHT host.</p></section>';
+    window.InsightSuicideRiskMount = mount;
+  </script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "INSIGHT Suicide Risk API",
+    "version": "1.0.0",
+    "description": "Encounter-scoped psychiatrist suicide-risk assertions. No C-SSRS questions or scoring are implemented."
+  },
+  "servers": [{ "url": "/" }],
+  "paths": {
+    "/healthz": { "get": { "operationId": "suicideRiskLiveness", "responses": { "200": { "description": "Alive" } } } },
+    "/readyz": { "get": { "operationId": "suicideRiskReadiness", "responses": { "200": { "description": "Ready" }, "503": { "description": "Not ready" } } } },
+    "/api/suicide-risk/v1/contract": { "get": { "operationId": "discoverSuicideRiskContract", "responses": { "200": { "description": "Contract discovery" } } } },
+    "/api/suicide-risk/v1/csrf": { "get": { "operationId": "getSuicideRiskCsrf", "responses": { "200": { "description": "Session-bound CSRF token" }, "401": { "description": "Authentication required" } } } },
+    "/api/suicide-risk/v1/assessments": {
+      "post": {
+        "operationId": "createSuicideRiskAssessment",
+        "parameters": [{ "$ref": "#/components/parameters/SchemaVersion" }, { "$ref": "#/components/parameters/IdempotencyKey" }],
+        "responses": { "201": { "$ref": "#/components/responses/Assessment" }, "400": { "description": "Invalid input" }, "401": { "description": "Authentication required" }, "403": { "description": "Forbidden or CSRF rejected" }, "409": { "description": "Idempotency conflict" } }
+      }
+    },
+    "/api/suicide-risk/v1/assessments/{assessmentId}": {
+      "parameters": [{ "$ref": "#/components/parameters/AssessmentId" }],
+      "get": { "operationId": "getSuicideRiskAssessment", "responses": { "200": { "$ref": "#/components/responses/Assessment" }, "404": { "description": "Not found" } } },
+      "put": {
+        "operationId": "updateSuicideRiskAssessment",
+        "parameters": [{ "$ref": "#/components/parameters/SchemaVersion" }, { "$ref": "#/components/parameters/IfMatch" }],
+        "responses": { "200": { "$ref": "#/components/responses/Assessment" }, "412": { "description": "Stale ETag" }, "428": { "description": "If-Match required" } }
+      }
+    },
+    "/api/suicide-risk/v1/encounters/{encounterId}/assessments/latest": {
+      "get": { "operationId": "getLatestSuicideRiskAssessment", "parameters": [{ "$ref": "#/components/parameters/EncounterId" }], "responses": { "200": { "$ref": "#/components/responses/Assessment" }, "404": { "description": "Not found" } } }
+    },
+    "/api/suicide-risk/v1/encounters/{encounterId}/snapshot": {
+      "get": { "operationId": "getSuicideRiskEncounterSnapshot", "parameters": [{ "$ref": "#/components/parameters/EncounterId" }], "responses": { "200": { "description": "Versioned Treatment Plan source snapshot" }, "404": { "description": "Not found" } } }
+    }
+  },
+  "components": {
+    "parameters": {
+      "AssessmentId": { "name": "assessmentId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } },
+      "EncounterId": { "name": "encounterId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } },
+      "SchemaVersion": { "name": "X-Schema-Version", "in": "header", "required": true, "schema": { "const": "1.0.0" } },
+      "IdempotencyKey": { "name": "Idempotency-Key", "in": "header", "required": true, "schema": { "type": "string", "minLength": 16, "maxLength": 128 } },
+      "IfMatch": { "name": "If-Match", "in": "header", "required": true, "schema": { "type": "string" } }
+    },
+    "responses": {
+      "Assessment": {
+        "description": "Suicide-risk assessment",
+        "headers": { "ETag": { "schema": { "type": "string" } }, "X-Schema-Version": { "schema": { "const": "1.0.0" } } },
+        "content": { "application/json": { "schema": { "$ref": "suicide-risk-assessment-v1.schema.json" } } }
+      }
+    }
+  }
+}
