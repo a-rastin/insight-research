@@ -266,7 +266,7 @@ class DashboardBackendTest(unittest.TestCase):
             self.assertEqual(status, 401)
             self.assertEqual(data["error"], "authentication_session_required")
 
-    def test_psychiatrist_workspace_model_has_exact_buttons_and_route_discovery(self) -> None:
+    def test_psychiatrist_workspace_renders_all_destination_states(self) -> None:
         with DashboardServer() as base:
             created = create_session(base, "psy-1")
             status, workspace = request_json(base, f"/internal/dashboard/workspace?session={created['sessionId']}")
@@ -277,22 +277,28 @@ class DashboardBackendTest(unittest.TestCase):
             datetime.fromisoformat(workspace["currentDateTime"].replace("Z", "+00:00"))
             self.assertEqual(workspace["workspace"]["title"], "Workspace")
             self.assertEqual(
-                [button["title"] for button in workspace["workspace"]["buttons"]],
+                [button["title"] for button in workspace["workspace"]["buttons"][:4]],
                 ["Add New Patient", "Patient Follow-up", "List of Patients", "Setting"],
             )
+            self.assertEqual(
+                [button["state"] for button in workspace["workspace"]["buttons"]],
+                ["available", "unavailable", "unavailable", "unavailable"] + ["unauthorized"] * 4,
+            )
+            self.assertTrue(all("href" not in button for button in workspace["workspace"]["buttons"][1:]))
             self.assertNotIn("cards", workspace["workspace"])
             self.assertNotIn("patients", workspace)
             self.assertNotIn("drafts", workspace)
             self.assertNotIn("followUps", workspace)
 
-            discovery = workspace["workspace"]["buttons"][0]["routeDiscovery"]
-            self.assertEqual(discovery, {"method": "GET", "href": "/internal/dashboard/module-routes/add-new-patient"})
-            status, route = request_json(base, discovery["href"], headers={"x-dashboard-session": created["sessionId"]})
+            destination = workspace["workspace"]["buttons"][0]
+            self.assertEqual(destination["href"], "/modules/add-new-patient")
+            status, route = request_json(base, "/internal/dashboard/module-routes/add-new-patient", headers={"x-dashboard-session": created["sessionId"]})
             self.assertEqual(status, 200)
             self.assertEqual(route["href"], "/modules/add-new-patient")
-            self.assertTrue(route["placeholder"])
+            self.assertEqual(route["state"], "available")
+            self.assertNotIn("placeholder", route)
 
-    def test_admin_workspace_model_has_exact_buttons_only(self) -> None:
+    def test_admin_workspace_model_has_unavailable_and_unauthorized_destinations(self) -> None:
         with DashboardServer() as base:
             created = create_session(base, "admin-1")
             status, workspace = request_json(base, f"/internal/dashboard/workspace?session={created['sessionId']}")
@@ -302,26 +308,37 @@ class DashboardBackendTest(unittest.TestCase):
             datetime.fromisoformat(workspace["currentDateTime"].replace("Z", "+00:00"))
             self.assertEqual(workspace["workspace"]["title"], "Workspace")
             self.assertEqual(
-                [button["title"] for button in workspace["workspace"]["buttons"]],
+                [button["title"] for button in workspace["workspace"]["buttons"][4:]],
                 ["Add New User", "Logs", "Backup", "List of Users"],
             )
+            self.assertEqual(
+                [button["state"] for button in workspace["workspace"]["buttons"]],
+                ["unauthorized"] * 4 + ["unavailable"] * 4,
+            )
+            self.assertTrue(all("href" not in button for button in workspace["workspace"]["buttons"]))
             self.assertNotIn("cards", workspace["workspace"])
             self.assertNotIn("oversight", workspace)
             self.assertNotIn("guidelineRevisions", json.dumps(workspace))
             self.assertNotIn("Bayesian", json.dumps(workspace))
             self.assertNotIn("Admin oversight", json.dumps(workspace))
 
-    def test_module_routes_are_role_scoped_placeholders(self) -> None:
+    def test_module_routes_distinguish_available_unavailable_and_unauthorized(self) -> None:
         with DashboardServer() as base:
             admin = create_session(base, "admin-1")
-            status, route = request_json(base, "/internal/dashboard/module-routes/logs", headers={"x-dashboard-session": admin["sessionId"]})
-            self.assertEqual(status, 200)
-            self.assertEqual(route["title"], "Logs")
-            self.assertEqual(route["href"], "/modules/logs")
-            self.assertTrue(route["placeholder"])
+            status, data = request_json(base, "/internal/dashboard/module-routes/logs", headers={"x-dashboard-session": admin["sessionId"]})
+            self.assertEqual(status, 503)
+            self.assertEqual(data["error"], "module_route_unavailable")
 
             psychiatrist = create_session(base, "psy-1")
             status, data = request_json(base, "/internal/dashboard/module-routes/logs", headers={"x-dashboard-session": psychiatrist["sessionId"]})
+            self.assertEqual(status, 403)
+            self.assertEqual(data["error"], "module_route_unauthorized")
+
+            status, route = request_json(base, "/internal/dashboard/module-routes/add-new-patient", headers={"x-dashboard-session": psychiatrist["sessionId"]})
+            self.assertEqual(status, 200)
+            self.assertEqual(route["href"], "/modules/add-new-patient")
+
+            status, data = request_json(base, "/internal/dashboard/module-routes/unknown", headers={"x-dashboard-session": psychiatrist["sessionId"]})
             self.assertEqual(status, 404)
             self.assertEqual(data["error"], "module_route_not_available")
 
@@ -459,7 +476,7 @@ class DashboardBackendTest(unittest.TestCase):
                 self.assertEqual(status, 200)
                 self.assertEqual(workspace["workspace"]["kind"], "ADMIN")
                 self.assertEqual(
-                    [button["title"] for button in workspace["workspace"]["buttons"]],
+                    [button["title"] for button in workspace["workspace"]["buttons"][4:]],
                     ["Add New User", "Logs", "Backup", "List of Users"],
                 )
 

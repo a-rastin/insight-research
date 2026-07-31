@@ -8,6 +8,8 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-067: Replace Dashboard placeholders with the real role-scoped workspace
+  (In progress).
 - INS-065: Package, deploy, and verify the approved release mode (In progress).
 - INS-061: Complete system accessibility and failure-mode verification (In
   progress).
@@ -46,7 +48,7 @@ Update this file after every meaningful implementation change.
 - INS-023: Migrate Diagnosis storage and routes to assessment UUIDs (In
   progress).
 - Capability completion packets INS-011 and INS-067 through INS-082 (In
-  progress); INS-067 is complete and later packets remain separately gated.
+  progress); each packet remains separately gated.
 - INS-020: Reconcile Treatment Plan OpenAPI with live routes (In progress).
 - INS-019: Publish BN evaluation and registry-governance v3 contract (In
   progress).
@@ -326,6 +328,28 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-067 Dashboard role-scoped workspace replacement (In progress). Dashboard
+  still validates only the Authentication v2 UUID session contract and fails
+  closed for password/disclaimer gates, unsupported versions, expiry,
+  revocation, malformed identity, and role changes. Its workspace contract now
+  replaces fabricated placeholder routes with one navigation-only destination
+  catalog: Add New Patient exposes the real gateway-relative route,
+  unsupported same-role destinations are visibly `unavailable`, and every
+  cross-role destination is visibly `unauthorized`. Unavailable and
+  unauthorized entries have no route and remain disabled with textual reasons;
+  direct discovery distinguishes 403 unauthorized, 404 unknown, and 503
+  unavailable responses. Dashboard branding now uses INSIGHT and displays the
+  v2 Authentication seam. Focused Authentication and destination-state tests
+  passed 5/5; the Dashboard backend suite passed 16/16 and its frontend test
+  passed; Authentication provider contracts passed 7/7; common REST profile
+  checks passed 8/8; changed Python and JavaScript syntax checks and `git diff
+  --check` passed. Documented `npm test` could not start because this host has
+  no `python` executable; the equivalent `python3 -B -m unittest discover -s .
+  -p 'test_dashboard_backend.py' -v && node test_dashboard_frontend.mjs`
+  passed. Live authenticated gateway navigation remains unverified, and
+  provider-readiness-driven discovery remains the separately gated INS-068
+  packet. Next step is that live gateway check before closing INS-067. No file
+  under `insight-research/doc/` was read or modified.
 - INS-065 approved release-mode packaging and verification (In progress).
   Versioned release policy now limits this packet to the Ubuntu VPS
   `research-build` mode, requires a registry image pinned by SHA-256 digest,

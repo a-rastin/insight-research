@@ -7,19 +7,16 @@ function workspaceModel(role) {
     workspace: {
       kind: role,
       title: "Workspace",
-      buttons: psychiatrist
-        ? [
-            { id: "add-new-patient", title: "Add New Patient", routeDiscovery: { method: "GET", href: "/internal/dashboard/module-routes/add-new-patient" } },
-            { id: "patient-follow-up", title: "Patient Follow-up", routeDiscovery: { method: "GET", href: "/internal/dashboard/module-routes/patient-follow-up" } },
-            { id: "list-of-patients", title: "List of Patients", routeDiscovery: { method: "GET", href: "/internal/dashboard/module-routes/list-of-patients" } },
-            { id: "setting", title: "Setting", routeDiscovery: { method: "GET", href: "/internal/dashboard/module-routes/setting" } }
-          ]
-        : [
-            { id: "add-new-user", title: "Add New User", routeDiscovery: { method: "GET", href: "/internal/dashboard/module-routes/add-new-user" } },
-            { id: "logs", title: "Logs", routeDiscovery: { method: "GET", href: "/internal/dashboard/module-routes/logs" } },
-            { id: "backup", title: "Backup", routeDiscovery: { method: "GET", href: "/internal/dashboard/module-routes/backup" } },
-            { id: "list-of-users", title: "List of Users", routeDiscovery: { method: "GET", href: "/internal/dashboard/module-routes/list-of-users" } }
-          ]
+      buttons: [
+        { id: "add-new-patient", title: "Add New Patient", state: psychiatrist ? "available" : "unauthorized", reason: psychiatrist ? "Destination available." : "Not authorized for current role.", ...(psychiatrist ? { href: "/modules/add-new-patient" } : {}) },
+        { id: "patient-follow-up", title: "Patient Follow-up", state: psychiatrist ? "unavailable" : "unauthorized", reason: psychiatrist ? "Destination is not available in this release." : "Not authorized for current role." },
+        { id: "list-of-patients", title: "List of Patients", state: psychiatrist ? "unavailable" : "unauthorized", reason: psychiatrist ? "Destination is not available in this release." : "Not authorized for current role." },
+        { id: "setting", title: "Setting", state: psychiatrist ? "unavailable" : "unauthorized", reason: psychiatrist ? "Destination is not available in this release." : "Not authorized for current role." },
+        { id: "add-new-user", title: "Add New User", state: psychiatrist ? "unauthorized" : "unavailable", reason: psychiatrist ? "Not authorized for current role." : "Destination is not available in this release." },
+        { id: "logs", title: "Logs", state: psychiatrist ? "unauthorized" : "unavailable", reason: psychiatrist ? "Not authorized for current role." : "Destination is not available in this release." },
+        { id: "backup", title: "Backup", state: psychiatrist ? "unauthorized" : "unavailable", reason: psychiatrist ? "Not authorized for current role." : "Destination is not available in this release." },
+        { id: "list-of-users", title: "List of Users", state: psychiatrist ? "unauthorized" : "unavailable", reason: psychiatrist ? "Not authorized for current role." : "Destination is not available in this release." }
+      ]
     },
     ...(psychiatrist ? { requiresDisclaimer: false, disclaimer: { acceptedAt: "2026-07-06T17:00:00Z" } } : {})
   };
@@ -83,6 +80,9 @@ assert.match(psychiatristHtml, /Jul|07\/06|6\/7|06\/07/);
 for (const title of ["Add New Patient", "Patient Follow-up", "List of Patients", "Setting"]) {
   assert.match(psychiatristHtml, new RegExp(title));
 }
+for (const state of ["Available", "Unavailable", "Unauthorized"]) {
+  assert.match(psychiatristHtml, new RegExp(state));
+}
 
 const adminHtml = await renderScenario("ADMIN");
 assert.match(adminHtml, /<h1>Workspace<\/h1>/);
@@ -91,5 +91,7 @@ assert.doesNotMatch(adminHtml, /Dr\. Ari Morgan/);
 for (const title of ["Add New User", "Logs", "Backup", "List of Users"]) {
   assert.match(adminHtml, new RegExp(title));
 }
+assert.match(adminHtml, /Unavailable/);
+assert.match(adminHtml, /Unauthorized/);
 
 

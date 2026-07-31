@@ -19,20 +19,16 @@ repo.initialize()
 
 app = FastAPI(title="Dashboard Backend")
 
-MODULE_BUTTONS = {
-    "PSYCHIATRIST": [
-        ("add-new-patient", "Add New Patient"),
-        ("patient-follow-up", "Patient Follow-up"),
-        ("list-of-patients", "List of Patients"),
-        ("setting", "Setting"),
-    ],
-    "ADMIN": [
-        ("add-new-user", "Add New User"),
-        ("logs", "Logs"),
-        ("backup", "Backup"),
-        ("list-of-users", "List of Users"),
-    ],
-}
+DESTINATIONS = [
+    {"id": "add-new-patient", "title": "Add New Patient", "role": "PSYCHIATRIST", "href": "/modules/add-new-patient"},
+    {"id": "patient-follow-up", "title": "Patient Follow-up", "role": "PSYCHIATRIST"},
+    {"id": "list-of-patients", "title": "List of Patients", "role": "PSYCHIATRIST"},
+    {"id": "setting", "title": "Setting", "role": "PSYCHIATRIST"},
+    {"id": "add-new-user", "title": "Add New User", "role": "ADMIN"},
+    {"id": "logs", "title": "Logs", "role": "ADMIN"},
+    {"id": "backup", "title": "Backup", "role": "ADMIN"},
+    {"id": "list-of-users", "title": "List of Users", "role": "ADMIN"},
+]
 
 MOCK_AUTH_USERS = {
     "psy-1": {
@@ -114,19 +110,32 @@ def display_name_for(user: dict[str, Any]) -> str:
     return user["fullName"]
 
 
-def module_route_discovery(module_id: str) -> dict[str, str]:
-    return {"method": "GET", "href": f"/internal/dashboard/module-routes/{module_id}"}
-
-
 def workspace_buttons(role: str) -> list[dict[str, Any]]:
-    return [
-        {"id": module_id, "title": title, "routeDiscovery": module_route_discovery(module_id)}
-        for module_id, title in MODULE_BUTTONS[role]
-    ]
+    buttons = []
+    for destination in DESTINATIONS:
+        if destination["role"] != role:
+            state = "unauthorized"
+            reason = "Not authorized for current role."
+        elif "href" not in destination:
+            state = "unavailable"
+            reason = "Destination is not available in this release."
+        else:
+            state = "available"
+            reason = "Destination available."
+        button = {
+            "id": destination["id"],
+            "title": destination["title"],
+            "state": state,
+            "reason": reason,
+        }
+        if state == "available":
+            button["href"] = destination["href"]
+        buttons.append(button)
+    return buttons
 
 
-def module_button(role: str, module_id: str) -> tuple[str, str] | None:
-    return next((button for button in MODULE_BUTTONS[role] if button[0] == module_id), None)
+def module_destination(module_id: str) -> dict[str, str] | None:
+    return next((destination for destination in DESTINATIONS if destination["id"] == module_id), None)
 
 
 def workspace_for(session: dict[str, Any]) -> dict[str, Any]:
@@ -259,14 +268,19 @@ async def workspace(session: dict[str, Any] = Depends(require_session)) -> dict[
 
 @app.get("/internal/dashboard/module-routes/{module_id}")
 async def module_route(module_id: str, session: dict[str, Any] = Depends(require_session)) -> dict[str, Any]:
-    button = module_button(session["role"], module_id)
-    if not button:
+    destination = module_destination(module_id)
+    if not destination:
         raise json_error(404, "module_route_not_available")
+    if destination["role"] != session["role"]:
+        raise json_error(403, "module_route_unauthorized")
+    if "href" not in destination:
+        raise json_error(503, "module_route_unavailable")
     return {
-        "moduleId": button[0],
-        "title": button[1],
-        "href": f"/modules/{button[0]}",
-        "placeholder": True,
+        "moduleId": destination["id"],
+        "title": destination["title"],
+        "href": destination["href"],
+        "state": "available",
+        "reason": "Destination available.",
     }
 
 

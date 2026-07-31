@@ -11,7 +11,7 @@ Backend: Python FastAPI. Local state: Dashboard sessions plus optional workspace
 3. Dashboard creates a local Dashboard session bound to verified `user.id`, `role`, and Authentication session id.
 4. UI calls `GET /internal/dashboard/workspace`.
 5. Dashboard re-validates local session and calls `GET /api/auth/v2/session` again.
-6. Dashboard returns INSIGHT workspace metadata and module-link placeholders.
+6. Dashboard returns INSIGHT workspace metadata and explicit destination states.
 
 Protected Dashboard endpoints accept Dashboard session id through either:
 
@@ -179,10 +179,9 @@ Common response:
       {
         "id": "add-new-patient",
         "title": "Add New Patient",
-        "routeDiscovery": {
-          "method": "GET",
-          "href": "/internal/dashboard/module-routes/add-new-patient"
-        }
+        "state": "available",
+        "reason": "Destination available.",
+        "href": "/modules/add-new-patient"
       }
     ]
   },
@@ -201,6 +200,9 @@ Response rules:
 - `displayName` equals `Dr. {fullName}` for `PSYCHIATRIST`.
 - `displayName` equals `{fullName}` for `ADMIN`.
 - Psychiatrist-only responses include `requiresDisclaimer` and `disclaimer`.
+- Every destination is present with state `available`, `unavailable`, or
+  `unauthorized` for the currently verified role.
+- Only `available` destinations include a gateway-relative `href`.
 - Responses contain no patient lists, treatment data, drafts, follow-ups, oversight module data, guideline revisions, Bayesian models, backup payloads, or module implementation payloads.
 
 Role button sets:
@@ -219,18 +221,24 @@ Errors:
 | `401` | `authentication_session_mismatch` | Authentication user differs from Dashboard session user. |
 | `502` | `authentication_session_unavailable` | Authentication endpoint unavailable, failed, or misconfigured. |
 
-## Module-Link Placeholders
+## Module Destinations
 
-Every workspace button includes route discovery metadata:
+Dashboard returns one navigation-only catalog. Current destination support is:
 
-```json
-{
-  "routeDiscovery": {
-    "method": "GET",
-    "href": "/internal/dashboard/module-routes/{moduleId}"
-  }
-}
-```
+| Destination | Authorized role | State when authorized | Gateway route |
+| --- | --- | --- | --- |
+| `add-new-patient` | `PSYCHIATRIST` | `available` | `/modules/add-new-patient` |
+| `patient-follow-up` | `PSYCHIATRIST` | `unavailable` | none |
+| `list-of-patients` | `PSYCHIATRIST` | `unavailable` | none |
+| `setting` | `PSYCHIATRIST` | `unavailable` | none |
+| `add-new-user` | `ADMIN` | `unavailable` | none |
+| `logs` | `ADMIN` | `unavailable` | none |
+| `backup` | `ADMIN` | `unavailable` | none |
+| `list-of-users` | `ADMIN` | `unavailable` | none |
+
+A destination belonging to the other role has state `unauthorized`. Dashboard
+does not invent routes for unavailable destinations and does not copy any
+downstream payload.
 
 Discovery endpoint:
 
@@ -239,25 +247,23 @@ GET /internal/dashboard/module-routes/{moduleId}
 X-Dashboard-Session: {dashboardSessionId}
 ```
 
-Dashboard verifies Dashboard session and Authentication before route discovery. `moduleId` must belong to caller role.
+Dashboard verifies Dashboard session and Authentication before route discovery,
+then distinguishes unknown, unauthorized, unavailable, and available destinations.
 
-Success:
+Available success:
 
 ```json
 {
-  "moduleId": "logs",
-  "title": "Logs",
-  "href": "/modules/logs",
-  "placeholder": true
+  "moduleId": "add-new-patient",
+  "title": "Add New Patient",
+  "href": "/modules/add-new-patient",
+  "state": "available",
+  "reason": "Destination available."
 }
 ```
 
-Placeholder rules:
-
-- `placeholder: true` means Dashboard only exposes navigation shell metadata.
-- `href` is `/modules/{moduleId}`.
-- Target module owns data, mutations, permissions beyond entry, UI, and workflow implementation.
-- Dashboard returns no module payload in route discovery.
+Target modules own data, mutations, permissions beyond entry, UI, and workflow
+implementation. Dashboard returns no module payload in destination discovery.
 
 Errors:
 
@@ -266,7 +272,9 @@ Errors:
 | `401` | `dashboard_session_required` | Dashboard session missing, invalid, inactive, or signed out. |
 | `401` | `authentication_session_required` | Authentication rejected, missing, expired, blocked, or unsupported. |
 | `401` | `authentication_session_mismatch` | Authentication user differs from Dashboard session user. |
-| `404` | `module_route_not_available` | Module id unavailable to verified role. |
+| `403` | `module_route_unauthorized` | Destination belongs to another role. |
+| `404` | `module_route_not_available` | Destination id is unknown. |
+| `503` | `module_route_unavailable` | Authorized destination has no supported route. |
 | `502` | `authentication_session_unavailable` | Authentication endpoint unavailable, failed, or misconfigured. |
 
 ## Disclaimer Acceptance

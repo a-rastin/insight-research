@@ -42,7 +42,8 @@ GET /readyz
 - Psychiatrist display names use `Dr. {fullName}`.
 - Psychiatrist buttons: `Add New Patient`, `Patient Follow-up`, `List of Patients`, `Setting`.
 - Admin buttons: `Add New User`, `Logs`, `Backup`, `List of Users`.
-- Buttons route through REST-discovered placeholder module routes.
+- Destinations render `available`, `unavailable`, or `unauthorized` explicitly.
+- Only available destinations expose a real gateway-relative module route.
 - Dashboard does not implement patient, treatment, admin log, backup, or user-management module logic.
 
 ## Module Interface
@@ -72,7 +73,7 @@ The UI then reads:
 GET /internal/dashboard/workspace
 ```
 
-Buttons discover module placeholders through:
+Available buttons may revalidate their destination through:
 
 ```http
 GET /internal/dashboard/module-routes/{moduleId}
