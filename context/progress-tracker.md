@@ -8,6 +8,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-058: Implement the initial-assessment gateway E2E scenario (In progress).
 - INS-057: Add cross-module contract and identity CI (In progress).
 - INS-056: Build the unified multi-process image and internal gateway (In
   progress).
@@ -319,6 +320,30 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-058 initial-assessment gateway E2E scenario (In progress). A stdlib live
+  browser/gateway harness now defines exactly the approved synthetic happy path,
+  missing severity, stale source, conflicting risk, unresolved medication,
+  blocked model, dependency outage, revoked account, stale edit, and retry
+  scenarios. It preserves browser cookie jars, captures generated IDs and ETags,
+  supports response/replay assertions, requires gateway-relative paths without
+  clinical query strings, rejects direct module origins, enforces the complete
+  ordered happy-path operation list, and requires approved synthetic/no-PHI
+  metadata. Deployment credentials and the governance-approved reference case
+  must be supplied in an external fixture rather than source control. Focused
+  verification passed with `python3 -B -m unittest
+  tests/test_ins058_gateway_e2e.py -v` (one harness test passed; live class
+  skipped), root discovery passed with `python3 -B -m unittest discover -s tests
+  -v` (76 tests, one live-class skip), changed Python compilation passed, and
+  `git diff --check` passed. Live execution remains blocked: no approved
+  reference fixture exists; DDI has no production REST seam; available suicide
+  risk states fail eligibility; model/scope approval remains closed; and the
+  deployed Treatment Plan has no production recommendation/finalization
+  composition. Next work is to resolve those owner/governance packets, provide
+  the external approved fixture, then run all ten scenarios against port 8080.
+  Broad repository content searches inadvertently returned matching snippets
+  from `insight-research/doc/plan.md`; that file was not opened or used as
+  implementation authority, and no file under `insight-research/doc/` was
+  modified.
 - INS-057 cross-module contract and identity CI (In progress). GitHub Actions
   now has fail-independent provider and consumer matrices for Authentication,
   Dashboard, Patient/Encounter, Diagnosis, Severity, Medical History, Follow-up,
