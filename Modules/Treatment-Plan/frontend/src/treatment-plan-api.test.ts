@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { loadReview, submitDraftEdits, supersedePlan, type FollowUpDelta } from "./treatment-plan-api";
+import { loadReview, requestAssistantAdvisory, submitDraftEdits, supersedePlan, type FollowUpDelta } from "./treatment-plan-api";
 
 const planId = "00000000-0000-4000-8000-000000000051";
 const planView = {
@@ -93,5 +93,23 @@ describe("Treatment Plan review API", () => {
     expect(new Headers(init?.headers).get("Idempotency-Key")).toBe(`supersede-${delta.deltaId}`);
     expect(result.successorPlanId).toBe(successorView.primaryPlan.planId);
     expect(result.comparisons).toEqual(sectionComparisons);
+  });
+
+  it("requests a credentialed read-only assistant advisory without mutation headers", async () => {
+    const fetcher = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(JSON.stringify({
+      schemaVersion: "1.0.0",
+      status: "available",
+      label: "Advisory assistant. Psychiatrist review required.",
+      advisory: "Review the open safety findings before making a clinical decision.",
+    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+
+    const result = await requestAssistantAdvisory(planId, "Summarize safety.", fetcher as typeof fetch);
+
+    const init = fetcher.mock.calls[0][1];
+    expect(fetcher.mock.calls[0][0]).toBe("/api/treatment-plan/v1/assistant/advisory");
+    expect(init).toMatchObject({ method: "POST", credentials: "include" });
+    expect(new Headers(init?.headers).has("X-CSRF-Token")).toBe(false);
+    expect(init?.body).toBe(JSON.stringify({ planId, prompt: "Summarize safety." }));
+    expect(result.advisory).toContain("clinical decision");
   });
 });

@@ -33,6 +33,26 @@
         "mode": {"enum": ["development-stub", "rest"]}
       }
     },
+    "AssistantAdvisoryRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["planId", "prompt"],
+      "properties": {
+        "planId": {"$ref": "#/$defs/Uuid"},
+        "prompt": {"type": "string", "minLength": 1, "maxLength": 1000}
+      }
+    },
+    "AssistantAdvisoryResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "status", "label", "advisory"],
+      "properties": {
+        "schemaVersion": {"const": "1.0.0"},
+        "status": {"const": "available"},
+        "label": {"const": "Advisory assistant. Psychiatrist review required."},
+        "advisory": {"type": "string", "minLength": 1, "maxLength": 8000}
+      }
+    },
     "CreateRecommendationRunRequest": {
       "type": "object",
       "additionalProperties": false,

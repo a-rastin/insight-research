@@ -82,7 +82,7 @@ dd { margin: 4px 0 0; font-size: .9rem; font-weight: 650; }
 .comparison-status.changed { color: #075f58; background: var(--teal-light); }
 .comparison-status.unchanged { color: #374151; background: #e5e7eb; }
 
-.content-grid { display: grid; grid-template-columns: minmax(280px, 340px) minmax(0, 1fr); align-items: start; gap: 24px; margin-top: 24px; }
+.content-grid { display: grid; grid-template-columns: minmax(240px, 290px) minmax(430px, 1fr) minmax(240px, 280px); align-items: start; gap: 20px; margin-top: 24px; }
 aside, .review-column { display: grid; gap: 20px; }
 .context-card, .support-card { padding: 24px; }
 .section-title-row { display: flex; align-items: flex-start; gap: 12px; }
@@ -151,6 +151,20 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .safety-item.info .section-icon { color: var(--info); }
 .safety-item p:last-child { margin-bottom: 0; }
 
+.assistant-rail { position: sticky; top: 84px; display: grid; gap: 14px; padding: 20px; border: 1px solid var(--border); border-top: 5px solid var(--teal-dark); border-radius: 12px; background: white; box-shadow: var(--shadow); }
+.assistant-rail p { margin-bottom: 0; color: #4b5563; font-size: .84rem; }
+.assistant-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 4px 8px; }
+.assistant-heading .eyebrow { grid-column: 1 / -1; }
+.assistant-heading h2 { margin-bottom: 0; }
+.assistant-heading .info-badge { align-self: center; }
+.assistant-rail textarea { min-height: 112px; margin-top: -6px; }
+.assistant-rail .primary-button { min-height: 44px; padding: 9px 12px; border-radius: 8px; font-weight: 800; }
+.assistant-retention { padding-top: 2px; font-size: .75rem !important; }
+.assistant-state, .assistant-response { display: grid; gap: 5px; padding: 14px; border: 1px solid #bae6fd; border-left: 4px solid var(--info); border-radius: 8px; background: var(--info-bg); }
+.assistant-state strong, .assistant-state span { font-size: .8rem; line-height: 1.45; }
+.assistant-unavailable { border-color: #f2c879; border-left-color: var(--warning); background: var(--warning-bg); }
+.assistant-response p:last-child { color: #1f2937; white-space: pre-wrap; }
+
 :focus-visible { outline: 3px solid #087f74; outline-offset: 3px; }
 button, a, input, select, textarea { transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease; }
 
@@ -162,6 +176,7 @@ button, a, input, select, textarea { transition: border-color 180ms ease, backgr
   .patient-strip dl { width: 100%; }
   .patient-strip dl > div:first-child { padding-left: 0; border-left: 0; }
   .content-grid { grid-template-columns: 1fr; }
+  .assistant-rail { position: static; }
   .follow-up-card { grid-template-columns: 1fr; }
   .supersession-result dl { grid-template-columns: 1fr; }
   aside { grid-template-columns: repeat(2, minmax(0, 1fr)); }

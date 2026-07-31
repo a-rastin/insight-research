@@ -61,6 +61,8 @@ class TreatmentPlanContractTests(unittest.TestCase):
                 } else "INS-050" if operation["operationId"] in {
                     "createRecommendationRun", "getRecommendationRun"
                 } else "INS-053" if operation["operationId"] == "supersedeTreatmentPlan" else "INS-020"
+                if operation["operationId"] == "requestTreatmentPlanAssistantAdvisory":
+                    expected_issue = "INS-055"
                 self.assertEqual(expected_issue, operation["x-insight-implementation-issue"])
                 self.assertIn("responses", operation)
         self.assertEqual(len(operation_ids), len(set(operation_ids)))

@@ -8,6 +8,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-055: Implement the approved read-only assistant slice (In progress).
 - INS-054: Conduct psychiatrist lifecycle walkthrough and retire prototype (In
   progress).
 - INS-053: Wire follow-up supersession route and UI (In progress).
@@ -315,6 +316,30 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-055 approved read-only assistant slice (In progress). Implementation has
+  superseded the INS-006 disabled policy only for the Treatment Plan review
+  page. ADR-0011 and assistant policy 1.1.0 approve a psychiatrist-only,
+  non-persistent boundary with no tools, provider retention, training, backup,
+  deletion workflow, or clinical mutation capability. The server loads the
+  current plan, structurally projects only supported plan content, finding
+  descriptors, and rationale, then scrubs the projected strings and prompt
+  before calling a trusted-origin provider adapter. Plan, Patient, Encounter,
+  run, finding, actor, source, timestamp, edit, and provenance fields are not
+  projected. Provider output is scrubbed again and bounded to 8,000 characters.
+  The versioned advisory route and responsive React rail label output as
+  advisory, expose no clinical action, store no conversation, and keep plan
+  workflows available when configuration or the provider fails. Focused
+  assistant, contract, and security tests passed 19/19; assistant governance
+  tests passed 5/5; the full Treatment Plan backend suite passed 75/75; frontend
+  tests passed 6/6; TypeScript checking and the production build passed; common
+  REST checks passed 8/8; root discovery passed 70/70; changed JSON syntax,
+  Draft 2020-12 schema validation, changed Python compilation, and `git diff
+  --check` passed. A named deployment provider satisfying the approved
+  no-retention/no-training policy and a live authenticated gateway/provider run
+  remain required, so INS-055 stays in progress. No file under
+  `insight-research/doc/` was modified; one broad content search inadvertently
+  returned matching snippets from `doc/plan.md`, but the file was not otherwise
+  opened or used as implementation authority.
 - INS-054 psychiatrist-role lifecycle walkthrough and prototype retirement (In
   progress). Controlled evidence `INS-054-WALKTHROUGH-2026-07-31` now maps five
   synthetic, no-PHI lifecycle cases to production behavior: required-input

@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ADR = ROOT / "context/architecture-decisions/0005-assistant-v1-disabled.md"
+ADR = ROOT / "context/architecture-decisions/0011-read-only-treatment-plan-assistant.md"
 CONTRACT = ROOT / "contracts/assistant-policy-v1.json"
 
 
@@ -24,18 +24,19 @@ class AssistantPolicyContractTest(unittest.TestCase):
             self.assertNotIn("://", target)
             self.assertTrue((ADR.parent / target).resolve().is_file(), target)
 
-    def test_provider_and_ui_are_fail_closed(self):
+    def test_provider_and_bounded_ui_are_approved(self):
         assistant = self.contract["assistant"]
-        self.assertEqual(assistant["v1Scope"], "rejected")
-        self.assertFalse(assistant["enabled"])
-        self.assertIsNone(assistant["provider"])
+        self.assertEqual(assistant["v1Scope"], "approved-read-only-treatment-plan-review")
+        self.assertTrue(assistant["enabled"])
+        self.assertIsNotNone(assistant["provider"])
         self.assertEqual(assistant["unsupportedOrIncompletePolicyResult"], "disabled")
-        self.assertEqual(self.contract["ui"]["state"], "disabled-provider")
-        self.assertFalse(self.contract["ui"]["promptControlVisible"])
+        self.assertEqual(self.contract["ui"]["state"], "bounded-read-only-rail")
+        self.assertTrue(self.contract["ui"]["promptControlVisible"])
+        self.assertFalse(self.contract["ui"]["mutationControlsVisible"])
 
     def test_identifiers_are_omitted_then_scrubbed(self):
         boundary = self.contract["providerBoundary"]
-        self.assertFalse(boundary["transmissionAllowed"])
+        self.assertTrue(boundary["transmissionAllowed"])
         self.assertTrue(boundary["structuralIdentifierOmissionRequiredBeforeScrubbing"])
         self.assertTrue(boundary["defenseInDepthScrubbingRequired"])
         corpus = self.contract["syntheticRedactionCorpus"]
@@ -44,8 +45,11 @@ class AssistantPolicyContractTest(unittest.TestCase):
             self.assertNotEqual(item["input"], item["expected"])
             self.assertEqual(item["expected"], "[REDACTED]")
 
-    def test_no_context_tools_or_mutations(self):
-        self.assertEqual(self.contract["pageContext"]["allowlist"], [])
+    def test_context_is_allowlisted_without_tools_or_mutations(self):
+        allowlist = self.contract["pageContext"]["allowlist"]
+        self.assertTrue(allowlist)
+        self.assertTrue(all(item.startswith("treatment-plan-review.") for item in allowlist))
+        self.assertFalse(any("patient" in item.lower() or item.lower().endswith("id") for item in allowlist))
         tools = self.contract["tools"]
         self.assertEqual(tools["allowlist"], [])
         self.assertEqual(tools["default"], "deny")
@@ -58,9 +62,11 @@ class AssistantPolicyContractTest(unittest.TestCase):
         conversation = self.contract["conversation"]
         self.assertFalse(conversation["persistenceEnabled"])
         self.assertEqual(conversation["retention"], "none-no-storage")
-        self.assertEqual(conversation["authorizedRoles"], [])
+        self.assertEqual(conversation["authorizedRoles"], ["psychiatrist"])
         self.assertFalse(conversation["includedInBackup"])
-        self.assertFalse(self.contract["providerUsePolicy"]["approved"])
+        self.assertTrue(self.contract["providerUsePolicy"]["approved"])
+        self.assertFalse(self.contract["providerUsePolicy"]["promptsOrOutputsMayBeRetainedByProvider"])
+        self.assertFalse(self.contract["providerUsePolicy"]["promptsOrOutputsMayBeUsedForTraining"])
         failure = self.contract["failurePolicy"]
         self.assertFalse(failure["clinicalWorkflowBlocking"])
         self.assertFalse(failure["clinicalWorkflowMutationAllowed"])

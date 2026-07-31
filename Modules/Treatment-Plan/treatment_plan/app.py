@@ -8,6 +8,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from .config import Settings
+from .assistant import AssistantUnavailable, HttpAssistantProvider, InvalidAssistantRequest, ReadOnlyAssistant
 from .clinical_context import OutboundRequestContext
 from .edit_ledger import (
     InMemoryPlanEditStore,
@@ -75,6 +76,7 @@ def create_app(
     observability: Observability | None = None,
     recommendation_workflow: RecommendationRunWorkflow | None = None,
     plan_superseder: PlanSuperseder | None = None,
+    assistant: ReadOnlyAssistant | None = None,
 ) -> FastAPI:
     settings = settings or Settings.from_env()
     configure_logging(settings.log_level)
@@ -83,6 +85,10 @@ def create_app(
     if plan_ledger is None:
         edit_store = InMemoryPlanEditStore() if isinstance(repository, InMemoryRepository) else SQLitePlanEditStore(settings.database_path)
         plan_ledger = PlanEditLedger(edit_store)
+    if assistant is None and settings.assistant_provider_url:
+        assistant = ReadOnlyAssistant(
+            HttpAssistantProvider(settings.assistant_provider_url, settings.assistant_timeout_seconds)
+        )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -265,6 +271,33 @@ def create_app(
         except PlanNotFound as exc:
             raise HTTPException(404, str(exc)) from exc
         return JSONResponse(view.to_dict(), headers={"ETag": view.etag, "X-Schema-Version": "1.1.0"})
+
+    @app.post("/api/treatment-plan/v1/assistant/advisory")
+    def assistant_advisory(body: dict[str, Any], request: Request):
+        authorized_session(request, Capability.PLAN_READ)
+        unknown = sorted(set(body) - {"planId", "prompt"})
+        missing = sorted({"planId", "prompt"} - set(body))
+        if unknown:
+            raise HTTPException(422, "unsupported assistant fields: " + ", ".join(unknown))
+        if missing:
+            raise HTTPException(422, "missing assistant fields: " + ", ".join(missing))
+        try:
+            plan_id = str(UUID(str(body["planId"])))
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(422, "planId must be a canonical UUID") from exc
+        if assistant is None:
+            raise HTTPException(503, "assistant provider is unavailable; clinical workflows remain available")
+        try:
+            view = plan_ledger.get(plan_id)
+            result = assistant.advise(view.to_dict(), body["prompt"])
+        except PlanNotFound as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except InvalidAssistantRequest as exc:
+            raise HTTPException(422, str(exc)) from exc
+        except AssistantUnavailable as exc:
+            raise HTTPException(503, "assistant provider is unavailable; clinical workflows remain available") from exc
+        observability.metric("tp_assistant_requests", 1, labels={"module": "assistant", "outcome": "success"})
+        return JSONResponse(result, headers={"X-Schema-Version": "1.0.0"})
 
     @app.post("/api/treatment-plan/v1/plans/{plan_id}/supersede", status_code=201)
     async def supersede_plan(

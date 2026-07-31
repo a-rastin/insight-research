@@ -40,6 +40,11 @@ export type SupersededReview = LoadedReview & {
   comparisons: SupersessionComparison[];
 };
 
+export type AssistantAdvisory = {
+  label: string;
+  advisory: string;
+};
+
 type FetchLike = typeof fetch;
 type JsonObject = Record<string, unknown>;
 
@@ -182,6 +187,28 @@ export async function loadReview(planId: string, signal?: AbortSignal, fetcher: 
     workspace: createReviewWorkspace(mapPlanView(await planResult.value.json(), provenance)),
     etag,
     partialMessages,
+  };
+}
+
+export async function requestAssistantAdvisory(
+  planId: string,
+  prompt: string,
+  fetcher: FetchLike = fetch,
+): Promise<AssistantAdvisory> {
+  const response = await fetcher("/api/treatment-plan/v1/assistant/advisory", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ planId, prompt }),
+  });
+  if (!response.ok) throw await responseError(response);
+  const payload = object(await response.json(), "assistant response");
+  if (payload.schemaVersion !== "1.0.0" || payload.status !== "available") {
+    throw new Error("The assistant response has an unsupported schema or state.");
+  }
+  return {
+    label: text(payload.label, "assistant response label"),
+    advisory: text(payload.advisory, "assistant advisory"),
   };
 }
 

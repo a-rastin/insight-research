@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { structuredEdits, updateReviewField, type ReviewField, type ReviewWorkspace } from "./review-workspace";
 import {
   loadReview,
+  requestAssistantAdvisory,
   submitDraftEdits,
   supersedePlan,
   type FollowUpDelta,
@@ -20,6 +21,12 @@ type LoadState =
   | { kind: "loading" }
   | { kind: "error"; message: string }
   | { kind: "ready"; workspace: ReviewWorkspace; etag: string | null; partialMessages: string[] };
+
+type AssistantState =
+  | { kind: "idle" }
+  | { kind: "loading" }
+  | { kind: "ready"; label: string; advisory: string }
+  | { kind: "unavailable"; message: string };
 
 function configuredContext() {
   const root = document.getElementById("root");
@@ -63,6 +70,8 @@ export function App() {
   const [activePlanId, setActivePlanId] = useState(context.planId);
   const [superseding, setSuperseding] = useState(false);
   const [supersessionComparisons, setSupersessionComparisons] = useState<SupersessionComparison[]>([]);
+  const [assistantPrompt, setAssistantPrompt] = useState("");
+  const [assistantState, setAssistantState] = useState<AssistantState>({ kind: "idle" });
 
   useEffect(() => {
     const controller = new AbortController();
@@ -127,6 +136,19 @@ export function App() {
     }
   };
   const editingBlocked = !state.etag || !context.csrfToken;
+  const requestAdvisory = async () => {
+    if (!assistantPrompt.trim()) return;
+    setAssistantState({ kind: "loading" });
+    try {
+      const result = await requestAssistantAdvisory(activePlanId, assistantPrompt);
+      setAssistantState({ kind: "ready", ...result });
+    } catch (error) {
+      setAssistantState({
+        kind: "unavailable",
+        message: error instanceof Error ? error.message : "Assistant provider is unavailable.",
+      });
+    }
+  };
 
   return <>
     <a className="skip-link" href="#review-form">Skip to structured plan editor</a>
@@ -174,6 +196,19 @@ export function App() {
           <section className="support-card" aria-labelledby="alternatives-title"><p className="eyebrow">Clinical options</p><h2 id="alternatives-title">Alternatives considered</h2><p>The current plan-read contract does not include alternatives. No alternatives have been inferred by the browser.</p></section>
           <section id="safety-findings" className="support-card" aria-labelledby="safety-title"><p className="eyebrow">Safety review</p><h2 id="safety-title">Open findings</h2>{workspace.safetyFindings.length ? <div className="safety-list">{workspace.safetyFindings.map((finding) => <article className={`safety-item ${finding.level}`} key={finding.id}><span className="section-icon" aria-hidden="true">{finding.level === "urgent" ? "!" : finding.level === "warning" ? "△" : "i"}</span><div><p className="status-kicker">{finding.level === "urgent" ? "Urgent" : finding.level === "warning" ? "Warning" : "Information"} · Open</p><h3>{finding.title}</h3><p>{finding.detail}</p></div></article>)}</div> : <p>No safety findings were included in the current plan response.</p>}</section>
         </div>
+
+        <section className="assistant-rail" aria-labelledby="assistant-title">
+          <div className="assistant-heading"><p className="eyebrow">Read-only assistant</p><h2 id="assistant-title">Plan review support</h2><span className="info-badge"><span aria-hidden="true">i</span> Advisory</span></div>
+          <p>Ask about the current plan. The server sends only an identifier-omitted, scrubbed page projection. No assistant action can change this plan.</p>
+          <label htmlFor="assistant-prompt">Question for the assistant</label>
+          <textarea id="assistant-prompt" value={assistantPrompt} onChange={(event) => setAssistantPrompt(event.target.value)} maxLength={1000} placeholder="For example: Summarize the open safety considerations." />
+          <button className="primary-button" type="button" onClick={requestAdvisory} disabled={!assistantPrompt.trim() || assistantState.kind === "loading"}>{assistantState.kind === "loading" ? "Requesting advisory" : "Request advisory"}</button>
+          <p className="assistant-retention">Prompts and responses are not stored. Do not enter patient identifiers.</p>
+          {assistantState.kind === "idle" && <div className="assistant-state" role="status"><strong>Ready for an optional question.</strong><span>Clinical review remains available without the assistant.</span></div>}
+          {assistantState.kind === "loading" && <div className="assistant-state" role="status" aria-live="polite"><strong>Preparing scrubbed context.</strong><span>The clinical workspace remains available.</span></div>}
+          {assistantState.kind === "ready" && <article className="assistant-response" aria-label="Assistant advisory"><p className="status-kicker">{assistantState.label}</p><p>{assistantState.advisory}</p></article>}
+          {assistantState.kind === "unavailable" && <div className="assistant-state assistant-unavailable" role="status"><strong>Assistant unavailable.</strong><span>{assistantState.message} Clinical workflows remain available.</span></div>}
+        </section>
       </div>
     </main>
   </>;

@@ -3,7 +3,7 @@
   "info": {
     "title": "INSIGHT Treatment Plan live API",
     "version": "1.1.0",
-    "description": "Contract for the routes implemented by treatment_plan.app, including authenticated recommendation runs and follow-up supersession."
+    "description": "Contract for the routes implemented by treatment_plan.app, including authenticated recommendation runs, follow-up supersession, and the read-only advisory assistant."
   },
   "servers": [{"url": "/"}],
   "x-insight-compatibility": {
@@ -45,6 +45,7 @@
   "tags": [
     {"name": "operations"},
     {"name": "clinical-plans"},
+    {"name": "assistant"},
     {"name": "support"}
   ],
   "paths": {
@@ -230,6 +231,30 @@
           },
           "401": {"$ref": "#/components/responses/RuntimeError"},
           "404": {"$ref": "#/components/responses/RuntimeError"},
+          "503": {"$ref": "#/components/responses/RuntimeError"}
+        }
+      }
+    },
+    "/api/treatment-plan/v1/assistant/advisory": {
+      "post": {
+        "operationId": "requestTreatmentPlanAssistantAdvisory",
+        "x-insight-implementation-issue": "INS-055",
+        "tags": ["assistant"],
+        "description": "Psychiatrist-only, non-persistent advisory request. The server loads the plan and sends only the identifier-omitted, scrubbed allowlisted projection to the configured provider. No tools or mutations are available.",
+        "security": [{"cookieSession": []}],
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/AssistantAdvisoryRequest"}}}
+        },
+        "responses": {
+          "200": {
+            "description": "Advisory text requiring psychiatrist review",
+            "headers": {"X-Schema-Version": {"$ref": "#/components/headers/AssistantSchemaVersion"}},
+            "content": {"application/json": {"schema": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/AssistantAdvisoryResponse"}}}
+          },
+          "401": {"$ref": "#/components/responses/RuntimeError"},
+          "404": {"$ref": "#/components/responses/RuntimeError"},
+          "422": {"$ref": "#/components/responses/RuntimeError"},
           "503": {"$ref": "#/components/responses/RuntimeError"}
         }
       }
@@ -499,6 +524,7 @@
       "PlanViewSchemaVersion": {"schema": {"const": "1.1.0"}},
       "FinalPlanSchemaVersion": {"schema": {"const": "1.0.0"}},
       "RecommendationRunSchemaVersion": {"schema": {"const": "1.1.0"}},
+      "AssistantSchemaVersion": {"schema": {"const": "1.0.0"}},
       "IdempotencyKey": {"schema": {"type": "string", "minLength": 1}},
       "RequestId": {"schema": {"type": "string", "format": "uuid"}},
       "CorrelationId": {"schema": {"type": "string", "format": "uuid"}}

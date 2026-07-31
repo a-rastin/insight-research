@@ -1,16 +1,17 @@
 {
   "contractId": "insight.assistant-policy",
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
   "status": "accepted",
-  "scope": "INS-006",
+  "scope": "INS-055",
+  "supersedes": "INS-006 disabled assistant decision",
   "assistant": {
-    "v1Scope": "rejected",
-    "enabled": false,
-    "provider": null,
+    "v1Scope": "approved-read-only-treatment-plan-review",
+    "enabled": true,
+    "provider": "deployment-configured-advisory-provider",
     "unsupportedOrIncompletePolicyResult": "disabled"
   },
   "providerBoundary": {
-    "transmissionAllowed": false,
+    "transmissionAllowed": true,
     "structuralIdentifierOmissionRequiredBeforeScrubbing": true,
     "defenseInDepthScrubbingRequired": true,
     "forbiddenIdentifierClasses": [
@@ -24,7 +25,21 @@
     ]
   },
   "pageContext": {
-    "allowlist": [],
+    "allowlist": [
+      "treatment-plan-review.plan.content.setting",
+      "treatment-plan-review.plan.content.pharmacotherapy.medicationCode",
+      "treatment-plan-review.plan.content.pharmacotherapy.codeSystem",
+      "treatment-plan-review.plan.content.pharmacotherapy.dose",
+      "treatment-plan-review.plan.content.pharmacotherapy.route",
+      "treatment-plan-review.plan.content.pharmacotherapy.frequency",
+      "treatment-plan-review.plan.content.nextAppointment.interval",
+      "treatment-plan-review.plan.content.nextAppointment.timezone",
+      "treatment-plan-review.plan.safetyFindings.category",
+      "treatment-plan-review.plan.safetyFindings.severity",
+      "treatment-plan-review.plan.safetyFindings.status",
+      "treatment-plan-review.plan.safetyFindings.summary",
+      "treatment-plan-review.rationale"
+    ],
     "default": "deny"
   },
   "tools": {
@@ -43,25 +58,25 @@
   "conversation": {
     "persistenceEnabled": false,
     "retention": "none-no-storage",
-    "authorizedRoles": [],
+    "authorizedRoles": ["psychiatrist"],
     "deletion": "not-applicable-no-storage",
     "includedInBackup": false
   },
   "providerUsePolicy": {
-    "approved": false,
+    "approved": true,
     "promptsOrOutputsMayBeRetainedByProvider": false,
     "promptsOrOutputsMayBeUsedForTraining": false
   },
   "ui": {
-    "state": "disabled-provider",
-    "message": "Assistant unavailable. Clinical workflows remain available.",
-    "promptControlVisible": false,
+    "state": "bounded-read-only-rail",
+    "message": "Advisory assistant. Psychiatrist review required.",
+    "promptControlVisible": true,
     "mutationControlsVisible": false
   },
   "failurePolicy": {
     "clinicalWorkflowBlocking": false,
     "clinicalWorkflowMutationAllowed": false,
-    "fallback": "disabled-provider-ui-state"
+    "fallback": "provider-unavailable-ui-state"
   },
   "syntheticRedactionCorpus": [
     {"class": "patient-name", "input": "Test Patient", "expected": "[REDACTED]"},

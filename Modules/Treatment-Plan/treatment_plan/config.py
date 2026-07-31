@@ -25,6 +25,8 @@ class Settings:
     log_level: str = "INFO"
     authentication_session_url: str | None = None
     trusted_internal_origins: tuple[str, ...] = ()
+    assistant_provider_url: str | None = None
+    assistant_timeout_seconds: float = 10.0
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -51,6 +53,28 @@ class Settings:
                 raise ConfigurationError("TP_AUTHENTICATION_SESSION_URL must use a trusted internal origin")
         if environment == "production" and not session_url:
             raise ConfigurationError("production requires the Authentication REST interface")
-        return cls(environment, Path(os.getenv("TP_DATABASE_PATH", "var/treatment-plan.db")), stub, level, session_url, origins)
+        assistant_url = os.getenv("TP_ASSISTANT_PROVIDER_URL") or None
+        if assistant_url:
+            parsed = urlsplit(assistant_url)
+            if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment or f"{parsed.scheme}://{parsed.netloc}" not in origins:
+                raise ConfigurationError("TP_ASSISTANT_PROVIDER_URL must use a trusted internal origin")
+            if environment == "production" and parsed.scheme != "https":
+                raise ConfigurationError("assistant provider must use HTTPS in production")
+        try:
+            assistant_timeout = float(os.getenv("TP_ASSISTANT_TIMEOUT_SECONDS", "10"))
+        except ValueError as exc:
+            raise ConfigurationError("TP_ASSISTANT_TIMEOUT_SECONDS must be numeric") from exc
+        if not 0 < assistant_timeout <= 30:
+            raise ConfigurationError("TP_ASSISTANT_TIMEOUT_SECONDS must be greater than 0 and at most 30")
+        return cls(
+            environment=environment,
+            database_path=Path(os.getenv("TP_DATABASE_PATH", "var/treatment-plan.db")),
+            auth_stub_enabled=stub,
+            log_level=level,
+            authentication_session_url=session_url,
+            trusted_internal_origins=origins,
+            assistant_provider_url=assistant_url,
+            assistant_timeout_seconds=assistant_timeout,
+        )
 
 
