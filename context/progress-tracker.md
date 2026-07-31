@@ -8,6 +8,8 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-061: Complete system accessibility and failure-mode verification (In
+  progress).
 - INS-060: Implement module-aware backup, restore, migration, and rollback (In
   progress).
 - INS-059: Implement the follow-up gateway E2E scenario (In progress).
@@ -323,6 +325,40 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-061 system accessibility and failure-mode verification (In progress).
+  Unified nginx now applies HSTS, CSP, frame, MIME-sniffing, referrer, and
+  permissions headers, hides upstream server identity, keeps access logging
+  disabled, and adds a bounded public login request limit. Production Compose
+  defaults Authentication and Add New Patient/Diagnosis CSRF cookies to Secure
+  while retaining explicit local overrides. Add New Patient and DDI now honor
+  reduced motion; DDI's previously placeholder-only admin controls have
+  programmatic labels and visible focus treatment. Root INS-061 checks scan
+  tracked non-generated source for private keys/cloud credentials, reject
+  tracked database/log/backup artifacts, assert deployment threat controls,
+  audit focus and reduced-motion coverage across all nine browser surfaces, and
+  inject every required module outage into readiness aggregation. Focused
+  INS-061 checks passed 5/5; root discovery passed 89 tests with two expected
+  unconfigured live-gateway skips. Authentication passed 19/19, Dashboard
+  backend passed 16/16 and its frontend check passed, Add New Patient passed
+  55/55 plus four frontend checks, DDI passed 47/47, Severity passed its five
+  full-suite scripts, Medical History passed its five full-suite scripts,
+  Suicide Risk passed six Node tests plus HTTP/UI checks, BN Manager passed
+  57/57, and Treatment Plan passed 77/77 plus six frontend tests, typecheck,
+  and production build. Treatment Plan security/log-redaction checks passed
+  12/12; common REST/service-auth checks passed 12/12; Compose validation,
+  changed Python compilation, containerized `nginx -t`, and tracked PHI/secret
+  scans passed. A stale
+  fixed-date Suicide Risk test fixture was made clock-independent after it
+  exposed expired idempotency retention. Host `nginx -t` could not run because
+  nginx is not installed, so syntax was verified with nginx 1.27 Alpine.
+  Live TLS/header/cookie/rate-limit tests, browser and
+  assistive-technology accessibility automation, full dependency process-kill
+  chaos, and authenticated gateway execution remain blocked by the unavailable
+  deployment fixture and DDI's intentional `production-rest-seam-unavailable`
+  readiness state, so INS-061 remains in progress. No file under
+  `insight-research/doc/` was opened directly or modified; an early broad
+  repository content search may have scanned that directory before all later
+  scans were explicitly constrained to exclude it.
 - INS-060 module-aware backup, restore, migration, retention, and rollback (In
   progress). Versioned deployment policy now covers all ten module-owned stores:
   eight SQLite databases plus DDI and BN registries seeded into their separate

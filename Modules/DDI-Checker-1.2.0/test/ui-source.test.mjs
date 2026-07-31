@@ -16,6 +16,16 @@ test("admin workflow and report upload controls are reachable", () => {
   assert.match(html, /type="file"/);
 });
 
+test("controls have visible focus, labels, and reduced-motion support", () => {
+  const html = fs.readFileSync(path.join(projectRoot, "index.html"), "utf8");
+  const css = fs.readFileSync(path.join(projectRoot, "src", "styles.css"), "utf8");
+  for (const id of ["reviewSearch", "reportFileInput", "newDrugA", "newDrugB", "newSeverity", "newEffect", "newRecommendation"]) {
+    assert.match(html, new RegExp(`<label for="${id}">`));
+  }
+  assert.match(css, /:focus-visible/);
+  assert.match(css, /prefers-reduced-motion: reduce/);
+});
+
 test("dashboard shows session code and result export controls", () => {
   const html = fs.readFileSync(path.join(projectRoot, "index.html"), "utf8");
   const app = fs.readFileSync(path.join(projectRoot, "src", "app.js"), "utf8");

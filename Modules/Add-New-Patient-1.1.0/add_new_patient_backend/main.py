@@ -363,7 +363,7 @@ async def csrf() -> JSONResponse:
         sign_csrf_token(token),
         httponly=True,
         samesite="lax",
-        secure=False,
+        secure=settings.csrf_secure,
         path="/",
     )
     return response

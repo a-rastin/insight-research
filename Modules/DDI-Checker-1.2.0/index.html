@@ -79,7 +79,8 @@
               <h2>Parsed records</h2>
               <button id="activateRevisionButton">Activate revision</button>
             </div>
-            <input id="reviewSearch" class="search" placeholder="Filter by drug, severity, or evidence">
+            <label for="reviewSearch">Filter parsed records</label>
+            <input id="reviewSearch" class="search" placeholder="Drug, severity, or evidence">
             <div id="reviewList" class="review-list"></div>
           </section>
 
@@ -141,6 +142,7 @@
         <section class="panel add-panel">
           <h2>Upload TXT report</h2>
           <form id="uploadReportForm" class="upload-form">
+            <label for="reportFileInput">Interaction reports</label>
             <input id="reportFileInput" type="file" accept=".txt,.md,text/plain,text/markdown" multiple>
             <button type="submit" class="primary">Import report</button>
           </form>
@@ -150,8 +152,11 @@
         <section class="panel add-panel">
           <h2>Add interaction</h2>
           <form id="addInteractionForm" class="add-form">
-            <input id="newDrugA" placeholder="Drug A">
-            <input id="newDrugB" placeholder="Drug B">
+            <label for="newDrugA">Drug A</label>
+            <input id="newDrugA">
+            <label for="newDrugB">Drug B</label>
+            <input id="newDrugB">
+            <label for="newSeverity">Severity</label>
             <select id="newSeverity">
               <option value="major">Major</option>
               <option value="contraindicated">Contraindicated</option>
@@ -159,8 +164,10 @@
               <option value="minor">Minor</option>
               <option value="unknown">Unknown</option>
             </select>
-            <input id="newEffect" placeholder="Clinical concern">
-            <input id="newRecommendation" placeholder="Recommended psychiatrist action">
+            <label for="newEffect">Clinical concern</label>
+            <input id="newEffect">
+            <label for="newRecommendation">Recommended psychiatrist action</label>
+            <input id="newRecommendation">
             <button type="submit" class="primary">Add to review queue</button>
           </form>
         </section>

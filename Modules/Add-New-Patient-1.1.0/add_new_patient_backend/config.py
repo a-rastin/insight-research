@@ -15,6 +15,7 @@ class Settings:
         self.auth_base_url = os.environ.get("AUTH_BASE_URL", "")
         self.auth_session_timeout_seconds = float(os.environ.get("AUTH_SESSION_TIMEOUT_MS", "2000")) / 1000
         self.csrf_secret = os.environ.get("ADD_NEW_PATIENT_CSRF_SECRET", secrets.token_urlsafe(32))
+        self.csrf_secure = os.environ.get("ADD_NEW_PATIENT_CSRF_SECURE", "false").lower() == "true"
         # ponytail: mock auth mirrors Dashboard — on by default when no auth URL set, off if =0.
         self.use_mock_auth = os.environ.get("ADD_NEW_PATIENT_MOCK_AUTH") == "1" or (
             not self.auth_session_url

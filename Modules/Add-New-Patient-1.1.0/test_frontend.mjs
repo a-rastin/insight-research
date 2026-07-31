@@ -6,6 +6,7 @@ import { dirname, resolve } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const html = readFileSync(resolve(here, "index.html"), "utf8");
+const css = readFileSync(resolve(here, "styles.css"), "utf8");
 
 test("dashboard view renders with activate control", () => {
   assert.match(html, /id="dashboardView"/);
@@ -34,4 +35,10 @@ test("form exposes demographics + clinical fields", () => {
 
 test("status message exposes aria-live region", () => {
   assert.match(html, /id="statusMessage"[^>]*role="status"[^>]*aria-live="polite"/);
+});
+
+test("interactive UI supports focus and reduced motion", () => {
+  assert.match(css, /:focus-visible/);
+  assert.match(css, /prefers-reduced-motion: reduce/);
+  assert.match(css, /min-height: 44px/);
 });

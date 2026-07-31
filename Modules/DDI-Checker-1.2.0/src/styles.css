@@ -48,6 +48,14 @@ button:hover {
   border-color: var(--brand);
 }
 
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
 button.primary {
   background: var(--brand);
   border-color: var(--brand);
@@ -511,4 +519,15 @@ h3 {
 }
 
 .storage-failure { position: sticky; top: 0; z-index: 20; padding: .85rem 1rem; border: 2px solid #b42318; border-radius: .5rem; background: #fef3f2; color: #7a271a; font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
 
