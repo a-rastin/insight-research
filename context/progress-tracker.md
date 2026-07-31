@@ -8,6 +8,8 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-054: Conduct psychiatrist lifecycle walkthrough and retire prototype (In
+  progress).
 - INS-053: Wire follow-up supersession route and UI (In progress).
 - INS-051: Connect React review UI to authenticated backend routes (In
   progress).
@@ -313,6 +315,32 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-054 psychiatrist-role lifecycle walkthrough and prototype retirement (In
+  progress). Controlled evidence `INS-054-WALKTHROUGH-2026-07-31` now maps five
+  synthetic, no-PHI lifecycle cases to production behavior: required-input
+  uncertainty blocks generation before model work; structured edits preserve
+  the immutable recommendation and actor/session/before/after history;
+  high-severity DDI override requires the exact attributable rationale;
+  finalization repeats DDI validation and freezes the resulting Final Plan; and
+  follow-up creates an explained successor without changing the prior Final
+  Plan. The React walkthrough additionally confirms that urgent findings remain
+  visible during editing and that successor section changes are textual and
+  explained. ADR-0010 records the observations, commands, production-test
+  evidence, retirement decision, and explicit limitation that no human
+  psychiatrist participated. The repository had no `prototype/` directory at
+  packet start and production/tests contain no prototype import, so no
+  unverified code was deleted; generated `graphify-out/` references were left
+  untouched. Focused backend walkthrough tests passed 5/5 and the focused UI
+  walkthrough passed 1/1. The full Treatment Plan backend suite passed 71/71;
+  frontend tests passed 5/5; TypeScript checking and the production build
+  passed; common REST checks passed 8/8; root discovery passed 70/70; and `git
+  diff --check` passed. No file under `insight-research/doc/`, protected
+  clinical/model source, applied migration, runtime data, or generated artifact
+  was modified. Findings are split into bounded INS-055 finalization UI,
+  INS-056 composed authenticated lifecycle integration, and INS-057 independent
+  psychiatrist walkthrough packets. INS-054 remains in progress until the
+  independent psychiatrist evidence required by INS-057 is attributable and
+  recorded; no clinical deployment approval is claimed.
 - INS-053 follow-up supersession route and UI (In progress). The canonical
   Treatment Plan OpenAPI and runtime schema now publish authenticated,
   psychiatrist-only `POST /api/treatment-plan/v1/plans/{plan_id}/supersede`
