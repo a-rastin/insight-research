@@ -1,4 +1,4 @@
-## Prompt-23
+## Prompt-24
 
 - Read @insight-research/AGENTS.md
 - Read @insight-research/context/feature-specs/24-diagnosis-ui.md
