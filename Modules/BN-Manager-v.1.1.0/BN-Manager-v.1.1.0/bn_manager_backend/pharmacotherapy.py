@@ -46,6 +46,8 @@ def evaluate_candidate_gates(candidate_id: str, evidence: Mapping[str, str]) -> 
     """Evaluate only source-backed gates for one candidate; never rank candidates."""
     if not isinstance(candidate_id, str) or not candidate_id.strip():
         raise ValueError("candidate_id is required")
+    if len(candidate_id.strip()) > 128:
+        raise ValueError("candidate_id must not exceed 128 characters")
     unknown_nodes = sorted(set(evidence) - set(REQUIRED_EVIDENCE))
     if unknown_nodes:
         raise ValueError("unsupported evidence nodes: " + ", ".join(unknown_nodes))

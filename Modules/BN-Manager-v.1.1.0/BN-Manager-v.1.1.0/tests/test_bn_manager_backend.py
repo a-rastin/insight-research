@@ -18,6 +18,17 @@ from bn_manager_backend.model_registry import (
 from clinical_graph_models import compile_xmlbif
 
 
+PHARMACOTHERAPY_EVIDENCE = {
+    "schizophrenia_diagnostic_context": "schizophrenia_confirmed",
+    "candidate_specific_hard_contraindication": "absent",
+    "prior_antipsychotic_experience": "effective_and_tolerable",
+    "patient_preference_and_acceptability": "accepts_candidate",
+    "side_effect_and_physical_health_fit": "favorable",
+    "interaction_and_pharmacokinetic_fit": "favorable",
+    "formulation_fit": "acceptable_formulation_available",
+}
+
+
 class AdminSessionAdapter:
     def __init__(self) -> None:
         self.session = session_from_payload(
@@ -44,7 +55,7 @@ class BnManagerBackendTests(unittest.TestCase):
 
         self.assertEqual(health["data"]["module_id"], "bn-manager")
         self.assertTrue(ready["data"]["contract_loaded"])
-        self.assertEqual(contract["data"]["contract_version"], "3.0.0")
+        self.assertEqual(contract["data"]["contract_version"], "3.1.0")
         self.assertEqual(contract["data"]["xml_target"]["extension"], ".xml")
 
     def test_models_list_contains_exactly_the_four_canonical_networks(self) -> None:
@@ -194,18 +205,97 @@ class BnManagerBackendTests(unittest.TestCase):
         pharmacotherapy = next(model for model in models if model["stable_id"] == "bnm.pharmacotherapy")
         self.assertEqual(pharmacotherapy["mapping_version"], "2.0.0")
         self.assertEqual(pharmacotherapy["calibration_status"], "qualitative-uncalibrated")
-        self.assertEqual(pharmacotherapy["clinical_recommendation_use"], "excluded")
+        self.assertEqual(
+            pharmacotherapy["clinical_recommendation_use"],
+            "blocked-until-calibrated-and-approved",
+        )
         self.assertRegex(pharmacotherapy["mapping_hash"], r"^sha256:[0-9a-f]{64}$")
 
-    def test_uncalibrated_pharmacotherapy_evaluation_fails_closed(self) -> None:
-        response = self.admin_client.post(
+    def test_pharmacotherapy_requires_candidate_and_applies_gates_before_inference(self) -> None:
+        missing_candidate = self.admin_client.post(
             "/api/bn-manager/v3/evaluations",
-            json={"stable_id": "bnm.pharmacotherapy", "evidence": {}},
+            json={"stable_id": "bnm.pharmacotherapy", "evidence": PHARMACOTHERAPY_EVIDENCE},
+            headers={"x-csrf-token": "csrf-validate", "idempotency-key": "pharm-no-candidate"},
+        )
+        self.assertEqual(missing_candidate.status_code, 400)
+
+        contraindicated = dict(PHARMACOTHERAPY_EVIDENCE)
+        contraindicated["candidate_specific_hard_contraindication"] = "present"
+        blocked = self.admin_client.post(
+            "/api/bn-manager/v3/evaluations",
+            json={
+                "stable_id": "bnm.pharmacotherapy",
+                "candidate_id": "candidate-a",
+                "evidence": contraindicated,
+            },
             headers={"x-csrf-token": "csrf-validate", "idempotency-key": "pharm-blocked"},
         )
-        self.assertEqual(response.status_code, 422)
-        self.assertEqual(response.json()["error"]["code"], "BNM_SAFETY_REVIEW_REQUIRED")
-        self.assertEqual(response.json()["error"]["details"]["calibration_status"], "qualitative-uncalibrated")
+        self.assertEqual(blocked.status_code, 422)
+        self.assertEqual(blocked.json()["error"]["code"], "BNM_SAFETY_REVIEW_REQUIRED")
+        self.assertEqual(blocked.json()["error"]["details"]["disposition"], "excluded")
+
+    def test_pharmacotherapy_returns_candidate_bound_research_posterior(self) -> None:
+        response = self.admin_client.post(
+            "/api/bn-manager/v3/evaluations",
+            json={
+                "stable_id": "bnm.pharmacotherapy",
+                "candidate_id": "candidate-a",
+                "evidence": PHARMACOTHERAPY_EVIDENCE,
+            },
+            headers={"x-csrf-token": "csrf-validate", "idempotency-key": "pharm-research"},
+        )
+        self.assertEqual(response.status_code, 200)
+        result = response.json()["data"]
+        self.assertEqual(result["interface_version"], "3.1.0")
+        self.assertEqual(result["candidate_id"], "candidate-a")
+        self.assertEqual(result["candidate_gate"]["disposition"], "eligible-for-clinician-comparison")
+        self.assertEqual(result["accepted_evidence"], PHARMACOTHERAPY_EVIDENCE)
+        for probability in result["posterior"].values():
+            self.assertAlmostEqual(probability, 0.2)
+        self.assertTrue(
+            any(warning["code"] == "BNM_MODEL_UNCALIBRATED" for warning in result["warnings"])
+        )
+
+    def test_pharmacotherapy_patient_evidence_reaches_versioned_cpt_inference(self) -> None:
+        favorable = dict(PHARMACOTHERAPY_EVIDENCE)
+        concerning = dict(PHARMACOTHERAPY_EVIDENCE)
+        concerning["side_effect_and_physical_health_fit"] = "concerning"
+
+        def patient_specific_posterior(model, target, evidence):
+            probability = 0.8 if evidence["side_effect_and_physical_health_fit"] == "favorable" else 0.3
+            return SimpleNamespace(
+                target=target,
+                values={"candidate_supported": probability, "alternative": 1.0 - probability},
+            )
+
+        with patch("bn_manager_backend.main.evaluate_posterior", side_effect=patient_specific_posterior):
+            first = self.admin_client.post(
+                "/api/bn-manager/v3/evaluations",
+                json={
+                    "stable_id": "bnm.pharmacotherapy",
+                    "candidate_id": "candidate-a",
+                    "evidence": favorable,
+                },
+                headers={"x-csrf-token": "csrf-validate", "idempotency-key": "patient-a"},
+            )
+            second = self.admin_client.post(
+                "/api/bn-manager/v3/evaluations",
+                json={
+                    "stable_id": "bnm.pharmacotherapy",
+                    "candidate_id": "candidate-a",
+                    "evidence": concerning,
+                },
+                headers={"x-csrf-token": "csrf-validate", "idempotency-key": "patient-b"},
+            )
+
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(first.json()["data"]["posterior"]["candidate_supported"], 0.8)
+        self.assertEqual(second.json()["data"]["posterior"]["candidate_supported"], 0.3)
+        self.assertEqual(
+            first.json()["data"]["model"]["content_hash"],
+            second.json()["data"]["model"]["content_hash"],
+        )
 
     def test_v3_evaluation_is_traceable_and_idempotent(self) -> None:
         payload = {

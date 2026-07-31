@@ -12,6 +12,7 @@ WORKSPACE = ROOT.parent
 MODULE = ROOT / "Modules/BN-Manager-v.1.1.0/BN-Manager-v.1.1.0"
 POLICY_PATH = MODULE / "bn_manager_backend/model_registry/governance/pharmacotherapy-mapping-v2.json"
 SCHEMA_PATH = MODULE / "bn_manager_backend/model_registry/governance/pharmacotherapy-mapping-v2.schema.json"
+BN_SCHEMA_PATH = MODULE / "contracts/bn-manager-v3.schema.json"
 
 
 class Ins035PharmacotherapyTests(unittest.TestCase):
@@ -41,11 +42,42 @@ class Ins035PharmacotherapyTests(unittest.TestCase):
             self.assertTrue(mapping["sourceLines"], mapping["node"])
             self.assertTrue(all(1 <= line <= source_line_count for line in mapping["sourceLines"]), mapping["node"])
 
-    def test_uncalibrated_model_is_explicitly_excluded(self):
+    def test_uncalibrated_model_is_explicitly_blocked_from_clinical_use(self):
         self.assertEqual(self.policy["calibration"]["label"], "qualitative-uncalibrated")
-        self.assertEqual(self.policy["calibration"]["clinicalRecommendationUse"], "excluded")
+        self.assertEqual(
+            self.policy["calibration"]["clinicalRecommendationUse"],
+            "blocked-until-calibrated-and-approved",
+        )
         self.assertFalse(self.policy["candidateEvaluation"]["rankingAllowed"])
         self.assertFalse(self.policy["candidateEvaluation"]["automaticSelectionAllowed"])
+
+    def test_v31_contract_requires_candidate_bound_complete_evidence(self):
+        schema = json.loads(BN_SCHEMA_PATH.read_text(encoding="utf-8"))
+        evidence = {
+            "schizophrenia_diagnostic_context": "schizophrenia_confirmed",
+            "candidate_specific_hard_contraindication": "absent",
+            "prior_antipsychotic_experience": "no_prior_trial",
+            "patient_preference_and_acceptability": "accepts_candidate",
+            "side_effect_and_physical_health_fit": "favorable",
+            "interaction_and_pharmacokinetic_fit": "favorable",
+            "formulation_fit": "acceptable_formulation_available",
+        }
+        request = {
+            "stable_id": "bnm.pharmacotherapy",
+            "candidate_id": "candidate-a",
+            "evidence": evidence,
+        }
+        full_validator = Draft202012Validator(schema)
+        request_validator = full_validator.evolve(schema=schema["$defs"]["evaluationRequest"])
+        self.assertEqual(list(request_validator.iter_errors(request)), [])
+        self.assertTrue(list(request_validator.iter_errors({"stable_id": "bnm.pharmacotherapy", "evidence": evidence})))
+        self.assertTrue(
+            list(
+                request_validator.iter_errors(
+                    {"stable_id": "bnm.treatment-setting", "candidate_id": "candidate-a"}
+                )
+            )
+        )
 
 
 if __name__ == "__main__":

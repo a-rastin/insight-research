@@ -28,7 +28,7 @@ ROOT = Path(__file__).resolve().parent.parent
 class BnManagerContractTests(unittest.TestCase):
     def test_module_identity_and_xml_target_are_versioned(self) -> None:
         self.assertEqual(MODULE_ID, "bn-manager")
-        self.assertEqual(CONTRACT_VERSION, "3.0.0")
+        self.assertEqual(CONTRACT_VERSION, "3.1.0")
         self.assertEqual(ROUTE_PREFIX, "/api/bn-manager/v1")
         self.assertEqual(XMLBIF_TARGET.format_id, "XML")
         self.assertEqual(XMLBIF_TARGET.version, "0.3")
@@ -80,7 +80,7 @@ class BnManagerContractTests(unittest.TestCase):
     def test_contract_payload_exposes_xml_target_and_module_boundary(self) -> None:
         payload = contract_payload()
 
-        self.assertEqual(payload["contract_version"], "3.0.0")
+        self.assertEqual(payload["contract_version"], "3.1.0")
         self.assertEqual(payload["xml_target"]["extension"], ".xml")
         self.assertNotIn("xmlbif_target", payload)
         self.assertIn("No direct imports or database reads", payload["module_boundary"])
@@ -122,7 +122,7 @@ class BnManagerContractTests(unittest.TestCase):
         schema = json.loads((contract_dir / "bn-manager-v3.schema.json").read_text(encoding="utf-8"))
         openapi = json.loads((contract_dir / "openapi-v3.json").read_text(encoding="utf-8"))
 
-        self.assertEqual(contract["interfaceVersion"], "3.0.0")
+        self.assertEqual(contract["interfaceVersion"], "3.1.0")
         expected_paths = {"/models", "/models/{stable_id}", "/evaluations"}
         self.assertEqual(set(openapi["paths"]), expected_paths)
         app_tree = ast.parse((ROOT / "bn_manager_backend/main.py").read_text(encoding="utf-8"))
@@ -139,7 +139,10 @@ class BnManagerContractTests(unittest.TestCase):
         }
         self.assertEqual(runtime_paths, expected_paths)
         self.assertFalse(schema["$defs"]["evaluationRequest"]["additionalProperties"])
-        self.assertEqual(set(schema["$defs"]["evaluationRequest"]["properties"]), {"stable_id", "evidence"})
+        self.assertEqual(
+            set(schema["$defs"]["evaluationRequest"]["properties"]),
+            {"stable_id", "candidate_id", "evidence"},
+        )
         self.assertFalse(contract["callerModelText"]["allowedForV3Evaluation"])
         self.assertEqual(contract["callerModelText"]["allowedRole"], "admin")
 

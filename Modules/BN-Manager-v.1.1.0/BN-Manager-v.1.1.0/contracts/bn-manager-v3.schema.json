@@ -31,7 +31,7 @@
         "schema_version": {"const": "BIF-0.3"},
         "schema_content_hash": {"$ref": "#/$defs/sha256"},
         "calibration_status": {"enum": ["qualitative-uncalibrated"]},
-        "clinical_recommendation_use": {"enum": ["excluded"]},
+        "clinical_recommendation_use": {"enum": ["blocked-until-calibrated-and-approved"]},
         "mapping_path": {"const": "governance/pharmacotherapy-mapping-v2.json"},
         "mapping_hash": {"$ref": "#/$defs/sha256"}
       }
@@ -42,7 +42,7 @@
       "required": ["module_id", "contract_version", "request_id", "clinical_safety_wording", "warnings"],
       "properties": {
         "module_id": {"const": "bn-manager"},
-        "contract_version": {"const": "3.0.0"},
+        "contract_version": {"const": "3.1.0"},
         "request_id": {"type": ["string", "null"]},
         "clinical_safety_wording": {"type": "string", "minLength": 1},
         "warnings": {"type": "array", "items": {"type": "string"}}
@@ -53,7 +53,7 @@
       "additionalProperties": false,
       "required": ["interface_version", "models", "schema"],
       "properties": {
-        "interface_version": {"const": "3.0.0"},
+        "interface_version": {"const": "3.1.0"},
         "models": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"$ref": "#/$defs/model"}},
         "schema": {
           "type": "object",
@@ -68,7 +68,7 @@
       "additionalProperties": false,
       "required": ["interface_version", "model"],
       "properties": {
-        "interface_version": {"const": "3.0.0"},
+        "interface_version": {"const": "3.1.0"},
         "model": {"$ref": "#/$defs/model"}
       }
     },
@@ -78,10 +78,54 @@
       "required": ["stable_id"],
       "properties": {
         "stable_id": {"$ref": "#/$defs/model/properties/stable_id"},
+        "candidate_id": {"type": "string", "minLength": 1, "maxLength": 128},
         "evidence": {
           "type": "object",
           "propertyNames": {"minLength": 1},
           "additionalProperties": {"type": "string", "minLength": 1}
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"stable_id": {"const": "bnm.pharmacotherapy"}},
+            "required": ["stable_id"]
+          },
+          "then": {
+            "required": ["candidate_id", "evidence"],
+            "properties": {"evidence": {"$ref": "#/$defs/pharmacotherapyEvidence"}}
+          },
+          "else": {"not": {"required": ["candidate_id"]}}
+        }
+      ]
+    },
+    "pharmacotherapyEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schizophrenia_diagnostic_context",
+        "candidate_specific_hard_contraindication",
+        "prior_antipsychotic_experience",
+        "patient_preference_and_acceptability",
+        "side_effect_and_physical_health_fit",
+        "interaction_and_pharmacokinetic_fit",
+        "formulation_fit"
+      ],
+      "properties": {
+        "schizophrenia_diagnostic_context": {
+          "enum": ["schizophrenia_confirmed", "diagnosis_not_confirmed", "unknown"]
+        },
+        "candidate_specific_hard_contraindication": {"enum": ["present", "absent", "unknown"]},
+        "prior_antipsychotic_experience": {
+          "enum": ["effective_and_tolerable", "ineffective_or_intolerable", "no_prior_trial", "unknown"]
+        },
+        "patient_preference_and_acceptability": {
+          "enum": ["accepts_candidate", "prefers_alternative", "declines_antipsychotic", "unknown"]
+        },
+        "side_effect_and_physical_health_fit": {"enum": ["favorable", "concerning", "unknown"]},
+        "interaction_and_pharmacokinetic_fit": {"enum": ["favorable", "concerning", "unknown"]},
+        "formulation_fit": {
+          "enum": ["acceptable_formulation_available", "formulation_mismatch", "unknown"]
         }
       }
     },
@@ -107,6 +151,18 @@
         "path": {"type": "string"}
       }
     },
+    "candidateGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidate_id", "disposition", "reason_code", "mapping_version", "review_signals"],
+      "properties": {
+        "candidate_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "disposition": {"const": "eligible-for-clinician-comparison"},
+        "reason_code": {"const": "hard-gates-cleared"},
+        "mapping_version": {"const": "2.0.0"},
+        "review_signals": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
     "evaluationData": {
       "type": "object",
       "additionalProperties": false,
@@ -115,7 +171,7 @@
         "accepted_evidence", "ignored_evidence", "warnings", "posterior", "mapping_version", "evaluated_by"
       ],
       "properties": {
-        "interface_version": {"const": "3.0.0"},
+        "interface_version": {"const": "3.1.0"},
         "evaluation_id": {"$ref": "#/$defs/uuid"},
         "evaluated_at": {"$ref": "#/$defs/utcTimestamp"},
         "model": {"$ref": "#/$defs/model"},
@@ -125,7 +181,9 @@
         "warnings": {"type": "array", "items": {"$ref": "#/$defs/validationMessage"}},
         "posterior": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1}},
         "mapping_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
-        "evaluated_by": {"type": "string", "minLength": 1}
+        "evaluated_by": {"type": "string", "minLength": 1},
+        "candidate_id": {"type": "string", "minLength": 1, "maxLength": 128},
+        "candidate_gate": {"$ref": "#/$defs/candidateGate"}
       }
     },
     "successEnvelope": {

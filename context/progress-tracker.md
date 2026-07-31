@@ -317,24 +317,35 @@ Update this file after every meaningful implementation change.
   precedence, blocks unconfirmed diagnosis and missing/unknown required facts,
   and treats a gate-passing candidate only as eligible for psychiatrist
   comparison. Five golden cases cover eligible, contraindicated, unconfirmed,
-  unknown, and review-factor paths. Because candidate-priority and final
-  recommendation CPT rows are uniform placeholders, registry discovery now
-  publishes mapping hash/version, `qualitative-uncalibrated`, and `excluded`;
-  v3 Pharmacotherapy posterior evaluation fails closed with
-  `BNM_SAFETY_REVIEW_REQUIRED`. Focused governance/provider tests passed 28/28
+  unknown, and review-factor paths. BN Manager contract `3.1.0` now requires an
+  explicit `candidate_id` and complete exact-node evidence for Pharmacotherapy,
+  applies hard gates before inference, and returns the candidate gate result,
+  posterior, active semantic version, model hash, mapping version/hash, and
+  calibration warning. Gate-blocked requests fail with
+  `BNM_SAFETY_REVIEW_REQUIRED`; gate-clearing requests may be evaluated for
+  research, and regression coverage proves changed patient evidence reaches the
+  versioned CPT inference seam and can change returned probabilities when the
+  active CPTs support it. Because the current candidate-priority and final
+  recommendation CPT rows remain uniform placeholders, registry discovery and
+  evaluation label them `qualitative-uncalibrated` and
+  `blocked-until-calibrated-and-approved` for clinical recommendation use.
+  Focused governance/provider tests passed 30/30
   with `UV_CACHE_DIR=/tmp/insight-uv-cache uv run --with httpx2 python -B -m
   unittest tests.test_pharmacotherapy_governance tests.test_contract
-  tests.test_bn_manager_backend -v`; the full BN Manager suite passed 55/55;
-  workspace source/schema tests passed 4/4; model-manifest checks passed 5/5;
-  safety-precedence checks passed 7/7; and final root discovery passed 69/69.
+  tests.test_bn_manager_backend -v`; the full BN Manager suite passed 57/57;
+  workspace source/schema tests passed 5/5; model-manifest checks passed 5/5;
+  safety-precedence checks passed 7/7; and final root discovery passed 70/70.
   Changed JSON syntax, Python compilation, and
   `git diff --check` passed. The protected guideline and XML bytes were not
   modified. Clinical/model-owner approval, calibrated and validated CPTs,
   authoritative labeling/DDI inputs for candidate contraindications, and a
   consumer migration away from the Treatment Plan's synthetic Pharmacotherapy
-  vocabulary remain unresolved. The next step is clinical/model-owner review
-  and calibration evidence; Pharmacotherapy must remain excluded until those
-  gates pass and consumer mappings are reconciled.
+  vocabulary remain unresolved. CPT mutation/activation is intentionally not
+  claimed by v3.1 and remains a separate BN Manager governance operation. The
+  next step is to activate an approved calibrated CPT revision with a new
+  semantic version/content hash and reconcile consumer mappings; until then,
+  the returned posterior remains research-only and cannot drive a clinical
+  recommendation.
 - INS-030 approved structured suicide-risk module (In progress). The independent
   `Modules/Suicide-Risk-1.0.0/` Node service now publishes interface/schema
   `1.0.0`, module-owned SQLite persistence with immutable attributed versions,

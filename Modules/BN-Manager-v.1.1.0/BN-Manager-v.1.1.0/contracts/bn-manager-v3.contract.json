@@ -1,7 +1,7 @@
 {
   "contractId": "insight.bn-manager",
-  "interfaceVersion": "3.0.0",
-  "schemaVersion": "3.0.0",
+  "interfaceVersion": "3.1.0",
+  "schemaVersion": "3.1.0",
   "moduleOwner": "bn-manager",
   "status": "published",
   "basePath": "/api/bn-manager/v3",
@@ -17,19 +17,24 @@
   ],
   "evaluation": {
     "registryOnly": true,
-    "requestFields": ["stable_id", "evidence"],
+    "requestFields": ["stable_id", "candidate_id", "evidence"],
     "additionalPropertiesAllowed": false,
     "callerModelTextAllowed": false,
     "idempotencyScope": ["authenticated-actor", "key"],
     "returnsAcceptedAndIgnoredEvidence": true,
-    "pharmacotherapyClinicalRecommendationUse": "excluded-until-calibrated-and-approved"
+    "pharmacotherapyClinicalRecommendationUse": "research-evaluation-only-until-calibrated-and-approved"
   },
   "pharmacotherapyGovernance": {
     "mappingVersion": "2.0.0",
     "mappingPath": "governance/pharmacotherapy-mapping-v2.json",
     "calibrationStatus": "qualitative-uncalibrated",
     "candidateSemantics": "one-candidate-at-a-time-without-ranking-or-automatic-selection",
-    "hardGatesPrecedePosterior": true
+    "hardGatesPrecedePosterior": true,
+    "candidateIdRequired": true,
+    "completeEvidenceRequired": true,
+    "returnsGateResultWithPosterior": true,
+    "cptRevisionIdentity": ["semantic_version", "content_hash"],
+    "cptMutationOperation": "not-published-in-v3.1.0"
   },
   "callerModelText": {
     "allowedOperation": "POST /api/bn-manager/v1/models/validate",

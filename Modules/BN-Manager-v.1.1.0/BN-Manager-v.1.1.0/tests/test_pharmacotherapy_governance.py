@@ -27,7 +27,10 @@ class PharmacotherapyGovernanceTests(unittest.TestCase):
         payload = entry.payload()
         self.assertEqual(payload["mapping_version"], MAPPING_VERSION)
         self.assertEqual(payload["calibration_status"], "qualitative-uncalibrated")
-        self.assertEqual(payload["clinical_recommendation_use"], "excluded")
+        self.assertEqual(
+            payload["clinical_recommendation_use"],
+            "blocked-until-calibrated-and-approved",
+        )
         self.assertEqual(payload["content_hash"], "sha256:" + self.policy["model"]["sha256"])
         self.assertEqual(
             payload["mapping_hash"],
@@ -60,7 +63,10 @@ class PharmacotherapyGovernanceTests(unittest.TestCase):
             rows = [potential.data[index:index + width] for index in range(0, len(potential.data), width)]
             self.assertTrue(all(row == rows[0] for row in rows), child)
         self.assertEqual(self.policy["calibration"]["label"], "qualitative-uncalibrated")
-        self.assertEqual(self.policy["calibration"]["clinicalRecommendationUse"], "excluded")
+        self.assertEqual(
+            self.policy["calibration"]["clinicalRecommendationUse"],
+            "blocked-until-calibrated-and-approved",
+        )
 
     def test_golden_candidate_gate_cases(self) -> None:
         fixture = json.loads(GOLDEN_PATH.read_text(encoding="utf-8"))
@@ -81,6 +87,8 @@ class PharmacotherapyGovernanceTests(unittest.TestCase):
             evaluate_candidate_gates(
                 "candidate-a", {"schizophrenia_diagnostic_context": "assumed_confirmed"}
             )
+        with self.assertRaisesRegex(ValueError, "128"):
+            evaluate_candidate_gates("x" * 129, {})
 
 
 if __name__ == "__main__":

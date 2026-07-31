@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass
 from typing import Any
 
 MODULE_ID = "bn-manager"
-CONTRACT_VERSION = "3.0.0"
+CONTRACT_VERSION = "3.1.0"
 PYTHON_PACKAGE = "clinical_graph_models"
 ROUTE_PREFIX = "/api/bn-manager/v1"
 V3_ROUTE_PREFIX = "/api/bn-manager/v3"

@@ -1,6 +1,6 @@
 {
   "openapi": "3.1.0",
-  "info": {"title": "INSIGHT BN Manager API", "version": "3.0.0"},
+  "info": {"title": "INSIGHT BN Manager API", "version": "3.1.0"},
   "servers": [{"url": "/api/bn-manager/v3"}],
   "paths": {
     "/models": {
@@ -30,7 +30,7 @@
     "/evaluations": {
       "post": {
         "operationId": "createBnEvaluationV3",
-        "description": "Evaluate one registered model. Caller model text and undeclared request fields are rejected. The qualitative-uncalibrated Pharmacotherapy model is excluded from clinical recommendation evaluation and returns 422.",
+        "description": "Evaluate one registered model. Pharmacotherapy evaluates one explicit candidate, applies deterministic gates before inference, and returns an attributable posterior. Current qualitative-uncalibrated output is research-only and blocked from clinical recommendation use until a calibrated, approved CPT revision is activated with a new semantic version and content hash.",
         "security": [{"cookieSession": [], "csrfToken": []}],
         "parameters": [{"$ref": "#/components/parameters/IdempotencyKey"}],
         "requestBody": {

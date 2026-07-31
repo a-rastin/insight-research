@@ -28,6 +28,7 @@ from clinical_graph_models.model import ClinicalGraphModel
 from .auth_adapter import AuthenticationRestAdapter, CsrfError, SessionAdapter, SessionState, assert_csrf_token
 from .config import BnManagerSettings, get_settings
 from .model_registry import get_registry_entry, list_registry_entries, read_registry_model, read_registry_schema
+from .pharmacotherapy import evaluate_candidate_gates
 
 EVALUATION_ROLES = frozenset({"psychiatrist", "admin"})
 ADMIN_ROLES = frozenset({"admin"})
@@ -149,7 +150,7 @@ def create_app(
     def model_registry_list_v3() -> dict[str, Any]:
         return ok_response(
             {
-                "interface_version": "3.0.0",
+                "interface_version": "3.1.0",
                 "models": list_registry_entries(),
                 "schema": {"format": "XML", "version": "BIF-0.3"},
             }
@@ -160,7 +161,7 @@ def create_app(
         entry = get_registry_entry(stable_id)
         if entry is None:
             raise BnManagerHttpError(404, ERROR_CODES["model_not_found"], "BN Manager registry model not found.")
-        return ok_response({"interface_version": "3.0.0", "model": entry.payload()})
+        return ok_response({"interface_version": "3.1.0", "model": entry.payload()})
 
     @app.get("/api/bn-manager/v1/models/schema/xml-0.3")
     def model_registry_schema() -> dict[str, Any]:
@@ -451,7 +452,7 @@ def _validate_targets(payload: dict[str, Any]) -> list[str] | None:
 
 
 def _evaluate_payload_v3(payload: dict[str, Any], session: SessionState) -> dict[str, Any]:
-    allowed_fields = {"stable_id", "evidence"}
+    allowed_fields = {"stable_id", "candidate_id", "evidence"}
     undeclared_fields = sorted(set(payload) - allowed_fields)
     if undeclared_fields:
         raise BnManagerHttpError(
@@ -465,17 +466,6 @@ def _evaluate_payload_v3(payload: dict[str, Any], session: SessionState) -> dict
     if entry is None:
         raise BnManagerHttpError(
             404, ERROR_CODES["model_not_found"], "BN Manager registry model not found.", {"stable_id": stable_id}
-        )
-    if entry.clinical_recommendation_use == "excluded":
-        raise BnManagerHttpError(
-            422,
-            ERROR_CODES["safety_review_required"],
-            "Pharmacotherapy model evaluation is excluded from clinical recommendation use.",
-            {
-                "stable_id": entry.stable_id,
-                "calibration_status": entry.calibration_status,
-                "mapping_version": entry.mapping_version,
-            },
         )
     model = _load_model({"stable_id": stable_id}, allow_text=False)
     messages = [
@@ -495,6 +485,26 @@ def _evaluate_payload_v3(payload: dict[str, Any], session: SessionState) -> dict
             400,
             ERROR_CODES["invalid_request"],
             "Evidence names and states must be non-empty strings.",
+        )
+    candidate_gate = None
+    candidate_id = payload.get("candidate_id")
+    if stable_id == "bnm.pharmacotherapy":
+        try:
+            candidate_gate = evaluate_candidate_gates(candidate_id, evidence)
+        except ValueError as exc:
+            raise BnManagerHttpError(400, ERROR_CODES["invalid_request"], str(exc)) from exc
+        if candidate_gate.disposition != "eligible-for-clinician-comparison":
+            raise BnManagerHttpError(
+                422,
+                ERROR_CODES["safety_review_required"],
+                "Pharmacotherapy candidate did not clear deterministic safety gates.",
+                asdict(candidate_gate),
+            )
+    elif candidate_id is not None:
+        raise BnManagerHttpError(
+            400,
+            ERROR_CODES["invalid_request"],
+            "candidate_id is supported only for bnm.pharmacotherapy evaluations.",
         )
     node_map = model.node_map()
     accepted = {}
@@ -516,18 +526,30 @@ def _evaluate_payload_v3(payload: dict[str, Any], session: SessionState) -> dict
         {"severity": "warning", "code": "BNM_EVIDENCE_IGNORED", "path": key}
         for key in ignored
     ]
+    if entry.calibration_status == "qualitative-uncalibrated":
+        warnings.append(
+            {
+                "severity": "warning",
+                "code": "BNM_MODEL_UNCALIBRATED",
+                "path": "model.calibration_status",
+            }
+        )
+    response_data = {
+        "interface_version": "3.1.0",
+        "evaluation_id": str(uuid4()),
+        "evaluated_at": evaluated_at,
+        "model": entry.payload(),
+        "target": result.target,
+        "accepted_evidence": accepted,
+        "ignored_evidence": ignored,
+        "warnings": warnings,
+        "posterior": result.values,
+        "mapping_version": entry.mapping_version,
+        "evaluated_by": session.subject,
+    }
+    if candidate_gate is not None:
+        response_data["candidate_id"] = candidate_gate.candidate_id
+        response_data["candidate_gate"] = asdict(candidate_gate)
     return ok_response(
-        {
-            "interface_version": "3.0.0",
-            "evaluation_id": str(uuid4()),
-            "evaluated_at": evaluated_at,
-            "model": entry.payload(),
-            "target": result.target,
-            "accepted_evidence": accepted,
-            "ignored_evidence": ignored,
-            "warnings": warnings,
-            "posterior": result.values,
-            "mapping_version": entry.mapping_version,
-            "evaluated_by": session.subject,
-        }
+        response_data
     )

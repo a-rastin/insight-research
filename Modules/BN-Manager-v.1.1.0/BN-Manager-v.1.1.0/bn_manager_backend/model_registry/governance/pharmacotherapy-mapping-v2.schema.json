@@ -63,7 +63,7 @@
       "required": ["label", "clinicalRecommendationUse", "reason"],
       "properties": {
         "label": {"const": "qualitative-uncalibrated"},
-        "clinicalRecommendationUse": {"const": "excluded"},
+        "clinicalRecommendationUse": {"const": "blocked-until-calibrated-and-approved"},
         "reason": {"type": "string", "minLength": 1}
       }
     },

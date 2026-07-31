@@ -13,7 +13,7 @@
   },
   "calibration": {
     "label": "qualitative-uncalibrated",
-    "clinicalRecommendationUse": "excluded",
+    "clinicalRecommendationUse": "blocked-until-calibrated-and-approved",
     "reason": "Candidate-priority and management-recommendation CPT rows are uniform placeholders; structural validity and inference do not establish clinical calibration."
   },
   "candidateEvaluation": {

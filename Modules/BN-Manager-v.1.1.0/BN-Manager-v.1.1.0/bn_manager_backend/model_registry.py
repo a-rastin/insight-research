@@ -60,7 +60,7 @@ MODEL_REGISTRY: tuple[ModelRegistryEntry, ...] = (
         status="active",
         mapping_version="2.0.0",
         calibration_status="qualitative-uncalibrated",
-        clinical_recommendation_use="excluded",
+        clinical_recommendation_use="blocked-until-calibrated-and-approved",
         mapping_path="governance/pharmacotherapy-mapping-v2.json",
     ),
     ModelRegistryEntry(
