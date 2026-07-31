@@ -329,12 +329,13 @@ Update this file after every meaningful implementation change.
   the Treatment Plan full suite passed 62/62; Add New Patient and Diagnosis
   provider contract suites each passed 12/12; Medical History's full suite
   passed; and common REST plus internal-service-auth checks passed 12/12.
-  Changed Python compilation and `git diff --check` passed. Severity provider
-  verification remains blocked by pre-existing tracked `node_modules` deletions
-  including `express`. Suicide Risk domain checks passed 5/5, but its repository
-  test uses a fixed 2026-07-30 creation time that now expires before its
-  immediate idempotency replay, causing a duplicate-ID failure; no runtime test
-  data was modified. Provider-side HMAC enforcement and a Severity
+  Changed Python compilation and `git diff --check` passed. Severity's locked
+  dependencies were subsequently restored with `npm ci`; its full repository,
+  configuration, v2 API, legacy-failure, and UI suite passed. Suicide Risk
+  domain checks passed 5/5, but its repository test uses a fixed 2026-07-30
+  creation time that now expires before its immediate idempotency replay,
+  causing a duplicate-ID failure; no runtime test data was modified.
+  Provider-side HMAC enforcement and a Severity
   Encounter-latest contract remain separate rollout gaps, so INS-048 stays in
   progress. No file under `insight-research/doc/` was read or modified.
 - INS-035 BN Pharmacotherapy XML reconciliation (In progress). Mapping version
