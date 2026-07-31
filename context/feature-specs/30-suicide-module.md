@@ -24,7 +24,6 @@ Issue types:
 ### INS-030 — Implement the approved structured suicide-risk module
 
 - **Type / owner:** AFK 
-- **Blocked by:** INS-004, INS-008, approved source/licensing handoff, INS-012 through INS-014
-- **Build:** Implement one source-backed assess-and-retrieve slice: publish its assessment contract, scaffold independent service/storage/UI, and implement only the approved minimum scoring/interpretation needed by that slice. Additional clinical rules require new issues.
+- **Build:** Implement one source-backed assess-and-retrieve slice: publish its assessment contract, scaffold independent service/storage/UI.
 - **Acceptance:** No question, score, threshold, or emergency instruction is invented; psychiatrist assertion remains explicit; urgent behavior follows INS-010; Treatment Plan can consume a versioned encounter snapshot.
-- **Tests:** Source-to-field traceability; scoring golden cases supplied/approved by owner; missing/conflicting/urgent states; auth/CSRF/ETag/idempotency; accessibility and no-PHI tests.
+- **Tests:** Source-to-field traceability; missing/conflicting/urgent states; auth/CSRF/ETag/idempotency; accessibility and no-PHI tests.
