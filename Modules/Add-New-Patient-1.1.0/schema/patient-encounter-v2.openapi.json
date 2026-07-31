@@ -47,6 +47,21 @@
         "responses": {"200": {"description": "Updated patient", "headers": {"ETag": {"$ref": "#/components/headers/ETag"}}, "content": {"application/json": {"schema": {"$ref": "patient-encounter-v2.schema.json#/$defs/patient"}}}}, "412": {"$ref": "#/components/responses/Problem"}, "428": {"$ref": "#/components/responses/Problem"}}
       }
     },
+    "/api/add-new-patient/v2/patients/{patientId}/history": {
+      "get": {
+        "operationId": "getPatientHistoryV2",
+        "parameters": [{"$ref": "#/components/parameters/PatientId"}],
+        "responses": {"200": {"description": "Longitudinal Encounter and Follow-up Delta history", "headers": {"ETag": {"$ref": "#/components/headers/ETag"}}, "content": {"application/json": {"schema": {"$ref": "patient-encounter-v2.schema.json#/$defs/patientHistoryResponse"}}}}, "404": {"$ref": "#/components/responses/Problem"}}
+      }
+    },
+    "/api/add-new-patient/v2/patients/{patientId}/follow-ups": {
+      "post": {
+        "operationId": "createPatientFollowUpV1",
+        "parameters": [{"$ref": "#/components/parameters/PatientId"}, {"$ref": "#/components/parameters/Idempotency-Key"}, {"$ref": "#/components/parameters/If-Match"}, {"$ref": "#/components/parameters/X-Schema-Version"}, {"$ref": "#/components/parameters/X-CSRF-Token"}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "patient-encounter-v2.schema.json#/$defs/createFollowUpRequest"}}}},
+        "responses": {"201": {"description": "Follow-up Encounter and owner-produced Follow-up Delta created atomically", "headers": {"ETag": {"$ref": "#/components/headers/ETag"}}, "content": {"application/json": {"schema": {"$ref": "patient-encounter-v2.schema.json#/$defs/createFollowUpResponse"}}}}, "409": {"$ref": "#/components/responses/Problem"}, "412": {"$ref": "#/components/responses/Problem"}, "428": {"$ref": "#/components/responses/Problem"}}
+      }
+    },
     "/api/add-new-patient/v2/encounters/{encounterId}": {
       "get": {"operationId": "getEncounterV2", "parameters": [{"$ref": "#/components/parameters/EncounterId"}], "responses": {"200": {"description": "Encounter", "headers": {"ETag": {"$ref": "#/components/headers/ETag"}}, "content": {"application/json": {"schema": {"$ref": "patient-encounter-v2.schema.json#/$defs/encounter"}}}}, "400": {"$ref": "#/components/responses/Problem"}, "404": {"$ref": "#/components/responses/Problem"}}}
     },

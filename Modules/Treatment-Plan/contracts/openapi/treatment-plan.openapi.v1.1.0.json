@@ -235,6 +235,25 @@
         }
       }
     },
+    "/api/treatment-plan/v1/patients/{patient_id}/plans": {
+      "get": {
+        "operationId": "getPatientTreatmentPlanHistory",
+        "x-insight-implementation-issue": "INS-069",
+        "tags": ["clinical-plans"],
+        "description": "Returns Treatment Plan-owned longitudinal plan views, immutable Final Plans, and supersession links for one canonical Patient UUID.",
+        "security": [{"cookieSession": []}],
+        "parameters": [{"$ref": "#/components/parameters/PatientId"}],
+        "responses": {
+          "200": {
+            "description": "Patient-scoped Treatment Plan history",
+            "headers": {"X-Schema-Version": {"$ref": "#/components/headers/PlanViewSchemaVersion"}},
+            "content": {"application/json": {"schema": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/PatientPlanHistory"}}}
+          },
+          "401": {"$ref": "#/components/responses/RuntimeError"},
+          "503": {"$ref": "#/components/responses/RuntimeError"}
+        }
+      }
+    },
     "/api/treatment-plan/v1/assistant/advisory": {
       "post": {
         "operationId": "requestTreatmentPlanAssistantAdvisory",
@@ -478,6 +497,12 @@
       },
       "RunId": {
         "name": "run_id",
+        "in": "path",
+        "required": true,
+        "schema": {"type": "string", "format": "uuid"}
+      },
+      "PatientId": {
+        "name": "patient_id",
         "in": "path",
         "required": true,
         "schema": {"type": "string", "format": "uuid"}

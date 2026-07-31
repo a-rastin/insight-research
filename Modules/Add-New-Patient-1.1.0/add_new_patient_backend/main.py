@@ -16,6 +16,7 @@ from .config import ROOT, settings
 from .csrf import CSRF_COOKIE_NAME, CSRF_WRITE_METHODS, csrf_error, generate_csrf_token, request_has_valid_csrf, sign_csrf_token
 from .db import SQLiteAdapter
 from .models import (
+    FollowUpCreateV1,
     PatientCodeResolveV2,
     PatientEncounterCreateV2,
     PatientIntake,
@@ -551,6 +552,75 @@ async def get_patient_v2(
     return JSONResponse(content=patient, headers=v2_headers(ETag=etag))
 
 
+@app.get(f"{V2_PREFIX}/patients/{{patient_id}}/history")
+async def get_patient_history_v2(
+    request: Request,
+    patient_id: str,
+    _: dict[str, Any] = Depends(require_psychiatrist_or_admin_session),
+) -> JSONResponse:
+    patient_id = require_uuid(patient_id) or ""
+    if not patient_id:
+        return problem_response(request, 400, "PATIENT_ID_INVALID", "Patient ID must be a canonical UUID.")
+    items = repo.list_history_v2(patient_id)
+    if items is None:
+        return problem_response(request, 404, "PATIENT_NOT_FOUND", "Patient was not found.")
+    etag = resource_etag("patient-history", patient_id, len(items))
+    return JSONResponse(content={"patientId": patient_id, "items": items}, headers=v2_headers(ETag=etag))
+
+
+@app.post(f"{V2_PREFIX}/patients/{{patient_id}}/follow-ups")
+async def create_follow_up_v1(
+    request: Request,
+    patient_id: str,
+    payload: FollowUpCreateV1,
+    identity: dict[str, Any] = Depends(require_v2_psychiatrist_session),
+) -> JSONResponse:
+    schema_error = require_v2_request_schema(request)
+    if schema_error:
+        return schema_error
+    patient_id = require_uuid(patient_id) or ""
+    if not patient_id:
+        return problem_response(request, 400, "PATIENT_ID_INVALID", "Patient ID must be a canonical UUID.")
+    idempotency_key = request.headers.get("idempotency-key", "")
+    if not IDEMPOTENCY_KEY_PATTERN.fullmatch(idempotency_key):
+        return problem_response(request, 400, "COMMON_IDEMPOTENCY_KEY_INVALID", "Idempotency-Key must contain 16-128 allowed characters.")
+    patient = repo.get_patient_v2(patient_id)
+    if not patient:
+        return problem_response(request, 404, "PATIENT_NOT_FOUND", "Patient was not found.")
+    if_match = request.headers.get("if-match")
+    if not if_match:
+        return problem_response(request, 428, "COMMON_PRECONDITION_REQUIRED", "If-Match is required.")
+    if if_match != resource_etag("patient", patient_id, patient["resourceVersion"]):
+        return problem_response(request, 412, "COMMON_PRECONDITION_FAILED", "Patient resource has changed.")
+    raw_body = await request.body()
+    fingerprint = hashlib.sha256(
+        f"POST\n{V2_PREFIX}/patients/{patient_id}/follow-ups\n".encode("ascii") + raw_body
+    ).hexdigest()
+    try:
+        body, replayed = repo.create_follow_up_v1(
+            patient_id,
+            payload.model_dump(mode="json"),
+            identity["user"]["id"],
+            idempotency_key,
+            fingerprint,
+            patient["resourceVersion"],
+        )
+    except IdempotencyConflictError:
+        return problem_response(request, 409, "COMMON_IDEMPOTENCY_KEY_REUSED", "Idempotency key was reused with a different request.")
+    except StaleResourceError:
+        return problem_response(request, 412, "COMMON_PRECONDITION_FAILED", "Patient resource has changed.")
+    except KeyError as error:
+        code = "PATIENT_NOT_FOUND" if error.args == ("patient",) else "PRIOR_ENCOUNTER_NOT_FOUND"
+        return problem_response(request, 404, code, "Required owner resource was not found.")
+    except ValueError as error:
+        return problem_response(request, 422, "FOLLOW_UP_SEQUENCE_INVALID", str(error))
+    headers = v2_headers(
+        ETag=resource_etag("follow-up-delta", body["followUpDelta"]["deltaId"], 1),
+        **({"Idempotency-Replayed": "true"} if replayed else {}),
+    )
+    return JSONResponse(status_code=201, content=body, headers=headers)
+
+
 @app.patch(f"{V2_PREFIX}/patients/{{patient_id}}")
 async def update_patient_v2(
     request: Request,
@@ -648,6 +718,8 @@ async def root() -> FileResponse:
 
 @app.get("/modules/add-new-patient")
 @app.get("/modules/add-new-patient/")
+@app.get("/modules/patient-follow-up")
+@app.get("/modules/patient-follow-up/")
 async def embedded_module_shell() -> FileResponse:
     return public_file_response("index.html")
 

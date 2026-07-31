@@ -228,7 +228,7 @@ Dashboard returns one navigation-only catalog. Current destination support is:
 | Destination | Authorized role | State when authorized | Gateway route |
 | --- | --- | --- | --- |
 | `add-new-patient` | `PSYCHIATRIST` | `available` | `/modules/add-new-patient` |
-| `patient-follow-up` | `PSYCHIATRIST` | `unavailable` | none |
+| `patient-follow-up` | `PSYCHIATRIST` | `available` | `/modules/patient-follow-up` |
 | `list-of-patients` | `PSYCHIATRIST` | `unavailable` | none |
 | `setting` | `PSYCHIATRIST` | `unavailable` | none |
 | `add-new-user` | `ADMIN` | `unavailable` | none |

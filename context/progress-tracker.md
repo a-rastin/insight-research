@@ -8,6 +8,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-069: Implement Follow-up capture, history, and retrieval (In progress).
 - INS-067: Replace Dashboard placeholders with the real role-scoped workspace
   (In progress).
 - INS-065: Package, deploy, and verify the approved release mode (In progress).
@@ -328,6 +329,29 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-069 Follow-up capture, history, and retrieval (In progress). Dashboard now
+  exposes the gateway-relative `/modules/patient-follow-up` psychiatrist route.
+  The Add New Patient owner provides patient search and selection, atomic
+  idempotent follow-up Encounter plus Follow-up Delta persistence through an
+  append-only `follow-up-delta-v1` migration, strong Patient ETag preconditions,
+  CSRF, current Authentication, UUID identity, and longitudinal Encounter/Delta
+  history. Its standalone responsive UI retrieves both owner history and
+  Treatment Plan-owned history, keeps every async failure visible, preserves an
+  idempotency key across retries, and stores no patient data in browser storage
+  or browser location. Treatment Plan now publishes authenticated patient-scoped
+  retrieval of Primary views, immutable Final Plans, and supersession links;
+  plan ownership and prior records remain unchanged. Focused Add New Patient
+  contract tests passed 13/13, its full backend suite passed 56/56, and frontend
+  tests passed 5/5. Dashboard backend passed 16/16 and its frontend check passed.
+  Focused Treatment Plan tests passed 16/16 and its full suite passed 78/78.
+  Common REST and unified-image checks passed 14/14; root discovery passed 93
+  tests with two expected unconfigured live-gateway skips. Changed Python files
+  compiled, JavaScript syntax, JSON parsing, and `git diff --check` passed. Live
+  authenticated gateway/browser execution remains unverified because no approved
+  fixture is configured; capture intentionally does not auto-generate or mutate
+  a Treatment Plan. Next step is an approved live gateway run followed by the
+  existing Treatment Plan supersession workflow. No file under
+  `insight-research/doc/` was read or modified.
 - INS-067 Dashboard role-scoped workspace replacement (In progress). Dashboard
   still validates only the Authentication v2 UUID session contract and fails
   closed for password/disclaimer gates, unsupported versions, expiry,

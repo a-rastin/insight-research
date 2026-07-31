@@ -60,7 +60,7 @@ class TreatmentPlanContractTests(unittest.TestCase):
                     "discoverTreatmentPlanContract", "getTreatmentPlanOpenApi", "getTreatmentPlanSchema"
                 } else "INS-050" if operation["operationId"] in {
                     "createRecommendationRun", "getRecommendationRun"
-                } else "INS-053" if operation["operationId"] == "supersedeTreatmentPlan" else "INS-020"
+                } else "INS-053" if operation["operationId"] == "supersedeTreatmentPlan" else "INS-069" if operation["operationId"] == "getPatientTreatmentPlanHistory" else "INS-020"
                 if operation["operationId"] == "requestTreatmentPlanAssistantAdvisory":
                     expected_issue = "INS-055"
                 self.assertEqual(expected_issue, operation["x-insight-implementation-issue"])

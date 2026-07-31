@@ -59,6 +59,8 @@ python -m unittest test_encounter_v2_contracts.py
 - `POST /api/add-new-patient/v2/patient-code-aliases/resolve`
 - `GET /api/add-new-patient/v2/encounters/{encounterId}`
 - `GET /api/add-new-patient/v2/encounters/{encounterId}/intake-snapshot`
+- `GET /api/add-new-patient/v2/patients/{patientId}/history`
+- `POST /api/add-new-patient/v2/patients/{patientId}/follow-ups`
 
 V2 uses UUID-only resource paths, body-based patient-code resolution/search,
 atomic idempotent patient plus first-encounter creation, strong ETags, paginated
@@ -66,6 +68,10 @@ lists, strict UTC timestamps, versioned provenance, ordered transactional
 migrations, request tracing, and RFC 9457 problem details. Legacy creation is a
 request/response adapter over the same v2 persistence transaction. See
 `docs/api-contract.md` and `schema/patient-encounter-v2.openapi.json`.
+
+Follow-up creation atomically persists a new Encounter and Add New Patient-owned
+Follow-up Delta. It requires psychiatrist auth, CSRF, `Idempotency-Key`,
+`X-Schema-Version`, and the selected Patient's strong ETag in `If-Match`.
 
 ## Embed Contract
 

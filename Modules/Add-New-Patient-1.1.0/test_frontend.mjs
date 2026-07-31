@@ -42,3 +42,10 @@ test("interactive UI supports focus and reduced motion", () => {
   assert.match(css, /prefers-reduced-motion: reduce/);
   assert.match(css, /min-height: 44px/);
 });
+
+test("follow-up UI exposes search, history, and owner capture", () => {
+  assert.match(html, /id="followUpSearchForm"/);
+  assert.match(html, /id="encounterHistory"/);
+  assert.match(html, /id="planHistory"/);
+  assert.match(html, /id="followUpForm"/);
+});

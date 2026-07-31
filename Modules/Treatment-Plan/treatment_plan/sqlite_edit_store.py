@@ -195,6 +195,20 @@ class SQLitePlanEditStore(PlanEditStore):
         except (TypeError, ValueError) as exc:
             raise InvalidEdit("stored supersession JSON is invalid") from exc
 
+    def list_plan_ids_by_patient(self, patient_id: str) -> tuple[str, ...]:
+        with closing(self._connect()) as connection:
+            rows = connection.execute(
+                "SELECT plan_id, primary_plan_json FROM primary_plans ORDER BY rowid DESC"
+            ).fetchall()
+        try:
+            return tuple(
+                plan_id
+                for plan_id, payload in rows
+                if json.loads(payload).get("patientId") == patient_id
+            )
+        except (TypeError, ValueError) as exc:
+            raise InvalidEdit("stored Primary Plan JSON is invalid") from exc
+
 
 def _dump(value: Mapping[str, Any]) -> str:
     try:
