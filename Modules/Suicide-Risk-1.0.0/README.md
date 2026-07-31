@@ -4,15 +4,16 @@ Independent Node.js 22.5+ service for encounter-scoped psychiatrist suicide-risk
 
 ## Clinical boundary
 
-No approved C-SSRS source/licensing handoff exists in the repository. This module therefore defines no instrument question, answer, score, threshold, negative/low-risk state, or location-specific emergency instruction and never claims that C-SSRS was completed.
+No licensed C-SSRS question bank exists in the repository. This module therefore defines no instrument question, answer, score, threshold, or location-specific emergency instruction and never claims that C-SSRS was completed.
 
-The only writable states are directly traceable to accepted repository contracts:
+Writable states:
 
 - `unknown` and `unavailable` from `contracts/clinical-ownership-v1.json`.
 - `conflicting` from the INS-010 required-input uncertainty policy.
+- `not-elevated` explicit psychiatrist assertion allowing routine planning (does not claim C-SSRS completion).
 - `imminent-suicide-risk` and `substantial-suicide-risk-requiring-urgent-evaluation` from the INS-010 emergency trigger states.
 
-Every state is an explicit authenticated psychiatrist assertion. Unknown, unavailable, and conflicting states block dependent processing. Both urgent states persistently stop routine planning with the exact general emergency guidance approved in INS-010. No state is overridable.
+Every state is an explicit authenticated psychiatrist assertion. Unknown, unavailable, and conflicting states block dependent processing. `not-elevated` allows routine Treatment Plan generation. Urgent states persistently stop routine planning with the exact general emergency guidance approved in INS-010. No state is overridable.
 
 ## Run
 

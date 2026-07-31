@@ -29,6 +29,8 @@
     "questionsDefined": false,
     "scoringDefined": false,
     "allowedMissingStates": ["unknown", "unavailable"],
+    "allowedClearStates": ["not-elevated"],
+    "clearStateMeaning": "Explicit psychiatrist assertion that suicide risk is not elevated for routine treatment planning; does not claim C-SSRS completion or a scored instrument result.",
     "missingRiskBehavior": "block-required-risk-dependent-processing",
     "forbiddenInferences": ["negative", "normal", "low-risk", "score-from-model-summary"]
   },

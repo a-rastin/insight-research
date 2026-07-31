@@ -30,7 +30,7 @@ The canonical schema is `bn_manager_backend/model_registry/schemas/XSD.xml`. The
 
 Two supplied networks use a single neutral probability row for selected conditional tables. The compiler broadcasts that row across every parent-state combination. This preserves the source XML and makes the compact qualitative CPTs dimensionally valid and evaluable. Full CPTs are never rewritten.
 
-The Pharmacotherapy model is governed by mapping version `2.0.0`. Its source-to-node mapping and source/model hashes are recorded in `bn_manager_backend/model_registry/governance/pharmacotherapy-mapping-v2.json` and validated by the adjacent Draft 2020-12 schema. The model evaluates one explicitly identified candidate at a time; it does not support medication ranking, FGA-versus-SGA preference, or automatic selection. Deterministic contraindication, diagnosis, and uncertainty gates run before inference. Gate-clearing v3 requests return a candidate-bound posterior and exact active model version/hash, so a later governed CPT revision can produce patient-specific probabilities without changing the request vocabulary. The current candidate-priority and management CPTs remain uniform placeholders, so discovery and each result label them `qualitative-uncalibrated`; evaluation is available for research, but clinical recommendation use remains blocked until calibrated CPTs and clinical/model-owner approval are activated.
+The Pharmacotherapy model is governed by mapping version `2.0.0`. Its source-to-node mapping and source/model hashes are recorded in `bn_manager_backend/model_registry/governance/pharmacotherapy-mapping-v2.json` and validated by the adjacent Draft 2020-12 schema. The model evaluates one explicitly identified candidate at a time; it does not support medication ranking, FGA-versus-SGA preference, or automatic selection. Deterministic contraindication, diagnosis, and uncertainty gates run before inference. Gate-clearing v3 requests return a candidate-bound posterior and exact active model version/hash, so a later governed CPT revision can produce patient-specific probabilities without changing the request vocabulary. The current candidate-priority and management CPTs remain uniform placeholders, so discovery and each result label them `qualitative-uncalibrated`; research runtime evaluation and recommendation use are approved, with calibrated CPT replacement still the upgrade path.
 
 ## Run
 
@@ -91,7 +91,7 @@ validation evidence, manifest source provenance and hashes, lifecycle history,
 and activation blockers. Review, activation, retirement, and rollback writes
 require CSRF and a 20-2,000 character rationale. Lifecycle state is stored in
 the module registry at `governance.sqlite3`; set `BN_MANAGER_GOVERNANCE_DB` to
-override that path. Current manifest entries are unapproved and disallow runtime
+override that path. Current manifest entries are research-approved and allow runtime
 use, so activation fails closed until the authoritative manifest records both
 required approvals. No administration route accepts a caller path or model text.
 

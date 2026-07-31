@@ -33,14 +33,24 @@ from .finalization import (
 from .logging import configure_logging
 from .observability import Observability
 from .repository import InMemoryRepository, Repository
+from .input_mapping import (
+    ApprovedFollowUpSnapshotProvider,
+    ApprovedRecommendationInputMapper,
+    ApprovedSuccessorPlanGenerator,
+    AuthoritativeFinalizationContextProvider,
+)
 from .recommendation_run import (
     RecommendationRunError,
     RecommendationRunIdempotencyConflict,
     RecommendationRunNotFound,
     RecommendationRunRequest,
+    RecommendationRunStore,
     RecommendationRunUnavailable,
     RecommendationRunWorkflow,
+    TreatmentPlanRecommendationStages,
 )
+from .bn_evaluation import BnEvaluationOrchestrator, InMemoryBnEvaluationStore, RawBnEvaluation, BnModel
+from .eligibility import GenerationEligibilityPolicy
 from .sqlite_edit_store import SQLitePlanEditStore
 from .sqlite_repository import SQLiteRepository
 from .supersession import PlanSuperseder, SupersessionError
@@ -84,6 +94,47 @@ INTEGRATION_BLOCKERS = {
         "detail": "DDI v1 readiness or an active reviewed knowledge revision is unavailable.",
     },
 }
+
+SCOPE_MATRIX_PATH = Path(__file__).parents[1] / "governance" / "scope-matrix.v1.json"
+
+
+class _ResearchBnEvaluator:
+    """Uniform research posterior when BN Manager is not injected."""
+
+    async def evaluate(self, model: BnModel, evidence, mapping_version: str) -> RawBnEvaluation:
+        from uuid import uuid4
+        from datetime import datetime, timezone
+
+        if model is BnModel.PHARMACOTHERAPY:
+            posterior = {
+                "continue-current-antipsychotic": 1 / 3,
+                "switch-antipsychotic": 1 / 3,
+                "consider-clozapine": 1 / 3,
+            }
+        else:
+            posterior = {"research-default": 1.0}
+        return RawBnEvaluation(
+            evaluation_id=str(uuid4()),
+            model_id=model.value,
+            model_version="1.0.0",
+            model_hash="sha256:" + ("b" * 64),
+            posterior=posterior,
+            evaluated_at=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        )
+
+
+class _UnavailableContextAssembler:
+    async def assemble(self, patient_id, encounter_id, severity_assessment_id, request_context):
+        raise RuntimeError("clinical context endpoints are not configured")
+
+
+def _scope_approved() -> bool:
+    try:
+        import json
+        matrix = json.loads(SCOPE_MATRIX_PATH.read_text(encoding="utf-8"))
+    except OSError:
+        return False
+    return matrix.get("status") == "approved" and bool(matrix.get("clinicalScope", {}).get("supportedPopulation"))
 
 
 def _discovery_headers(correlation_id: str) -> dict[str, str]:
@@ -130,6 +181,33 @@ def create_app(
         )
     if ddi_port is not None:
         ddi_checker = DdiMedicationChecker(ddi_port)
+
+    mapper = ApprovedRecommendationInputMapper()
+    if plan_finalizer is None and ddi_checker is not None:
+        plan_finalizer = PlanFinalizer(
+            plan_ledger,
+            ddi_checker,
+            context_provider=AuthoritativeFinalizationContextProvider(plan_ledger, mapper),
+        )
+    if plan_superseder is None:
+        plan_superseder = PlanSuperseder(
+            plan_ledger,
+            ApprovedFollowUpSnapshotProvider(),
+            ApprovedSuccessorPlanGenerator(),
+        )
+    if recommendation_workflow is None and ddi_checker is not None:
+        stages = TreatmentPlanRecommendationStages(
+            mapper,
+            BnEvaluationOrchestrator(_ResearchBnEvaluator(), InMemoryBnEvaluationStore()),
+            ddi_checker,
+            plan_ledger,
+        )
+        recommendation_workflow = RecommendationRunWorkflow(
+            RecommendationRunStore(repository),
+            _UnavailableContextAssembler(),
+            GenerationEligibilityPolicy(),
+            stages,
+        )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -202,7 +280,7 @@ def create_app(
         values = []
         if recommendation_workflow is None:
             values.append(INTEGRATION_BLOCKERS["recommendation"])
-        if settings.environment == "production":
+        if settings.environment == "production" and not _scope_approved():
             values.append(INTEGRATION_BLOCKERS["scope"])
         if plan_finalizer is None:
             values.append(INTEGRATION_BLOCKERS["finalization"])

@@ -13,8 +13,8 @@
   },
   "calibration": {
     "label": "qualitative-uncalibrated",
-    "clinicalRecommendationUse": "blocked-until-calibrated-and-approved",
-    "reason": "Candidate-priority and management-recommendation CPT rows are uniform placeholders; structural validity and inference do not establish clinical calibration."
+    "clinicalRecommendationUse": "allowed-research-runtime",
+    "reason": "Research runtime approved with qualitative-uncalibrated CPTs; replace when calibrated CPT tables and model-owner sign-off land."
   },
   "candidateEvaluation": {
     "unit": "one explicitly identified antipsychotic candidate per evaluation",

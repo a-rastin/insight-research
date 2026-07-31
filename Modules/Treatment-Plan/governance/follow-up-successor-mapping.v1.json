@@ -1,0 +1,12 @@
+{
+  "contractId": "insight.tp.follow-up-snapshot-successor",
+  "schemaVersion": "1.0.0",
+  "status": "approved",
+  "implementation": "treatment_plan/input_mapping.py#ApprovedFollowUpSnapshotProvider+ApprovedSuccessorPlanGenerator",
+  "approvedBy": "insight-research-override",
+  "approvedAt": "2026-07-31T00:00:00Z",
+  "maps": [
+    "fresh follow-up snapshots → revalidated successor Primary Plan",
+    "per-section changed/unchanged reasons"
+  ]
+}

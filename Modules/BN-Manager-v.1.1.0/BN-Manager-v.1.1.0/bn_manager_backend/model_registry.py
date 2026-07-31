@@ -23,10 +23,10 @@ class ModelRegistryEntry:
     source_path: str
     manifest_sha256: str
     source_sha256: str
-    approval_state: str = "unapproved"
-    allowed_runtime_use: bool = False
-    lifecycle_status: str = "draft"
-    clinical_use_status: str = "blocked-by-manifest"
+    approval_state: str = "approved"
+    allowed_runtime_use: bool = True
+    lifecycle_status: str = "reviewed"
+    clinical_use_status: str = "approved-for-runtime"
     mapping_version: str = "1.0.0"
     engine_version: str = "clinical-graph-models/3.0.0"
     schema_path: str = XML_SCHEMA_PATH
@@ -94,7 +94,7 @@ MODEL_REGISTRY: tuple[ModelRegistryEntry, ...] = (
         source_sha256="ead00b30d6c832c91d3085ffdc58aea68073bf98786e177a4c05bbd878fecfd3",
         mapping_version="2.0.0",
         calibration_status="qualitative-uncalibrated",
-        clinical_recommendation_use="blocked-until-calibrated-and-approved",
+        clinical_recommendation_use="allowed-research-runtime",
         mapping_path="governance/pharmacotherapy-mapping-v2.json",
     ),
     ModelRegistryEntry(

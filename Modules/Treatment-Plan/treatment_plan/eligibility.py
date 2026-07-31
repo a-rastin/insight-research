@@ -31,7 +31,7 @@ SCHIZOPHRENIA_RESEARCH_V1=PathwayPolicy("schizophrenia-research-v1",("F20",),(
  FactRule("diagnosis",Dependency.DIAGNOSIS,True,86400),
  FactRule("severity",Dependency.SEVERITY,True,86400),
  FactRule("medical-history",Dependency.MEDICAL_HISTORY,True,2592000),
- FactRule("suicide-risk",Dependency.SUICIDE_RISK,True,86400)))
+ FactRule("suicide-risk",Dependency.SUICIDE_RISK,True,86400)),scope_approved=True)
 PATHWAY_POLICIES={SCHIZOPHRENIA_RESEARCH_V1.pathway_id:SCHIZOPHRENIA_RESEARCH_V1}
 
 class GenerationEligibilityPolicy:
@@ -61,7 +61,8 @@ class GenerationEligibilityPolicy:
         if any(item.get("normalizedIdentity",{}).get("state") != "matched" for item in meds if isinstance(item,Mapping)): findings.append(self._f("medication-unresolved",Blocker.HARD,"medical-history","medication reconciliation is unresolved"))
         risk=context.inputs.get(Dependency.SUICIDE_RISK,{}).get("assessment",{}).get("riskState")
         if risk in {"imminent-suicide-risk","substantial-suicide-risk-requiring-urgent-evaluation"}: findings.append(self._f("urgent-suicide-risk",Blocker.SAFETY,"suicide-risk","urgent risk requires the emergency safety pathway"))
-        elif risk in {"unknown","unavailable","conflicting"}: findings.append(self._f("suicide-risk-unresolved",Blocker.HARD,"suicide-risk","suicide-risk state is unresolved"))
+        elif risk in {"unknown","unavailable","conflicting",None}: findings.append(self._f("suicide-risk-unresolved",Blocker.HARD,"suicide-risk","suicide-risk state is unresolved"))
+        elif risk != "not-elevated": findings.append(self._f("suicide-risk-unresolved",Blocker.HARD,"suicide-risk","suicide-risk state is unresolved"))
         result=Eligibility.SAFETY_PATHWAY if any(x.blocker is Blocker.SAFETY for x in findings) else Eligibility.BLOCKED if any(x.blocker is Blocker.HARD for x in findings) else Eligibility.ELIGIBLE
         unique={(x.code,x.fact):x for x in findings}
         observer=current_observability()

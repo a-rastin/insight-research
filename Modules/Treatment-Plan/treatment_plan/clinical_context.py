@@ -400,7 +400,10 @@ def _validate_suicide_risk(payload: Any) -> list[str]:
         errors += _version(assessment.get("interfaceVersion"), "1.0.0", "assessment.interfaceVersion")
         errors += _version(assessment.get("schemaVersion"), "1.0.0", "assessment.schemaVersion")
         if (assessment.get("assessmentType") != "psychiatrist-suicide-risk-assertion"
-                or assessment.get("riskState") not in {"unknown", "unavailable", "conflicting", "imminent-suicide-risk", "substantial-suicide-risk-requiring-urgent-evaluation"}
+                or assessment.get("riskState") not in {
+                    "unknown", "unavailable", "conflicting", "not-elevated",
+                    "imminent-suicide-risk", "substantial-suicide-risk-requiring-urgent-evaluation",
+                }
                 or assessment.get("riskScore") is not None or not _positive_int(assessment.get("resourceVersion"))
                 or not _utc(assessment.get("createdAt")) or not _utc(assessment.get("updatedAt"))):
             errors.append("suicide-risk state is invalid")
@@ -414,13 +417,32 @@ def _validate_suicide_risk(payload: Any) -> list[str]:
         disposition = assessment.get("safetyDisposition")
         disposition_fields = {"outcome", "code", "routinePlanningAllowed", "overrideAllowed", "persistentUntilResolved", "guidance"}
         errors += _object(disposition, disposition_fields, disposition_fields)
-        if isinstance(disposition, dict) and (disposition.get("outcome") not in {"blocked", "emergency-blocked"}
-                                              or disposition.get("code") not in {"TP_SUICIDE_RISK_UNAVAILABLE", "TP_REQUIRED_DATA_CONFLICTING", "TP_EMERGENCY_ACTION_REQUIRED"}
-                                              or disposition.get("routinePlanningAllowed") is not False
-                                              or disposition.get("overrideAllowed") is not False
-                                              or disposition.get("persistentUntilResolved") is not True
-                                              or not disposition.get("guidance")):
-            errors.append("suicide-risk disposition is invalid")
+        if isinstance(disposition, dict):
+            risk_state = assessment.get("riskState")
+            if risk_state == "not-elevated":
+                valid = (
+                    disposition.get("outcome") == "allowed"
+                    and disposition.get("code") == "TP_SUICIDE_RISK_NOT_ELEVATED"
+                    and disposition.get("routinePlanningAllowed") is True
+                    and disposition.get("overrideAllowed") is False
+                    and disposition.get("persistentUntilResolved") is False
+                    and disposition.get("guidance")
+                )
+            else:
+                valid = (
+                    disposition.get("outcome") in {"blocked", "emergency-blocked"}
+                    and disposition.get("code") in {
+                        "TP_SUICIDE_RISK_UNAVAILABLE",
+                        "TP_REQUIRED_DATA_CONFLICTING",
+                        "TP_EMERGENCY_ACTION_REQUIRED",
+                    }
+                    and disposition.get("routinePlanningAllowed") is False
+                    and disposition.get("overrideAllowed") is False
+                    and disposition.get("persistentUntilResolved") is True
+                    and disposition.get("guidance")
+                )
+            if not valid:
+                errors.append("suicide-risk disposition is invalid")
         actor = assessment.get("actor")
         errors += _object(actor, {"actorId", "role"}, {"actorId", "role"})
         if isinstance(actor, dict) and (not _is_uuid(actor.get("actorId")) or actor.get("role") != "psychiatrist"):

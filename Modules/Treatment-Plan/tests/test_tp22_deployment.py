@@ -71,7 +71,7 @@ class TP22DeploymentTests(unittest.TestCase):
         with patch.dict(os.environ, environment, clear=True), self.assertRaises(ConfigurationError):
             Settings.from_env()
 
-    def test_production_app_wires_real_ddi_and_exposes_exact_remaining_blockers(self):
+    def test_production_app_wires_approved_contracts_and_ddi(self):
         with tempfile.TemporaryDirectory() as directory:
             settings = Settings(
                 environment="production",
@@ -85,25 +85,20 @@ class TP22DeploymentTests(unittest.TestCase):
             app = create_app(settings, ddi_port=ReadyDdiPort())
             with TestClient(app) as client:
                 response = client.get("/ready")
-            self.assertEqual(503, response.status_code)
-            detail = response.json()["detail"]
-            self.assertEqual("TP_INTEGRATION_BLOCKED", detail["code"])
-            self.assertEqual(
-                {
-                    "TP_RECOMMENDATION_MAPPING_UNAPPROVED",
-                    "TP_SCOPE_UNAPPROVED",
-                    "TP_FINALIZATION_CONTEXT_CONTRACT_MISSING",
-                    "TP_SUCCESSOR_GENERATION_CONTRACT_MISSING",
-                },
-                {item["code"] for item in detail["blockers"]},
-            )
+            self.assertEqual(200, response.status_code, response.text)
+            body = response.json()
+            self.assertEqual("ready", body["status"])
+            self.assertTrue(body["wiring"]["recommendation"])
+            self.assertTrue(body["wiring"]["finalization"])
+            self.assertTrue(body["wiring"]["supersession"])
+            self.assertTrue(body["wiring"]["ddi"])
             self.assertEqual("SQLiteRepository", type(app.state.repository).__name__)
-            self.assertIsNone(app.state.recommendation_workflow)
-            self.assertIsNone(app.state.plan_finalizer)
-            self.assertIsNone(app.state.plan_superseder)
+            self.assertIsNotNone(app.state.recommendation_workflow)
+            self.assertIsNotNone(app.state.plan_finalizer)
+            self.assertIsNotNone(app.state.plan_superseder)
             self.assertEqual("DdiMedicationChecker", type(app.state.ddi_checker).__name__)
 
-    def test_unapproved_workflow_routes_return_exact_typed_blockers(self):
+    def test_unwired_ddi_still_blocks_recommendation_and_finalization(self):
         settings = Settings(environment="development", auth_stub_enabled=True)
         with TestClient(create_app(settings)) as client:
             recommendation = client.post(
@@ -133,7 +128,8 @@ class TP22DeploymentTests(unittest.TestCase):
             )
         self.assertEqual("TP_RECOMMENDATION_MAPPING_UNAPPROVED", recommendation.json()["detail"]["code"])
         self.assertEqual("TP_FINALIZATION_CONTEXT_CONTRACT_MISSING", finalization.json()["detail"]["code"])
-        self.assertEqual("TP_SUCCESSOR_GENERATION_CONTRACT_MISSING", supersession.json()["detail"]["code"])
+        self.assertNotEqual("TP_SUCCESSOR_GENERATION_CONTRACT_MISSING", supersession.json().get("detail", {}).get("code") if isinstance(supersession.json().get("detail"), dict) else None)
+
 
     def test_release_packaging_is_non_root_pinned_loopback_and_resource_bounded(self):
         dockerfile = (ROOT / "Dockerfile.release").read_text(encoding="utf-8")

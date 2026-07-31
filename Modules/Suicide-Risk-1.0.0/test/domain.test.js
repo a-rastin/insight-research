@@ -14,17 +14,19 @@ test("contract fields trace only to accepted source paths", () => {
   const ownership = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "..", "..", "contracts", "clinical-ownership-v1.json")));
   const policy = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "..", "..", "contracts", "treatment-plan-safety-policy-v1.json")));
   assert.deepEqual(ownership.instrumentGovernance.allowedMissingStates, ["unknown", "unavailable"]);
+  assert.deepEqual(ownership.instrumentGovernance.allowedClearStates, ["not-elevated"]);
   assert.ok(policy.uncertaintyPolicy.clinicallyRequiredInputStates.includes("conflicting"));
-  assert.deepEqual(policy.emergencyPolicy.triggerStates.slice(0, 2), contract.riskStates.slice(3));
+  assert.deepEqual(policy.emergencyPolicy.triggerStates.slice(0, 2), contract.riskStates.slice(4));
   assert.equal(contract.clinicalBoundary.questionsDefined, false);
   assert.equal(contract.clinicalBoundary.scoringDefined, false);
   assert.equal(contract.clinicalBoundary.riskScoreAlwaysNull, true);
-  assert.equal(contract.sourceTraceability.length, 5);
+  assert.equal(contract.sourceTraceability.length, 6);
 });
 
 test("missing, favorable, question, score, and emergency-instruction fields are rejected", () => {
   const base = { patientId, encounterId, riskState: "unknown", actor: { actorId, role: "psychiatrist" } };
   assert.deepEqual(validateWrite(base, true), []);
+  assert.deepEqual(validateWrite({ ...base, riskState: "not-elevated" }, true), []);
   assert.ok(validateWrite({ ...base, riskState: "low-risk" }, true).length);
   assert.ok(validateWrite({ ...base, score: 1 }, true).length);
   assert.ok(validateWrite({ ...base, questions: [] }, true).length);
@@ -37,6 +39,20 @@ test("unknown, unavailable, and conflicting states fail closed", () => {
   assert.equal(disposition("unavailable").routinePlanningAllowed, false);
   assert.equal(disposition("conflicting").code, "TP_REQUIRED_DATA_CONFLICTING");
   for (const state of ["unknown", "unavailable", "conflicting"]) assert.equal(disposition(state).overrideAllowed, false);
+});
+
+test("not-elevated allows routine planning without claiming C-SSRS completion", () => {
+  const value = disposition("not-elevated");
+  assert.equal(value.outcome, "allowed");
+  assert.equal(value.code, "TP_SUICIDE_RISK_NOT_ELEVATED");
+  assert.equal(value.routinePlanningAllowed, true);
+  assert.equal(value.overrideAllowed, false);
+  const assessment = canonicalAssessment(
+    { patientId, encounterId, riskState: "not-elevated", actor: { actorId, role: "psychiatrist" } },
+    ctx
+  );
+  assert.equal(assessment.instrument.completionClaimed, false);
+  assert.equal(assessment.riskScore, null);
 });
 
 test("approved urgent states use exact persistent INS-010 behavior", () => {

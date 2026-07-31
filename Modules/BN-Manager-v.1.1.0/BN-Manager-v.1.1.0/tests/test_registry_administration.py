@@ -97,7 +97,7 @@ class RegistryAdministrationTests(unittest.TestCase):
         detail = self.client.get(f"/api/bn-manager/v3/admin/models/{stable_id}")
         self.assertEqual(detail.json()["data"]["model"]["lifecycle"]["version"], 3)
 
-    def test_activation_fails_closed_under_manifest_policy(self) -> None:
+    def test_activation_succeeds_when_manifest_approved(self) -> None:
         stable_id = "bnm.pharmacotherapy"
         headers = {"x-csrf-token": "csrf-admin"}
         self.client.post(
@@ -111,12 +111,8 @@ class RegistryAdministrationTests(unittest.TestCase):
             headers=headers,
         )
 
-        self.assertEqual(response.status_code, 409)
-        self.assertEqual(response.json()["error"]["code"], "BNM_ACTIVATION_BLOCKED")
-        self.assertEqual(
-            response.json()["error"]["details"]["blockers"],
-            ["manifest-approval-required", "manifest-runtime-use-blocked"],
-        )
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()["data"]["model"]["lifecycle"]["status"], "active")
 
     def test_non_admin_cannot_open_inventory_or_ui(self) -> None:
         settings = replace(

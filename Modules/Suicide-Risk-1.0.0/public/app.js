@@ -5,6 +5,7 @@ const OPTIONS = [
   ["unknown", "Unknown", "Required risk information has not been established."],
   ["unavailable", "Unavailable", "The approved assessment cannot currently be obtained."],
   ["conflicting", "Conflicting", "Available source information conflicts and requires resolution."],
+  ["not-elevated", "Not elevated", "Explicit psychiatrist assertion that risk is not elevated for routine planning."],
   ["imminent-suicide-risk", "Imminent suicide risk", "Psychiatrist assertion requiring urgent handling."],
   ["substantial-suicide-risk-requiring-urgent-evaluation", "Substantial suicide risk requiring urgent evaluation", "Psychiatrist assertion requiring urgent handling."]
 ];
@@ -98,7 +99,7 @@ function renderDisposition(state, assessment) {
     panel.replaceChildren();
     return;
   }
-  panel.className = `disposition ${assessment.safetyDisposition.outcome === "emergency-blocked" ? "urgent" : "blocked"}`;
+  panel.className = `disposition ${assessment.safetyDisposition.outcome === "emergency-blocked" ? "urgent" : assessment.safetyDisposition.outcome === "allowed" ? "allowed" : "blocked"}`;
   const heading = document.createElement("h2");
   heading.textContent = assessment.safetyDisposition.outcome === "emergency-blocked" ? "Urgent: routine planning blocked" : "Blocked: risk information unresolved";
   const text = document.createElement("p");

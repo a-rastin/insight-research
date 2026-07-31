@@ -26,6 +26,7 @@ p { color: var(--muted); line-height: 1.55; }
 .boundary, .disposition, .alert { padding: 16px; border-radius: 8px; border-left: 4px solid var(--warning); background: var(--warning-bg); margin: 16px 0; }
 .boundary p, .disposition p { margin-bottom: 0; }
 .alert, .disposition.urgent { border-left-color: var(--urgent); background: var(--urgent-bg); color: #7f1d1d; }
+.disposition.allowed { border-left-color: #15803d; background: #f0fdf4; color: #14532d; }
 .alert { font-weight: 600; }
 fieldset { border: 0; padding: 0; margin: 24px 0; }
 legend { font-size: 18px; font-weight: 700; }

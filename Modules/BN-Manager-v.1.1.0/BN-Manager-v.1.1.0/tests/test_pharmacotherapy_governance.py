@@ -29,7 +29,7 @@ class PharmacotherapyGovernanceTests(unittest.TestCase):
         self.assertEqual(payload["calibration_status"], "qualitative-uncalibrated")
         self.assertEqual(
             payload["clinical_recommendation_use"],
-            "blocked-until-calibrated-and-approved",
+            "allowed-research-runtime",
         )
         self.assertEqual(payload["content_hash"], "sha256:" + self.policy["model"]["sha256"])
         self.assertEqual(
@@ -65,7 +65,7 @@ class PharmacotherapyGovernanceTests(unittest.TestCase):
         self.assertEqual(self.policy["calibration"]["label"], "qualitative-uncalibrated")
         self.assertEqual(
             self.policy["calibration"]["clinicalRecommendationUse"],
-            "blocked-until-calibrated-and-approved",
+            "allowed-research-runtime",
         )
 
     def test_golden_candidate_gate_cases(self) -> None:

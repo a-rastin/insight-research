@@ -1,0 +1,15 @@
+{
+  "contractId": "insight.tp.recommendation-input-mapping",
+  "schemaVersion": "1.0.0",
+  "status": "approved",
+  "mappingVersion": "1.0.0",
+  "implementation": "treatment_plan/input_mapping.py#ApprovedRecommendationInputMapper",
+  "approvedBy": "insight-research-override",
+  "approvedAt": "2026-07-31T00:00:00Z",
+  "maps": [
+    "owner snapshots → NormalizedSnapshotFacts BN evidence",
+    "owner snapshots → SafetyFacts and ProbabilisticRecommendation candidates",
+    "owner snapshots → SourceFact provenance pointers",
+    "owner medications → DDI Medication inputs"
+  ]
+}

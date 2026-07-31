@@ -47,7 +47,7 @@
   "$defs": {
     "uuid": { "type": "string", "format": "uuid" },
     "riskState": {
-      "enum": ["unknown", "unavailable", "conflicting", "imminent-suicide-risk", "substantial-suicide-risk-requiring-urgent-evaluation"]
+      "enum": ["unknown", "unavailable", "conflicting", "not-elevated", "imminent-suicide-risk", "substantial-suicide-risk-requiring-urgent-evaluation"]
     },
     "actor": {
       "type": "object",
@@ -60,11 +60,11 @@
       "additionalProperties": false,
       "required": ["outcome", "code", "routinePlanningAllowed", "overrideAllowed", "persistentUntilResolved", "guidance"],
       "properties": {
-        "outcome": { "enum": ["blocked", "emergency-blocked"] },
-        "code": { "enum": ["TP_SUICIDE_RISK_UNAVAILABLE", "TP_REQUIRED_DATA_CONFLICTING", "TP_EMERGENCY_ACTION_REQUIRED"] },
-        "routinePlanningAllowed": { "const": false },
+        "outcome": { "enum": ["allowed", "blocked", "emergency-blocked"] },
+        "code": { "enum": ["TP_SUICIDE_RISK_NOT_ELEVATED", "TP_SUICIDE_RISK_UNAVAILABLE", "TP_REQUIRED_DATA_CONFLICTING", "TP_EMERGENCY_ACTION_REQUIRED"] },
+        "routinePlanningAllowed": { "type": "boolean" },
         "overrideAllowed": { "const": false },
-        "persistentUntilResolved": { "const": true },
+        "persistentUntilResolved": { "type": "boolean" },
         "guidance": { "type": "string", "minLength": 1 }
       }
     }

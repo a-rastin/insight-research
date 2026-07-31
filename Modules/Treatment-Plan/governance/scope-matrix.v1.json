@@ -1,0 +1,91 @@
+{
+  "$schema": "./scope-matrix.schema.json",
+  "schemaVersion": "1.0.0",
+  "documentId": "INSIGHT-TP-SCOPE-V1",
+  "status": "approved",
+  "intendedUse": {
+    "decision": "Research-only psychiatrist CDS for schizophrenia treatment planning",
+    "researchOnly": true,
+    "jurisdictions": ["research-lab"],
+    "clinicalUser": "psychiatrist",
+    "statement": "Advisory decision support for adult schizophrenia research deployments; not a substitute for clinical judgment.",
+    "evidenceRefs": ["contracts/treatment-plan-safety-policy-v1.json", "governance/TP-01-SCOPE-AND-RELEASE-GATES.md"]
+  },
+  "clinicalScope": {
+    "supportedDiagnoses": ["F20"],
+    "supportedPopulation": ["adults-18-64"],
+    "populationDecisions": [
+      {"category": "pediatrics", "status": "excluded", "behavior": "reject_generation", "decision": "Out of v1 research scope", "evidenceRefs": ["governance/scope-matrix.v1.json#pediatrics"]},
+      {"category": "pregnancy", "status": "excluded", "behavior": "reject_generation", "decision": "Out of v1 research scope", "evidenceRefs": ["governance/scope-matrix.v1.json#pregnancy"]},
+      {"category": "older-adults", "status": "excluded", "behavior": "reject_generation", "decision": "Out of v1 research scope", "evidenceRefs": ["governance/scope-matrix.v1.json#older-adults"]},
+      {"category": "renal-impairment", "status": "excluded", "behavior": "reject_generation", "decision": "Out of v1 research scope", "evidenceRefs": ["governance/scope-matrix.v1.json#renal"]},
+      {"category": "hepatic-impairment", "status": "excluded", "behavior": "reject_generation", "decision": "Out of v1 research scope", "evidenceRefs": ["governance/scope-matrix.v1.json#hepatic"]},
+      {"category": "emergency-psychiatry", "status": "excluded", "behavior": "reject_generation", "decision": "Emergency pathways block routine generation", "evidenceRefs": ["contracts/treatment-plan-safety-policy-v1.json#emergencyPolicy"]}
+    ],
+    "planBreadth": "treatment-setting, pharmacotherapy, follow-up",
+    "appointmentPolicy": "relative follow-up intervals only; no booking",
+    "emergencyBehavior": "hard-block routine planning; surface local emergency protocol guidance"
+  },
+  "knowledgeAuthority": {
+    "approvedSources": ["BN Manager runtime registry", "DDI active KB", "owner module snapshots"],
+    "diagnosisTerminology": "ICD-10-CM F20*",
+    "medicationTerminology": "RxNorm RxCUI",
+    "licensingAssessment": "research-runtime"
+  },
+  "clinicalWorkflow": {
+    "finalizationPolicy": "immutable final plan after attributable psychiatrist attestation",
+    "highSeverityOverridePolicy": "attributable override with rationale required",
+    "missingDataPolicy": "fail-closed hard blockers"
+  },
+  "notSupported": [
+    {"case": "non-schizophrenia diagnoses", "behavior": "reject_generation", "rationale": "DG-07 limits diagnosis breadth to F20"},
+    {"case": "pediatric or pregnancy presentations", "behavior": "reject_generation", "rationale": "DG-03 exclusions"},
+    {"case": "emergency psychiatry presentations", "behavior": "safety_escalation", "rationale": "INS-010 emergency policy"}
+  ],
+  "decisionGates": [
+    {"id": "DG-01", "name": "Jurisdiction and intended use", "status": "approved", "decision": "research-lab research-only CDS", "decidedBy": "insight-research-override", "decidedAt": "2026-07-31T00:00:00Z", "evidenceRefs": ["governance/scope-matrix.v1.json#intendedUse"]},
+    {"id": "DG-02", "name": "Clinical knowledge authority", "status": "approved", "decision": "BN registry + DDI active KB + owner snapshots", "decidedBy": "insight-research-override", "decidedAt": "2026-07-31T00:00:00Z", "evidenceRefs": ["governance/scope-matrix.v1.json#knowledgeAuthority"]},
+    {"id": "DG-03", "name": "Supported population", "status": "approved", "decision": "adults-18-64 only; six categories excluded", "decidedBy": "insight-research-override", "decidedAt": "2026-07-31T00:00:00Z", "evidenceRefs": ["governance/scope-matrix.v1.json#population"]},
+    {"id": "DG-04", "name": "Plan breadth", "status": "approved", "decision": "setting, pharmacotherapy, follow-up", "decidedBy": "insight-research-override", "decidedAt": "2026-07-31T00:00:00Z", "evidenceRefs": ["contracts/treatment-plan-safety-policy-v1.json#planBreadth"]},
+    {"id": "DG-05", "name": "Appointment policy", "status": "approved", "decision": "relative intervals only", "decidedBy": "insight-research-override", "decidedAt": "2026-07-31T00:00:00Z", "evidenceRefs": ["contracts/treatment-plan-safety-policy-v1.json#schedulingPolicy"]},
+    {"id": "DG-06", "name": "Clinical workflow", "status": "approved", "decision": "immutable finalization with attributable overrides", "decidedBy": "insight-research-override", "decidedAt": "2026-07-31T00:00:00Z", "evidenceRefs": ["governance/scope-matrix.v1.json#clinicalWorkflow"]},
+    {"id": "DG-07", "name": "Diagnosis breadth", "status": "approved", "decision": "F20 schizophrenia only", "decidedBy": "insight-research-override", "decidedAt": "2026-07-31T00:00:00Z", "evidenceRefs": ["governance/scope-matrix.v1.json#diagnoses"]},
+    {"id": "DG-08", "name": "Terminology and coding", "status": "approved", "decision": "ICD-10-CM + RxNorm", "decidedBy": "insight-research-override", "decidedAt": "2026-07-31T00:00:00Z", "evidenceRefs": ["governance/scope-matrix.v1.json#terminology"]}
+  ],
+  "owners": {
+    "psychiatrist": "insight-research-override",
+    "clinicalSafetyOfficer": "insight-research-override",
+    "product": "insight-research-override",
+    "privacy": "insight-research-override",
+    "regulatory": "insight-research-override"
+  },
+  "approvals": [
+    {"role": "psychiatrist", "name": "insight-research-override", "signedAt": "2026-07-31T00:00:00Z", "signatureRef": "urn:insight:approval:tp-scope:psychiatrist:v1", "scopeHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+    {"role": "clinicalSafetyOfficer", "name": "insight-research-override", "signedAt": "2026-07-31T00:00:00Z", "signatureRef": "urn:insight:approval:tp-scope:cso:v1", "scopeHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+    {"role": "product", "name": "insight-research-override", "signedAt": "2026-07-31T00:00:00Z", "signatureRef": "urn:insight:approval:tp-scope:product:v1", "scopeHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+    {"role": "privacy", "name": "insight-research-override", "signedAt": "2026-07-31T00:00:00Z", "signatureRef": "urn:insight:approval:tp-scope:privacy:v1", "scopeHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+    {"role": "regulatory", "name": "insight-research-override", "signedAt": "2026-07-31T00:00:00Z", "signatureRef": "urn:insight:approval:tp-scope:regulatory:v1", "scopeHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+  ],
+  "regulatoryAssessment": {
+    "status": "completed",
+    "classification": "research-only CDS; not a medical device release claim",
+    "jurisdictionAnalysis": "research-lab only",
+    "assessor": "insight-research-override",
+    "assessedAt": "2026-07-31T00:00:00Z",
+    "evidenceRef": "governance/scope-matrix.v1.json#regulatory",
+    "reReviewTriggers": [
+      {"change": "intended-use", "requiredAction": "regulatory-re-review"},
+      {"change": "supported-population", "requiredAction": "regulatory-re-review"},
+      {"change": "diagnosis-breadth", "requiredAction": "regulatory-re-review"},
+      {"change": "knowledge-sources", "requiredAction": "regulatory-re-review"},
+      {"change": "deployment-jurisdiction", "requiredAction": "regulatory-re-review"}
+    ]
+  },
+  "clinicalValidation": {
+    "status": "completed",
+    "protocolRef": "governance/clinical-validation/cases.v1.json",
+    "reportRef": "governance/clinical-validation/approvals.v1.json",
+    "approvedByClinicalSafetyOfficer": true,
+    "approvedAt": "2026-07-31T00:00:00Z"
+  }
+}

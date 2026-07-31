@@ -18,6 +18,7 @@
     "unknown",
     "unavailable",
     "conflicting",
+    "not-elevated",
     "imminent-suicide-risk",
     "substantial-suicide-risk-requiring-urgent-evaluation"
   ],
@@ -29,6 +30,10 @@
     {
       "field": "riskState: conflicting",
       "source": "contracts/treatment-plan-safety-policy-v1.json#/uncertaintyPolicy/clinicallyRequiredInputStates"
+    },
+    {
+      "field": "riskState: not-elevated",
+      "source": "contracts/clinical-ownership-v1.json#/instrumentGovernance/allowedClearStates"
     },
     {
       "field": "riskState: imminent-suicide-risk|substantial-suicide-risk-requiring-urgent-evaluation",
@@ -49,7 +54,7 @@
     "computed or submitted score",
     "invented threshold",
     "location-specific emergency instruction",
-    "negative, normal, safe, absent, or low-risk inference"
+    "inferred negative/low-risk without explicit psychiatrist not-elevated assertion"
   ],
   "routes": {
     "create": "POST /api/suicide-risk/v1/assessments",

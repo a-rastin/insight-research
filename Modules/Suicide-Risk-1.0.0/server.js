@@ -24,6 +24,7 @@ const STATES = new Set([
   "unknown",
   "unavailable",
   "conflicting",
+  "not-elevated",
   "imminent-suicide-risk",
   "substantial-suicide-risk-requiring-urgent-evaluation"
 ]);
@@ -31,6 +32,7 @@ const URGENT_STATES = new Set([
   "imminent-suicide-risk",
   "substantial-suicide-risk-requiring-urgent-evaluation"
 ]);
+const CLEAR_STATES = new Set(["not-elevated"]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const MIME = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "application/javascript; charset=utf-8", ".json": "application/json; charset=utf-8" };
 
@@ -151,6 +153,14 @@ function disposition(riskState) {
     overrideAllowed: false,
     persistentUntilResolved: true,
     guidance: "Stop routine planning and follow the applicable local emergency protocol for immediate clinical evaluation."
+  };
+  if (CLEAR_STATES.has(riskState)) return {
+    outcome: "allowed",
+    code: "TP_SUICIDE_RISK_NOT_ELEVATED",
+    routinePlanningAllowed: true,
+    overrideAllowed: false,
+    persistentUntilResolved: false,
+    guidance: "Psychiatrist asserted suicide risk is not elevated for routine treatment planning."
   };
   if (riskState === "conflicting") return {
     outcome: "blocked",

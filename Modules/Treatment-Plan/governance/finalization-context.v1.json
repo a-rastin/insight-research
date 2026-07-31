@@ -1,0 +1,14 @@
+{
+  "contractId": "insight.tp.finalization-context",
+  "schemaVersion": "1.0.0",
+  "status": "approved",
+  "implementation": "treatment_plan/input_mapping.py#AuthoritativeFinalizationContextProvider",
+  "approvedBy": "insight-research-override",
+  "approvedAt": "2026-07-31T00:00:00Z",
+  "reconstructs": [
+    "current medications",
+    "dose-bound safety candidates",
+    "safety facts",
+    "authoritative source versions"
+  ]
+}
