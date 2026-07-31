@@ -1,0 +1,52 @@
+services:
+  insight:
+    image: ${INSIGHT_IMAGE:?set a registry image pinned by sha256 digest}
+    pull_policy: always
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      NODE_ENV: production
+      TP_ENV: production
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:?set AUTH_JWT_SECRET}
+      AUTH_ADMIN_PASSWORD: ${AUTH_ADMIN_PASSWORD:?set AUTH_ADMIN_PASSWORD}
+      AUTH_SECURE_COOKIE: "true"
+      ADD_NEW_PATIENT_CSRF_SECRET: ${ADD_NEW_PATIENT_CSRF_SECRET:?set ADD_NEW_PATIENT_CSRF_SECRET}
+      ADD_NEW_PATIENT_CSRF_SECURE: "true"
+      DIAGNOSIS_CSRF_SECRET: ${DIAGNOSIS_CSRF_SECRET:?set DIAGNOSIS_CSRF_SECRET}
+      DIAGNOSIS_CSRF_SECURE: "true"
+      SEVERITY_CSRF_SECRET: ${SEVERITY_CSRF_SECRET:?set SEVERITY_CSRF_SECRET}
+      MEDICAL_HISTORY_CSRF_SECRET: ${MEDICAL_HISTORY_CSRF_SECRET:?set MEDICAL_HISTORY_CSRF_SECRET}
+      SUICIDE_RISK_CSRF_SECRET: ${SUICIDE_RISK_CSRF_SECRET:?set SUICIDE_RISK_CSRF_SECRET}
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 30s
+    restart: unless-stopped
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    volumes:
+      - authentication-data:/var/lib/insight/authentication
+      - dashboard-data:/var/lib/insight/dashboard
+      - add-new-patient-data:/var/lib/insight/add-new-patient
+      - diagnosis-data:/var/lib/insight/diagnosis
+      - severity-data:/var/lib/insight/severity
+      - medical-history-data:/var/lib/insight/medical-history
+      - ddi-checker-data:/var/lib/insight/ddi-checker
+      - bn-manager-data:/var/lib/insight/bn-manager
+      - suicide-risk-data:/var/lib/insight/suicide-risk
+      - treatment-plan-data:/var/lib/insight/treatment-plan
+      - ${INSIGHT_BACKUP_DIR:?set INSIGHT_BACKUP_DIR}:/var/backups/insight
+      - ${INSIGHT_BACKUP_KEY:?set INSIGHT_BACKUP_KEY}:/run/secrets/backup-key:ro
+
+volumes:
+  authentication-data:
+  dashboard-data:
+  add-new-patient-data:
+  diagnosis-data:
+  severity-data:
+  medical-history-data:
+  ddi-checker-data:
+  bn-manager-data:
+  suicide-risk-data:
+  treatment-plan-data:

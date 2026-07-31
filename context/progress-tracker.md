@@ -8,6 +8,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-065: Package, deploy, and verify the approved release mode (In progress).
 - INS-061: Complete system accessibility and failure-mode verification (In
   progress).
 - INS-060: Implement module-aware backup, restore, migration, and rollback (In
@@ -325,6 +326,35 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-065 approved release-mode packaging and verification (In progress).
+  Versioned release policy now limits this packet to the Ubuntu VPS
+  `research-build` mode, requires a registry image pinned by SHA-256 digest,
+  keeps the unified gateway bound to host loopback, and defines host nginx TLS
+  1.2/1.3 termination. The release gate rejects mutable image tags and non-HTTPS
+  origins, requires external approved initial/follow-up fixtures and rollback
+  evidence, runs root/module gates, verifies rollback compatibility before
+  deployment, starts module-owned migration gates, checks TLS health/readiness,
+  runs both gateway E2E suites, verifies encrypted backup/restore, restarts, and
+  rechecks readiness. The operator runbook covers image build/push/pinning,
+  secret and certificate handling, deployment, backup, restart, rollback, and
+  current limitations. Focused release, unified-image, backup/rollback,
+  accessibility, security, and dependency-chaos checks passed 20/20. Root
+  discovery passed 93 tests with two expected unconfigured live-gateway skips;
+  all ten module full-suite gates passed, including frontend tests, Treatment
+  Plan typecheck/build, and every module's security and contract checks. Release
+  JSON, shell syntax, Compose rendering, and `git diff --check` passed.
+  The digest-pinned-base unified image rebuilt successfully as
+  `insight-unified:ins065`, producing local manifest digest
+  `sha256:ec0c6f3d09c372ed6e397577e92d72ac3f739542b0aacaa3f7665ce345e0eb3f`.
+  Live nginx/TLS deployment, E2E, backup, restart, and rollback rehearsal could
+  not run because no approved environment, registry reference, certificates,
+  credentials, external fixtures, or release inventory were supplied. DDI also
+  intentionally fails readiness with `production-rest-seam-unavailable`, and
+  controlled-clinical approvals remain absent; release policy therefore remains
+  blocked. Next work is to implement the DDI owner seam, supply approved external
+  release inputs on the Ubuntu VPS, run `deploy/release.sh`, and retain its
+  attributable evidence. No file under `insight-research/doc/` was read or
+  modified.
 - INS-061 system accessibility and failure-mode verification (In progress).
   Unified nginx now applies HSTS, CSP, frame, MIME-sniffing, referrer, and
   permissions headers, hides upstream server identity, keeps access logging

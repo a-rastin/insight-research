@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0.0",
+  "packet": "INS-065",
+  "releaseMode": "research-build",
+  "approvedEnvironment": "ubuntu-vps-docker",
+  "imageReference": "registry-digest-required",
+  "publicEdge": {
+    "implementation": "host-nginx",
+    "tlsMinimumVersion": "1.2",
+    "upstream": "http://127.0.0.1:8080",
+    "configuration": "deploy/nginx-tls.conf.template"
+  },
+  "requiredGates": [
+    "pinned-image",
+    "migration",
+    "full-module-and-root-tests",
+    "initial-gateway-e2e",
+    "follow-up-gateway-e2e",
+    "accessibility-and-failure-mode",
+    "tls-health-and-readiness",
+    "backup-and-restore-verification",
+    "restart",
+    "rollback-compatibility"
+  ],
+  "status": "blocked",
+  "limitations": [
+    "DDI readiness is intentionally blocked until its production REST seam exists.",
+    "Approved synthetic initial and follow-up E2E fixtures are not stored in source control.",
+    "Model, scope, privacy, security, operations, and clinical approvals do not authorize controlled-clinical deployment."
+  ]
+}
