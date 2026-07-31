@@ -53,8 +53,10 @@ def serve(settings: Settings) -> None:
     graceful = int(os.getenv("TP_GRACEFUL_SHUTDOWN_SECONDS", "30"))
     if not 1 <= graceful <= 300:
         raise ConfigurationError("TP_GRACEFUL_SHUTDOWN_SECONDS must be between 1 and 300")
+    host = os.getenv("TP_HOST", "127.0.0.1")
+    port = int(os.getenv("TP_PORT", "8000"))
     uvicorn.run(
-        "treatment_plan.app:app", host="0.0.0.0", port=8000, reload=False,
+        "treatment_plan.app:app", host=host, port=port, reload=False,
         timeout_graceful_shutdown=graceful, proxy_headers=True, forwarded_allow_ips="127.0.0.1",
     )
 

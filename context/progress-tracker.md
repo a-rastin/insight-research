@@ -8,6 +8,8 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-056: Build the unified multi-process image and internal gateway (In
+  progress).
 - INS-055: Implement the approved read-only assistant slice (In progress).
 - INS-054: Conduct psychiatrist lifecycle walkthrough and retire prototype (In
   progress).
@@ -316,6 +318,35 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-056 unified multi-process image and internal gateway (In progress). A
+  digest-pinned Python 3.13 and Node.js 22 multi-stage image now packages ten
+  independently configured module processes and their UIs under non-root UID
+  10001. Supervisord remains PID 1, uses process-group TERM/KILL handling with a
+  30-second grace period and fail-fast required-process monitoring, and starts
+  nginx as the sole published `8080` listener. Nginx routes gateway-relative UI
+  and API paths to loopback-only ports `8101`-`8110`; Suicide Risk now has the
+  previously missing runtime-policy entry at `8109`, and Treatment Plan moves to
+  `8110`. Ten separate named data volumes preserve module ownership, Treatment
+  Plan runs its ordered integrity-checked migration gate before supervision,
+  other database services complete module-owned migrations before binding, and
+  the gateway readiness aggregator reports only unavailable module IDs without
+  internal URLs or response bodies. Python dependencies are transitively pinned
+  with hashes, Node installs use package locks, and the Treatment Plan UI is
+  built in its own stage. Add New Patient now supplies the selected liveness and
+  readiness aliases; Treatment Plan accepts production HTTP only for numeric
+  loopback origins and binds its configured internal host and port. Focused
+  runtime-policy and image tests passed 7/7; root discovery passed 75/75;
+  Treatment Plan passed 76/76; Add New Patient backend and v2 contract suites
+  passed 43/43 and 12/12; DDI passed 46/46; Compose validation, changed Python
+  compilation, JavaScript syntax, and `git diff --check` passed. The full image
+  built successfully, started under a read-only root filesystem with all ten
+  module processes, served gateway liveness and routed module UIs, returned
+  `503` readiness naming only `ddi-checker`, and stopped in 3.28 seconds after
+  SIGTERM. DDI remains a static prototype with no protected server-owned REST
+  implementation, so its deployment adapter deliberately fails readiness with
+  `production-rest-seam-unavailable`; implementing that separately approved DDI
+  owner seam and then repeating an authenticated end-to-end gateway run is the
+  next step. No file under `insight-research/doc/` was read or modified.
 - INS-055 approved read-only assistant slice (In progress). Implementation has
   superseded the INS-006 disabled policy only for the Treatment Plan review
   page. ADR-0011 and assistant policy 1.1.0 approve a psychiatrist-only,

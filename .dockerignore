@@ -1,0 +1,11 @@
+.git
+doc
+**/doc
+**/graphify-out
+**/node_modules
+**/__pycache__
+**/*.pyc
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+Modules/Treatment-Plan/frontend/dist

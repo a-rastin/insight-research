@@ -299,8 +299,16 @@ def encode_page_token(offset: int) -> str:
 
 
 @app.get("/api/health")
+@app.get("/healthz")
 async def health() -> dict[str, str]:
     return {"module": "Add New Patient", "status": "ok"}
+
+
+@app.get("/readyz", response_model=None)
+async def ready() -> dict[str, str] | JSONResponse:
+    if not repo.ping() or (not settings.auth_session_url and not settings.auth_base_url):
+        return JSONResponse(status_code=503, content={"module": "Add New Patient", "status": "not-ready"})
+    return {"module": "Add New Patient", "status": "ready"}
 
 
 @app.get("/internal/dashboard/module-routes/add-new-patient")

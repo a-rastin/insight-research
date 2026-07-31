@@ -283,6 +283,8 @@ class AddNewPatientBackendTest(unittest.TestCase):
             status, data = request_json(base, "/api/health")
             self.assertEqual(status, 200)
             self.assertEqual(data, {"module": "Add New Patient", "status": "ok"})
+            self.assertEqual(request_json(base, "/healthz")[0], 200)
+            self.assertEqual(request_json(base, "/readyz")[0], 503)
 
     def test_dashboard_module_route_contract(self) -> None:
         with AddNewPatientServer() as base:

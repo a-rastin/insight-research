@@ -41,7 +41,8 @@ owned module process at runtime; Vite is build-time only.
 | Medical History | Node.js | 8106 | `/modules/medical-history` | `/healthz` | `/readyz` | `/var/lib/insight/medical-history` |
 | DDI Checker | Node.js | 8107 | `/modules/ddi` | `/healthz` | `/readyz` | `/var/lib/insight/ddi-checker` |
 | BN Manager | Python | 8108 | `/api/bn-manager/v1` | `/api/health` | `/api/ready` | `/var/lib/insight/bn-manager` |
-| Treatment Plan | Python + Node build | 8109 | `/modules/treatment-plan` | `/health` | `/ready` | `/var/lib/insight/treatment-plan` |
+| Suicide Risk | Node.js | 8109 | `/modules/suicide-risk` | `/healthz` | `/readyz` | `/var/lib/insight/suicide-risk` |
+| Treatment Plan | Python + Node build | 8110 | `/modules/treatment-plan` | `/health` | `/ready` | `/var/lib/insight/treatment-plan` |
 
 Gateway liveness checks only nginx process health. Gateway readiness succeeds
 only when every required module readiness probe succeeds. Failure names
@@ -55,11 +56,10 @@ processes receive SIGKILL. Container exits nonzero when required process exits
 unexpectedly. Runtime databases and mutable files remain in module-specific
 mounted directories and are never baked into image.
 
-DDI Checker, Severity, Medical History, and Add New Patient do not yet expose all
-selected target probes or service seams. Unified readiness must remain failed
-for any missing required process or probe; gateway must not synthesize healthy
-states. Follow-up has no approved standalone service contract and receives no
-port in this matrix.
+DDI Checker does not yet expose its selected production REST service seam.
+Unified readiness must remain failed for any missing required process or probe;
+gateway must not synthesize healthy states. Follow-up has no approved standalone
+service contract and receives no port in this matrix.
 
 ## Alternatives
 

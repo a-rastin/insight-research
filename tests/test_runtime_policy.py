@@ -16,6 +16,7 @@ EXPECTED_MODULE_IDS = {
     "medical-history",
     "ddi-checker",
     "bn-manager",
+    "suicide-risk",
     "treatment-plan",
 }
 

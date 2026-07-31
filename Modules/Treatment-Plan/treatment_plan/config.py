@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from ipaddress import ip_address
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -44,7 +45,8 @@ class Settings:
             parsed = urlsplit(origin)
             if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password or parsed.path not in {"", "/"} or parsed.query or parsed.fragment:
                 raise ConfigurationError("TP_TRUSTED_INTERNAL_ORIGINS must contain origins only")
-            if environment == "production" and parsed.scheme != "https":
+            loopback_http = parsed.scheme == "http" and _loopback(parsed.hostname)
+            if environment == "production" and parsed.scheme != "https" and not loopback_http:
                 raise ConfigurationError("trusted internal origins must use HTTPS in production")
         session_url = os.getenv("TP_AUTHENTICATION_SESSION_URL") or None
         if session_url:
@@ -76,5 +78,12 @@ class Settings:
             assistant_provider_url=assistant_url,
             assistant_timeout_seconds=assistant_timeout,
         )
+
+
+def _loopback(hostname: str | None) -> bool:
+    try:
+        return bool(hostname) and ip_address(hostname).is_loopback
+    except ValueError:
+        return False
 
 

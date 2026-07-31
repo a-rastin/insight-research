@@ -132,10 +132,23 @@
       "required": true
     },
     {
+      "id": "suicide-risk",
+      "runtime": "node",
+      "host": "127.0.0.1",
+      "port": 8109,
+      "basePath": "/modules/suicide-risk",
+      "livenessPath": "/healthz",
+      "readinessPath": "/readyz",
+      "dataDir": "/var/lib/insight/suicide-risk",
+      "runAsUser": 10001,
+      "published": false,
+      "required": true
+    },
+    {
       "id": "treatment-plan",
       "runtime": "python-node",
       "host": "127.0.0.1",
-      "port": 8109,
+      "port": 8110,
       "basePath": "/modules/treatment-plan",
       "livenessPath": "/health",
       "readinessPath": "/ready",

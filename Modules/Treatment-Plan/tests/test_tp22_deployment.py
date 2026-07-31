@@ -42,6 +42,19 @@ class TP22DeploymentTests(unittest.TestCase):
             with patch.dict(os.environ, environment, clear=True), self.assertRaises(ConfigurationError):
                 settings_from_environment()
 
+    def test_production_allows_only_loopback_http_internal_origin(self):
+        environment = {
+            "TP_ENV": "production",
+            "TP_TRUSTED_INTERNAL_ORIGINS": "http://127.0.0.1:8101",
+            "TP_AUTHENTICATION_SESSION_URL": "http://127.0.0.1:8101/api/auth/v2/session",
+        }
+        with patch.dict(os.environ, environment, clear=True):
+            self.assertEqual(environment["TP_AUTHENTICATION_SESSION_URL"], Settings.from_env().authentication_session_url)
+        environment["TP_TRUSTED_INTERNAL_ORIGINS"] = "http://authentication.internal:8101"
+        environment["TP_AUTHENTICATION_SESSION_URL"] = "http://authentication.internal:8101/api/auth/v2/session"
+        with patch.dict(os.environ, environment, clear=True), self.assertRaises(ConfigurationError):
+            Settings.from_env()
+
     def test_release_packaging_is_non_root_pinned_loopback_and_resource_bounded(self):
         dockerfile = (ROOT / "Dockerfile.release").read_text(encoding="utf-8")
         requirements = (ROOT / "requirements.lock").read_text(encoding="utf-8")
