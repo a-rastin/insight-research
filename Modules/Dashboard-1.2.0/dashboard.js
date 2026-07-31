@@ -18,10 +18,10 @@ const ROLE_META = {
     scope: "System operations",
     tone: "admin",
     modules: {
-      "add-new-user": ["Access", "Create user in user module", "Warning"],
+      "add-new-user": ["Access", "Create account in Authentication", "Warning"],
       logs: ["Audit", "Review system logs module", "Info"],
       backup: ["Backup", "Open backup module", "Warning"],
-      "list-of-users": ["Users", "Open user directory module", "Normal"]
+      "list-of-users": ["Users", "Open Authentication account directory", "Normal"]
     }
   }
 };

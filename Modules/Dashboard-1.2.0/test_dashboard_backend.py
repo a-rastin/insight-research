@@ -302,7 +302,7 @@ class DashboardBackendTest(unittest.TestCase):
             self.assertEqual(status, 200)
             self.assertEqual(route["href"], "/modules/patient-follow-up")
 
-    def test_admin_workspace_model_has_unavailable_and_unauthorized_destinations(self) -> None:
+    def test_admin_workspace_model_has_account_routes_and_explicit_destination_states(self) -> None:
         with DashboardServer() as base:
             created = create_session(base, "admin-1")
             status, workspace = request_json(base, f"/internal/dashboard/workspace?session={created['sessionId']}")
@@ -317,9 +317,10 @@ class DashboardBackendTest(unittest.TestCase):
             )
             self.assertEqual(
                 [button["state"] for button in workspace["workspace"]["buttons"]],
-                ["unauthorized"] * 4 + ["unavailable"] * 4,
+                ["unauthorized"] * 4 + ["available", "unavailable", "unavailable", "available"],
             )
-            self.assertTrue(all("href" not in button for button in workspace["workspace"]["buttons"]))
+            self.assertEqual(workspace["workspace"]["buttons"][4]["href"], "/modules/auth/accounts/new")
+            self.assertEqual(workspace["workspace"]["buttons"][7]["href"], "/modules/auth/accounts")
             self.assertNotIn("cards", workspace["workspace"])
             self.assertNotIn("oversight", workspace)
             self.assertNotIn("guidelineRevisions", json.dumps(workspace))
@@ -332,6 +333,13 @@ class DashboardBackendTest(unittest.TestCase):
             status, data = request_json(base, "/internal/dashboard/module-routes/logs", headers={"x-dashboard-session": admin["sessionId"]})
             self.assertEqual(status, 503)
             self.assertEqual(data["error"], "module_route_unavailable")
+
+            status, route = request_json(base, "/internal/dashboard/module-routes/add-new-user", headers={"x-dashboard-session": admin["sessionId"]})
+            self.assertEqual(status, 200)
+            self.assertEqual(route["href"], "/modules/auth/accounts/new")
+            status, route = request_json(base, "/internal/dashboard/module-routes/list-of-users", headers={"x-dashboard-session": admin["sessionId"]})
+            self.assertEqual(status, 200)
+            self.assertEqual(route["href"], "/modules/auth/accounts")
 
             psychiatrist = create_session(base, "psy-1")
             status, data = request_json(base, "/internal/dashboard/module-routes/logs", headers={"x-dashboard-session": psychiatrist["sessionId"]})
@@ -483,6 +491,8 @@ class DashboardBackendTest(unittest.TestCase):
                     [button["title"] for button in workspace["workspace"]["buttons"][4:]],
                     ["Add New User", "Logs", "Backup", "List of Users"],
                 )
+                self.assertEqual(workspace["workspace"]["buttons"][4]["href"], "/modules/auth/accounts/new")
+                self.assertEqual(workspace["workspace"]["buttons"][7]["href"], "/modules/auth/accounts")
 
 
 if __name__ == "__main__":

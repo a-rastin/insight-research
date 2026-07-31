@@ -1,4 +1,4 @@
-# INSIGHT Authentication v2 Session Contract
+# INSIGHT Authentication v2 Contract
 
 Status: current
 
@@ -71,3 +71,52 @@ Rollback requires stopped writes and a verified database backup. Set
 `PRAGMA user_version = 6` before starting v1 code; added nullable columns and
 indexes are compatible with v1 writes. Reapplying migration 007 backfills UUIDs
 for rows created during rollback. Do not delete UUID columns or mappings.
+
+## Account administration
+
+Authentication owns account records, credentials, roles, lifecycle state,
+session revocation, and security audit. Dashboard only links to the owner-hosted
+surface at `/modules/auth/accounts` or `/modules/auth/accounts/new`.
+
+All routes below require a current authorized `admin` session. Anonymous callers
+receive `401`; authenticated non-admin callers receive `403`. State-changing
+requests also require the Authentication CSRF cookie and matching
+`X-CSRF-Token` header.
+
+| Method | Route | Purpose |
+| --- | --- | --- |
+| `POST` | `/api/auth/v2/admin/accounts` | Create an account. |
+| `GET` | `/api/auth/v2/admin/accounts?limit=25&offset=0` | List accounts in stable creation order. |
+| `PATCH` | `/api/auth/v2/admin/accounts/{accountId}` | Update supported `role` or `disabled` fields. |
+| `POST` | `/api/auth/v2/admin/accounts/{accountId}/reset-password` | Set or generate a temporary password. |
+
+`accountId` is the Authentication-owned user UUID. Create accepts `username`,
+`role`, and `password`; passwords require at least eight characters. Patch
+accepts exactly one of `role` and `disabled`, rejects unknown fields, and
+prevents self-disable, self-demotion, or removal of the last active admin.
+Disablement, password reset, and role change revoke every target session in the
+same transaction.
+
+List responses have this shape and never include password hashes or secrets:
+
+```json
+{
+  "accounts": [
+    {
+      "id": "35e65add-887d-4911-a970-97a4e5300a21",
+      "username": "doc1",
+      "role": "psychiatrist",
+      "disabled": false,
+      "passwordChangeRequired": false,
+      "disclaimerAccepted": true,
+      "createdAt": "2026-07-29 18:30:00"
+    }
+  ],
+  "pagination": {"limit": 25, "offset": 0, "total": 1, "nextOffset": null}
+}
+```
+
+Duplicate usernames return `409`. Weak passwords and invalid updates return
+`422`. Missing accounts return `404`; protected self/last-admin changes return
+`403` or `409`. Unexpected failures remain explicit `5xx` responses and do not
+return secrets or account payloads.

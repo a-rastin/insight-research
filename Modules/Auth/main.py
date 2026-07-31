@@ -1,12 +1,14 @@
 import os
 
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, HTTPException, Request, Response, status
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 try:
+    from . import security
     from .router import HealthResponse, ReadinessResponse, liveness, readiness, router
 except ImportError:  # Keeps `python main.py` working from this directory.
+    import security
     from router import HealthResponse, ReadinessResponse, liveness, readiness, router
 
 # Stays standalone-runnable: `uvicorn modules.auth.main:app` from the repo
@@ -22,6 +24,18 @@ app.mount("/static", StaticFiles(directory=os.path.join(_dir, "static")), name="
 @app.get("/")
 def index():
     return FileResponse(os.path.join(_dir, "static", "index.html"))
+
+
+@app.get("/modules/auth/accounts")
+@app.get("/modules/auth/accounts/new")
+def account_administration(request: Request):
+    token = request.cookies.get(security.cfg("AUTH_COOKIE_NAME"))
+    identity = security.resolve_session(token) if token else None
+    if identity is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+    if identity["role"] != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+    return FileResponse(os.path.join(_dir, "static", "accounts.html"))
 
 
 @app.get("/healthz", response_model=HealthResponse, tags=["ops"])

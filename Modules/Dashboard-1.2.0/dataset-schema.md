@@ -54,6 +54,10 @@ Dashboard does not own or store these datasets:
 | dashboard.admin.button.backup | Backup |
 | dashboard.admin.button.listUsers | List of Users |
 
+`Add New User` and `List of Users` are navigation metadata only. Their
+gateway-relative routes target Authentication; no account field is added to a
+Dashboard table.
+
 ## Module Destinations
 
 Each workspace destination has one explicit state:

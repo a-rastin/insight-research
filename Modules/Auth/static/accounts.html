@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>INSIGHT Account Administration</title>
+  <style>
+    :root { --primary:#0a9e8f; --primary-hover:#088a7d; --primary-light:#e6f6f5; --ink:#111827; --muted:#6b7280; --canvas:#fff; --surface:#f9fafb; --border:#e5e7eb; --urgent:#b91c1c; --urgent-bg:#fef2f2; --warning:#92400e; --warning-bg:#fffbeb; --normal:#047857; --normal-bg:#ecfdf5; font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--ink); }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--surface); font-size:14px; line-height:1.5; }
+    header { min-height:56px; border-bottom:1px solid var(--border); background:var(--canvas); display:flex; align-items:center; justify-content:space-between; gap:16px; padding:10px max(16px,calc((100vw - 1200px)/2)); }
+    header strong { display:block; font-size:18px; } header span { color:var(--muted); font-size:12px; }
+    main { width:min(1200px,100%); margin:auto; padding:24px 16px 40px; }
+    h1 { margin:0; font-size:28px; line-height:1.2; } h2 { margin:0; font-size:18px; }
+    .intro { color:var(--muted); margin:6px 0 20px; }
+    .grid { display:grid; grid-template-columns:minmax(260px,340px) minmax(0,1fr); gap:20px; align-items:start; }
+    .panel { background:var(--canvas); border:1px solid var(--border); border-radius:12px; padding:20px; }
+    form { display:grid; gap:14px; margin-top:16px; } label { display:grid; gap:6px; font-weight:650; }
+    input,select,button { min-height:40px; border:1px solid #d1d5db; border-radius:8px; padding:8px 10px; background:var(--canvas); color:var(--ink); font:inherit; }
+    button { cursor:pointer; font-weight:650; } button:hover:not(:disabled) { border-color:var(--primary); background:var(--primary-light); } button:disabled { cursor:not-allowed; opacity:.6; }
+    button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
+    .primary { border-color:var(--primary); background:var(--primary); color:#fff; } .primary:hover:not(:disabled) { background:var(--primary-hover); color:#fff; }
+    .danger { color:var(--urgent); } .status { min-height:24px; margin:12px 0 0; } .status.error { border-left:4px solid var(--urgent); background:var(--urgent-bg); color:var(--urgent); padding:10px; } .status.success { border-left:4px solid var(--normal); background:var(--normal-bg); color:var(--normal); padding:10px; }
+    .table-wrap { overflow-x:auto; margin-top:16px; } table { width:100%; min-width:760px; border-collapse:collapse; } th,td { border-bottom:1px solid var(--border); padding:10px; text-align:left; vertical-align:middle; } thead th { color:var(--muted); background:var(--surface); font-size:12px; } tbody th { font-weight:650; } td.actions { display:flex; flex-wrap:wrap; gap:6px; } td.actions button { min-height:36px; }
+    .badge { display:inline-block; border-radius:999px; padding:3px 8px; font-size:12px; font-weight:700; } .active { color:var(--normal); background:var(--normal-bg); } .disabled { color:var(--urgent); background:var(--urgent-bg); }
+    .pager { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:16px; } .pager div { display:flex; gap:8px; }
+    .loading { color:var(--muted); }
+    @media (max-width:800px) { .grid { grid-template-columns:1fr; } header { padding:10px 16px; } main { padding-top:18px; } button,input,select { min-height:44px; } }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition:none!important; animation:none!important; } }
+  </style>
+</head>
+<body>
+  <header><div><strong>INSIGHT</strong><span>Authentication account administration</span></div><a href="/dashboard/">Back to Dashboard</a></header>
+  <main>
+    <h1>Account Administration</h1>
+    <p class="intro">Authentication owns accounts, roles, credentials, session revocation, and security audit.</p>
+    <p id="page-status" class="status loading" role="status" aria-live="polite">Verifying administrator access.</p>
+    <div id="workspace" class="grid" hidden>
+      <section class="panel" aria-labelledby="create-title">
+        <h2 id="create-title">Add New User</h2>
+        <form id="create-form">
+          <label>Username<input id="username" name="username" required maxlength="64" autocomplete="off"></label>
+          <label>Role<select id="role" name="role"><option value="psychiatrist">Psychiatrist</option><option value="admin">Admin</option></select></label>
+          <label>Temporary password<input id="password" name="password" type="password" required minlength="8" maxlength="256" autocomplete="new-password" aria-describedby="password-help"></label>
+          <small id="password-help">At least 8 characters. User should receive it through an approved secure channel.</small>
+          <button class="primary" type="submit">Create account</button>
+        </form>
+        <p id="create-status" class="status" role="status" aria-live="polite"></p>
+      </section>
+      <section class="panel" aria-labelledby="list-title">
+        <h2 id="list-title">List of Users</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Username</th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Password</th><th scope="col">Actions</th></tr></thead>
+            <tbody id="accounts"></tbody>
+          </table>
+        </div>
+        <div class="pager"><span id="page-summary"></span><div><button id="previous" type="button">Previous</button><button id="next" type="button">Next</button></div></div>
+      </section>
+    </div>
+  </main>
+  <script>
+    const pageSize=10; let offset=0,csrfToken="";
+    const status=document.querySelector("#page-status"),workspace=document.querySelector("#workspace"),rows=document.querySelector("#accounts");
+    const escapeHtml=(value="")=>String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"})[c]);
+    async function request(url,options={}) { const response=await fetch(url,{credentials:"same-origin",...options,headers:{"Content-Type":"application/json",...(csrfToken?{"X-CSRF-Token":csrfToken}:{}),...(options.headers||{})}}); const data=await response.json().catch(()=>({})); if(!response.ok) throw new Error(typeof data.detail==="string"?data.detail:`Request failed (${response.status}).`); return data; }
+    function message(element,text,tone="") { element.textContent=text; element.className=`status ${tone}`; }
+    async function loadAccounts() { message(status,"Loading accounts.","loading"); try { const data=await request(`/api/auth/v2/admin/accounts?limit=${pageSize}&offset=${offset}`); rows.innerHTML=data.accounts.map(account=>`<tr><th scope="row">${escapeHtml(account.username)}</th><td><select aria-label="Role for ${escapeHtml(account.username)}" data-role="${account.id}"><option value="psychiatrist" ${account.role==="psychiatrist"?"selected":""}>Psychiatrist</option><option value="admin" ${account.role==="admin"?"selected":""}>Admin</option></select></td><td><span class="badge ${account.disabled?"disabled":"active"}">${account.disabled?"Disabled":"Active"}</span></td><td>${account.passwordChangeRequired?"Change required":"Current"}</td><td class="actions"><button data-save="${account.id}" type="button">Save role</button><button data-toggle="${account.id}" data-disabled="${account.disabled}" type="button" class="${account.disabled?"":"danger"}">${account.disabled?"Enable":"Disable"}</button><button data-reset="${account.id}" type="button">Reset password</button></td></tr>`).join("")||'<tr><td colspan="5">No accounts found.</td></tr>'; document.querySelector("#page-summary").textContent=`${data.pagination.total} accounts`; document.querySelector("#previous").disabled=offset===0; document.querySelector("#next").disabled=data.pagination.nextOffset===null; bindActions(); message(status,"Accounts loaded.","success"); } catch(error) { message(status,error.message,"error"); } }
+    function bindActions() { document.querySelectorAll("[data-save]").forEach(button=>button.onclick=()=>update(button.dataset.save,{role:document.querySelector(`[data-role="${button.dataset.save}"]`).value})); document.querySelectorAll("[data-toggle]").forEach(button=>button.onclick=()=>update(button.dataset.toggle,{disabled:button.dataset.disabled!=="true"})); document.querySelectorAll("[data-reset]").forEach(button=>button.onclick=()=>resetPassword(button.dataset.reset)); }
+    async function update(id,body) { try { await request(`/api/auth/v2/admin/accounts/${encodeURIComponent(id)}`,{method:"PATCH",body:JSON.stringify(body)}); await loadAccounts(); } catch(error) { message(status,error.message,"error"); } }
+    async function resetPassword(id) { if(!confirm("Reset this account password and revoke its active sessions?")) return; try { const data=await request(`/api/auth/v2/admin/accounts/${encodeURIComponent(id)}/reset-password`,{method:"POST",body:"{}"}); await loadAccounts(); message(status,`Temporary password: ${data.temporaryPassword} Store it securely; it will not be shown again.`,"success"); } catch(error) { message(status,error.message,"error"); } }
+    document.querySelector("#create-form").onsubmit=async event=>{ event.preventDefault(); const form=event.currentTarget,createStatus=document.querySelector("#create-status"); try { await request("/api/auth/v2/admin/accounts",{method:"POST",body:JSON.stringify({username:form.username.value.trim(),role:form.role.value,password:form.password.value})}); form.reset(); offset=0; message(createStatus,"Account created.","success"); await loadAccounts(); } catch(error) { message(createStatus,error.message,"error"); } };
+    document.querySelector("#previous").onclick=()=>{offset=Math.max(0,offset-pageSize);loadAccounts();}; document.querySelector("#next").onclick=()=>{offset+=pageSize;loadAccounts();};
+    (async()=>{ try { const session=await request("/api/auth/v2/session"); if(!session.authorized||session.user.role!=="admin") throw new Error("Administrator access required."); const csrf=await request("/api/auth/csrf"); csrfToken=csrf.csrf_token; workspace.hidden=false; if(location.pathname.endsWith("/new")) document.querySelector("#username").focus(); await loadAccounts(); } catch(error) { message(status,error.message,"error"); } })();
+  </script>
+</body>
+</html>

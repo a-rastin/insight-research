@@ -24,10 +24,10 @@ DESTINATIONS = [
     {"id": "patient-follow-up", "title": "Patient Follow-up", "role": "PSYCHIATRIST", "href": "/modules/patient-follow-up"},
     {"id": "list-of-patients", "title": "List of Patients", "role": "PSYCHIATRIST"},
     {"id": "setting", "title": "Setting", "role": "PSYCHIATRIST"},
-    {"id": "add-new-user", "title": "Add New User", "role": "ADMIN"},
+    {"id": "add-new-user", "title": "Add New User", "role": "ADMIN", "href": "/modules/auth/accounts/new"},
     {"id": "logs", "title": "Logs", "role": "ADMIN"},
     {"id": "backup", "title": "Backup", "role": "ADMIN"},
-    {"id": "list-of-users", "title": "List of Users", "role": "ADMIN"},
+    {"id": "list-of-users", "title": "List of Users", "role": "ADMIN", "href": "/modules/auth/accounts"},
 ]
 
 MOCK_AUTH_USERS = {

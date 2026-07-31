@@ -12,10 +12,10 @@ function workspaceModel(role) {
         { id: "patient-follow-up", title: "Patient Follow-up", state: psychiatrist ? "available" : "unauthorized", reason: psychiatrist ? "Destination available." : "Not authorized for current role.", ...(psychiatrist ? { href: "/modules/patient-follow-up" } : {}) },
         { id: "list-of-patients", title: "List of Patients", state: psychiatrist ? "unavailable" : "unauthorized", reason: psychiatrist ? "Destination is not available in this release." : "Not authorized for current role." },
         { id: "setting", title: "Setting", state: psychiatrist ? "unavailable" : "unauthorized", reason: psychiatrist ? "Destination is not available in this release." : "Not authorized for current role." },
-        { id: "add-new-user", title: "Add New User", state: psychiatrist ? "unauthorized" : "unavailable", reason: psychiatrist ? "Not authorized for current role." : "Destination is not available in this release." },
+        { id: "add-new-user", title: "Add New User", state: psychiatrist ? "unauthorized" : "available", reason: psychiatrist ? "Not authorized for current role." : "Destination available.", ...(!psychiatrist ? { href: "/modules/auth/accounts/new" } : {}) },
         { id: "logs", title: "Logs", state: psychiatrist ? "unauthorized" : "unavailable", reason: psychiatrist ? "Not authorized for current role." : "Destination is not available in this release." },
         { id: "backup", title: "Backup", state: psychiatrist ? "unauthorized" : "unavailable", reason: psychiatrist ? "Not authorized for current role." : "Destination is not available in this release." },
-        { id: "list-of-users", title: "List of Users", state: psychiatrist ? "unauthorized" : "unavailable", reason: psychiatrist ? "Not authorized for current role." : "Destination is not available in this release." }
+        { id: "list-of-users", title: "List of Users", state: psychiatrist ? "unauthorized" : "available", reason: psychiatrist ? "Not authorized for current role." : "Destination available.", ...(!psychiatrist ? { href: "/modules/auth/accounts" } : {}) }
       ]
     },
     ...(psychiatrist ? { requiresDisclaimer: false, disclaimer: { acceptedAt: "2026-07-06T17:00:00Z" } } : {})
@@ -93,5 +93,7 @@ for (const title of ["Add New User", "Logs", "Backup", "List of Users"]) {
 }
 assert.match(adminHtml, /Unavailable/);
 assert.match(adminHtml, /Unauthorized/);
+assert.match(adminHtml, /\/modules\/auth\/accounts\/new/);
+assert.match(adminHtml, /\/modules\/auth\/accounts/);
 
 

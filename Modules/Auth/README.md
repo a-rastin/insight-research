@@ -36,6 +36,10 @@ SQLite, bcrypt, JWT signing, role gating, and the disclaimer gate.
 | POST | `/api/auth/admin/users/{id}/enable` | `{ ok, message }` (admin-only) | Re-enable a disabled account. |
 | POST | `/api/auth/admin/users/{id}/reset-password` | `{ ok, user_id, temporary_password }` (admin-only) | Set or generate a temporary password and revoke sessions. |
 | PATCH | `/api/auth/admin/users/{id}/role` | `{ ok, message }` (admin-only) | Update an account role when policy allows it. |
+| POST | `/api/auth/v2/admin/accounts` | Account resource (admin-only) | Create an account using its canonical UUID contract. |
+| GET | `/api/auth/v2/admin/accounts` | Paginated account resources (admin-only) | List accounts without credential data. |
+| PATCH | `/api/auth/v2/admin/accounts/{accountId}` | Account resource (admin-only) | Update supported role or disabled state and revoke sessions when required. |
+| POST | `/api/auth/v2/admin/accounts/{accountId}/reset-password` | One-time temporary password (admin-only) | Reset credentials and revoke sessions. |
 
 Default administrator credentials: `Admin` / `Admin` (configurable via env).
 
@@ -64,6 +68,12 @@ listing never returns password hashes. Reset passwords force the user through
 account, resetting a password, or changing a role revokes that account's active
 sessions. Disabled accounts receive the same generic login failure as bad
 credentials.
+
+Dashboard's Add New User and List of Users links open the Authentication-owned
+surface at `/modules/auth/accounts/new` and `/modules/auth/accounts`. Versioned
+account routes use stable user UUIDs, bounded `limit`/`offset` pagination, and
+minimum eight-character creation/reset passwords. Dashboard does not receive or
+store account records.
 
 ## Security properties
 

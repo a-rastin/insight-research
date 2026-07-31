@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, HTTPException, Request, Response, status
+from fastapi import APIRouter, HTTPException, Query, Request, Response, status
 from pydantic import BaseModel, Field
 
 try:
@@ -55,14 +55,65 @@ class AccountListResponse(BaseModel):
     users: list[AccountResponse]
 
 
+class CreateAccountRequest(BaseModel):
+    username: str = Field(min_length=1, max_length=64)
+    password: str = Field(min_length=8, max_length=256)
+    role: str = Field(pattern="^(admin|psychiatrist)$")
+
+    class Config:
+        extra = "forbid"
+
+
+class UpdateAccountRequest(BaseModel):
+    role: str | None = Field(default=None, pattern="^(admin|psychiatrist)$")
+    disabled: bool | None = None
+
+    class Config:
+        extra = "forbid"
+
+
+class AccountV2Response(BaseModel):
+    id: str
+    username: str
+    role: str
+    disabled: bool
+    password_change_required: bool = Field(alias="passwordChangeRequired")
+    disclaimer_accepted: bool = Field(alias="disclaimerAccepted")
+    created_at: str = Field(alias="createdAt")
+
+
+class PaginationResponse(BaseModel):
+    limit: int
+    offset: int
+    total: int
+    next_offset: int | None = Field(alias="nextOffset")
+
+
+class AccountPageResponse(BaseModel):
+    accounts: list[AccountV2Response]
+    pagination: PaginationResponse
+
+
 class ResetPasswordRequest(BaseModel):
     temporary_password: str | None = Field(default=None, min_length=1, max_length=256)
+
+
+class ResetPasswordV2Request(BaseModel):
+    temporary_password: str | None = Field(default=None, min_length=8, max_length=256)
+
+    class Config:
+        extra = "forbid"
 
 
 class ResetPasswordResponse(BaseModel):
     ok: bool
     user_id: int
     temporary_password: str
+
+
+class ResetPasswordV2Response(BaseModel):
+    account_id: str = Field(alias="accountId")
+    temporary_password: str = Field(alias="temporaryPassword")
 
 
 class UpdateRoleRequest(BaseModel):
@@ -204,8 +255,10 @@ def _require_csrf(request: Request):
 
 def _require_admin(request: Request):
     payload = _current_user(request)
-    if payload is None or payload.get("role") != "admin":
+    if payload is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+    if payload.get("role") != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
     return payload
 
 
@@ -218,6 +271,18 @@ def _account_response(row) -> AccountResponse:
         must_change_password=bool(row["must_change_password"]),
         disclaimer_signed=bool(row["disclaimer_signed"]),
         created_at=row["created_at"],
+    )
+
+
+def _account_v2_response(row) -> AccountV2Response:
+    return AccountV2Response(
+        id=row["user_uuid"],
+        username=row["username"],
+        role=security.normalize_role(row["role"]),
+        disabled=bool(row["disabled"]),
+        passwordChangeRequired=bool(row["must_change_password"]),
+        disclaimerAccepted=bool(row["disclaimer_signed"]),
+        createdAt=row["created_at"],
     )
 
 
@@ -474,6 +539,106 @@ def register(body: RegisterRequest, request: Request):
 def list_accounts(request: Request):
     _require_admin(request)
     return AccountListResponse(ok=True, users=[_account_response(row) for row in security.list_users()])
+
+
+@router.post("/v2/admin/accounts", response_model=AccountV2Response, status_code=201)
+def create_account_v2(body: CreateAccountRequest, request: Request):
+    payload = _require_admin(request)
+    _require_csrf(request)
+    try:
+        user_id = security.register_user(body.username, body.role, body.password)
+    except security.DuplicateUsernameError:
+        _audit(
+            request,
+            "register",
+            actor={"id": int(payload["sub"]), "username": payload.get("username")},
+            target={"id": None, "username": body.username},
+            metadata={"role": body.role},
+            status="failure",
+        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username already exists")
+    row = security.get_user_by_id(user_id)
+    _audit(
+        request,
+        "register",
+        actor={"id": int(payload["sub"]), "username": payload.get("username")},
+        target={"id": user_id, "username": body.username},
+        metadata={"role": body.role},
+    )
+    return _account_v2_response(row)
+
+
+@router.get("/v2/admin/accounts", response_model=AccountPageResponse)
+def list_accounts_v2(
+    request: Request,
+    limit: int = Query(default=25, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+):
+    _require_admin(request)
+    total = security.count_users()
+    accounts = [_account_v2_response(row) for row in security.list_users(limit, offset)]
+    next_offset = offset + len(accounts) if offset + len(accounts) < total else None
+    return AccountPageResponse(
+        accounts=accounts,
+        pagination=PaginationResponse(
+            limit=limit,
+            offset=offset,
+            total=total,
+            nextOffset=next_offset,
+        ),
+    )
+
+
+@router.patch("/v2/admin/accounts/{account_id}", response_model=AccountV2Response)
+def update_account_v2(account_id: str, body: UpdateAccountRequest, request: Request):
+    payload = _require_admin(request)
+    _require_csrf(request)
+    target = security.get_user_by_uuid(account_id)
+    if target is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Account not found")
+    if sum(value is not None for value in (body.role, body.disabled)) != 1:
+        raise HTTPException(status_code=422, detail="Supply exactly one supported account field")
+    try:
+        if body.role is not None and body.role != security.normalize_role(target["role"]):
+            security.update_user_role(int(target["id"]), body.role, actor_user_id=int(payload["sub"]))
+        if body.disabled is not None and body.disabled != bool(target["disabled"]):
+            security.set_user_disabled(int(target["id"]), body.disabled, actor_user_id=int(payload["sub"]))
+    except (
+        security.UserNotFoundError,
+        security.SelfManagementError,
+        security.LastActiveAdminError,
+        security.InvalidRoleError,
+    ) as exc:
+        raise _map_account_management_error(exc)
+    updated = security.get_user_by_uuid(account_id)
+    _audit(
+        request,
+        "role_update" if body.role is not None else ("disable" if body.disabled else "enable"),
+        actor={"id": int(payload["sub"]), "username": payload.get("username")},
+        target={"id": int(target["id"]), "username": target["username"]},
+        metadata={"role": body.role, "disabled": body.disabled},
+    )
+    return _account_v2_response(updated)
+
+
+@router.post(
+    "/v2/admin/accounts/{account_id}/reset-password",
+    response_model=ResetPasswordV2Response,
+)
+def reset_account_password_v2(account_id: str, body: ResetPasswordV2Request, request: Request):
+    payload = _require_admin(request)
+    _require_csrf(request)
+    target = security.get_user_by_uuid(account_id)
+    if target is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Account not found")
+    temporary_password = security.reset_user_password(int(target["id"]), body.temporary_password)
+    _audit(
+        request,
+        "password_reset",
+        actor={"id": int(payload["sub"]), "username": payload.get("username")},
+        target={"id": int(target["id"]), "username": target["username"]},
+    )
+    return ResetPasswordV2Response(accountId=account_id, temporaryPassword=temporary_password)
 
 
 @router.post("/admin/users/{user_id}/disable", response_model=MessageResponse)

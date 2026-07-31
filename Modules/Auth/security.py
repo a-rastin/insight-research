@@ -776,7 +776,8 @@ def get_user_by_id(user_id: int):
                        ELSE 0
                    END AS disclaimer_signed,
                    da.version AS disclaimer_version,
-                   da.accepted_at AS disclaimer_accepted_at
+                   da.accepted_at AS disclaimer_accepted_at,
+                   u.created_at
               FROM users u
               LEFT JOIN disclaimer_acceptances da
                 ON da.user_id = u.id
@@ -787,12 +788,11 @@ def get_user_by_id(user_id: int):
         ).fetchone()
 
 
-def list_users():
+def list_users(limit: int | None = None, offset: int = 0):
     version = active_disclaimer_version()
     with _conn_lock:
-        return get_conn().execute(
-            """
-            SELECT u.id, u.username, u.role, u.disabled, u.must_change_password,
+        query = """
+            SELECT u.id, u.user_uuid, u.username, u.role, u.disabled, u.must_change_password,
                    CASE
                        WHEN u.role = 'admin' THEN 1
                        WHEN da.user_id IS NOT NULL THEN 1
@@ -803,10 +803,40 @@ def list_users():
               LEFT JOIN disclaimer_acceptances da
                 ON da.user_id = u.id
                AND da.version = ?
-             ORDER BY u.id
+              ORDER BY u.id
+        """
+        params: tuple = (version,)
+        if limit is not None:
+            query += " LIMIT ? OFFSET ?"
+            params += (limit, offset)
+        return get_conn().execute(query, params).fetchall()
+
+
+def count_users() -> int:
+    with _conn_lock:
+        return int(get_conn().execute("SELECT COUNT(*) FROM users").fetchone()[0])
+
+
+def get_user_by_uuid(user_uuid: str):
+    version = active_disclaimer_version()
+    with _conn_lock:
+        return get_conn().execute(
+            """
+            SELECT u.id, u.user_uuid, u.username, u.role, u.disabled, u.must_change_password,
+                   CASE
+                       WHEN u.role = 'admin' THEN 1
+                       WHEN da.user_id IS NOT NULL THEN 1
+                       ELSE 0
+                   END AS disclaimer_signed,
+                   u.created_at
+              FROM users u
+              LEFT JOIN disclaimer_acceptances da
+                ON da.user_id = u.id
+               AND da.version = ?
+             WHERE u.user_uuid = ?
             """,
-            (version,),
-        ).fetchall()
+            (version, user_uuid),
+        ).fetchone()
 
 
 def register_user(username: str, role: str, password: str) -> int:

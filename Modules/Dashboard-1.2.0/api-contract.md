@@ -231,10 +231,10 @@ Dashboard returns one navigation-only catalog. Current destination support is:
 | `patient-follow-up` | `PSYCHIATRIST` | `available` | `/modules/patient-follow-up` |
 | `list-of-patients` | `PSYCHIATRIST` | `unavailable` | none |
 | `setting` | `PSYCHIATRIST` | `unavailable` | none |
-| `add-new-user` | `ADMIN` | `unavailable` | none |
+| `add-new-user` | `ADMIN` | `available` | `/modules/auth/accounts/new` |
 | `logs` | `ADMIN` | `unavailable` | none |
 | `backup` | `ADMIN` | `unavailable` | none |
-| `list-of-users` | `ADMIN` | `unavailable` | none |
+| `list-of-users` | `ADMIN` | `available` | `/modules/auth/accounts` |
 
 A destination belonging to the other role has state `unauthorized`. Dashboard
 does not invent routes for unavailable destinations and does not copy any
@@ -264,6 +264,8 @@ Available success:
 
 Target modules own data, mutations, permissions beyond entry, UI, and workflow
 implementation. Dashboard returns no module payload in destination discovery.
+The account destinations route directly to Authentication's owner-hosted UI;
+Dashboard does not proxy, cache, or persist account data.
 
 Errors:
 

@@ -8,6 +8,8 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-073: Connect Dashboard account administration to Authentication (In
+  progress).
 - INS-071: Add BN registry review and lifecycle administration (In progress).
 - INS-069: Implement Follow-up capture, history, and retrieval (In progress).
 - INS-067: Replace Dashboard placeholders with the real role-scoped workspace
@@ -330,6 +332,25 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-073 Dashboard account administration connection (In progress).
+  Dashboard's Add New User and List of Users destinations now resolve through
+  gateway-relative routes to an Authentication-owned responsive account
+  workspace; Dashboard remains navigation-only and stores or proxies no account
+  record. Authentication publishes UUID-based create, paginated list, role or
+  disabled-state update, and password-reset routes with live admin authorization,
+  CSRF, weak-password rejection, explicit failures, security audit, and immediate
+  revocation after disablement, reset, or role change. Psychiatrist and anonymous
+  access fail server-side. Focused account provider tests passed 2/2 and its
+  browser contract passed 1/1; the full Authentication suite passed 21/21.
+  Dashboard backend passed 16/16 and its frontend test passed. Common REST and
+  administration ownership checks passed 14/14; root discovery passed 93/93 with
+  two expected unconfigured live-gateway skips. Changed Python compiled and `git
+  diff --check` passed. Live authenticated gateway/browser execution remains
+  unverified because no deployment fixture is configured, so INS-073 stays in
+  progress; next step is that deployed admin lifecycle rehearsal. One broad
+  repository search inadvertently returned a matching snippet from
+  `insight-research/doc/plan.md`; that file was not directly opened, modified, or
+  used as implementation authority.
 - INS-071 BN registry review and lifecycle administration (In progress). BN
   Manager contract 3.2.0 now publishes admin-only manifest-owned inventory and
   detail routes plus CSRF-protected review, activation, retirement, and rollback

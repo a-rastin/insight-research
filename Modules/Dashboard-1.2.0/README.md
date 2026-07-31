@@ -44,6 +44,8 @@ GET /readyz
 - Admin buttons: `Add New User`, `Logs`, `Backup`, `List of Users`.
 - Destinations render `available`, `unavailable`, or `unauthorized` explicitly.
 - Only available destinations expose a real gateway-relative module route.
+- Add New User and List of Users navigate to Authentication's gateway-relative
+  account-administration surface. Dashboard stores and proxies no account data.
 - Dashboard does not implement patient, treatment, admin log, backup, or user-management module logic.
 
 ## Module Interface
