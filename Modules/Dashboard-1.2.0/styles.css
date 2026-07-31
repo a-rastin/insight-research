@@ -562,6 +562,15 @@ tbody th {
   background: var(--info);
 }
 
+.state-reason {
+  display: block;
+  max-width: 220px;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: normal;
+}
+
 .table-action {
   min-width: 64px;
 }

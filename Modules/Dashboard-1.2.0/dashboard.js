@@ -27,11 +27,9 @@ const ROLE_META = {
 };
 
 const STATUS_META = {
-  Urgent: ["urgent", "High"],
-  Warning: ["warning", "Needs review"],
-  Normal: ["normal", "Ready"],
-  "Follow-up": ["follow", "Follow-up"],
-  Info: ["info", "Info"]
+  available: ["normal", "Available"],
+  unavailable: ["warning", "Unavailable"],
+  unauthorized: ["urgent", "Unauthorized"]
 };
 
 let state = {
@@ -115,11 +113,11 @@ function roleMeta(role) {
 }
 
 function buttonMeta(button, role) {
-  return roleMeta(role).modules[button.id] || ["Module", "Open module placeholder", "Info"];
+  return roleMeta(role).modules[button.id] || ["Module", "Destination details", "Info"];
 }
 
 function statusBadge(status) {
-  const [className, label] = STATUS_META[status] || STATUS_META.Info;
+  const [className, label] = STATUS_META[status] || STATUS_META.unavailable;
   return `<span class="status ${className}"><span aria-hidden="true">${label[0]}</span>${escapeHtml(label)}</span>`;
 }
 
@@ -258,9 +256,9 @@ function renderWorkspace() {
     <div class="workspace-frame ${meta.tone}">
       <aside class="sidebar" aria-label="Workspace navigation">
         <div class="brand-block">
-          <span class="brand-mark">CH</span>
+          <span class="brand-mark">IN</span>
           <div>
-            <strong>Carbon Health</strong>
+            <strong>INSIGHT</strong>
             <span>Dashboard</span>
           </div>
         </div>
@@ -293,17 +291,19 @@ function renderWorkspace() {
 
         <section class="metric-strip" aria-label="Workspace summary">
           ${renderMetric("Role", meta.label, "Verified identity")}
-          ${renderMetric("Modules", String(buttons.length).padStart(2, "0"), "Role scoped")}
-          ${renderMetric("Routes", "REST", "Discovery only")}
+          ${renderMetric("Available", String(buttons.filter((button) => button.state === "available").length).padStart(2, "0"), "Role scoped")}
+          ${renderMetric("Destinations", String(buttons.length).padStart(2, "0"), "Explicit states")}
           ${renderMetric("Status", requiresDisclaimer ? "Review" : "Ready", requiresDisclaimer ? "Accept notice" : "Operational")}
         </section>
+
+        ${state.error ? `<p class="inline-error" role="alert">${escapeHtml(state.error.message)}</p>` : ""}
 
         <section class="work-grid">
           <div class="module-table-wrap">
             <div class="section-heading">
               <div>
                 <h2>Module Launch</h2>
-                <p>Role-scoped entry points. Module payloads stay outside Dashboard.</p>
+                <p>Role-scoped destinations. Unavailable and unauthorized routes remain explicit.</p>
               </div>
             </div>
             <div class="table-shell">
@@ -330,7 +330,7 @@ function renderWorkspace() {
               <div><dt>User</dt><dd>${escapeHtml(model.displayName)}</dd></div>
               <div><dt>Workspace</dt><dd>${escapeHtml(role)}</dd></div>
               <div><dt>Boundary</dt><dd>Internal REST only</dd></div>
-              <div><dt>Auth check</dt><dd>GET /api/auth/session</dd></div>
+              <div><dt>Auth check</dt><dd>GET /api/auth/v2/session</dd></div>
             </dl>
           </aside>
         </section>
@@ -349,7 +349,7 @@ function renderWorkspace() {
 function renderNavButton(button, role, active) {
   const [kind] = buttonMeta(button, role);
   return `
-    <button class="nav-item ${active ? "active" : ""}" data-module="${escapeHtml(button.id)}">
+    <button class="nav-item ${active && button.state === "available" ? "active" : ""}" data-module="${escapeHtml(button.id)}" ${button.state === "available" ? "" : "disabled"} title="${escapeHtml(button.reason)}">
       <span>${escapeHtml(kind.slice(0, 2).toUpperCase())}</span>
       ${escapeHtml(button.title)}
     </button>
@@ -379,7 +379,8 @@ function renderMetric(label, value, helper) {
 }
 
 function renderModuleRow(button, role, locked) {
-  const [kind, description, status] = buttonMeta(button, role);
+  const [kind, description] = buttonMeta(button, role);
+  const enabled = !locked && button.state === "available";
   return `
     <tr>
       <th scope="row">
@@ -387,9 +388,9 @@ function renderModuleRow(button, role, locked) {
         <span class="module-desc">${escapeHtml(description)}</span>
       </th>
       <td>${escapeHtml(kind)}</td>
-      <td>${statusBadge(locked ? "Warning" : status)}</td>
-      <td><code>${escapeHtml(button.routeDiscovery?.href || "Not available")}</code></td>
-      <td><button class="table-action" data-module="${escapeHtml(button.id)}" ${locked ? "disabled" : ""}>Open</button></td>
+      <td>${statusBadge(locked && button.state === "available" ? "unavailable" : button.state)}<span class="state-reason">${escapeHtml(locked && button.state === "available" ? "Accept notice before opening." : button.reason)}</span></td>
+      <td><code>${escapeHtml(button.href || "No route")}</code></td>
+      <td><button class="table-action" data-module="${escapeHtml(button.id)}" ${enabled ? "" : "disabled"}>Open</button></td>
     </tr>
   `;
 }
@@ -408,9 +409,9 @@ async function acceptDisclaimer() {
 
 async function launchModule(moduleId) {
   const button = state.model.workspace.buttons.find((item) => item.id === moduleId);
-  if (!button || state.model.requiresDisclaimer) return;
+  if (!button || button.state !== "available" || state.model.requiresDisclaimer) return;
   try {
-    const route = await api.moduleRoute(button.routeDiscovery.href);
+    const route = await api.moduleRoute(`/internal/dashboard/module-routes/${encodeURIComponent(button.id)}`);
     location.assign(route.href);
   } catch (error) {
     state.error = error;

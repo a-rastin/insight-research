@@ -54,17 +54,20 @@ Dashboard does not own or store these datasets:
 | dashboard.admin.button.backup | Backup |
 | dashboard.admin.button.listUsers | List of Users |
 
-## Module Route Placeholders
+## Module Destinations
 
-Each workspace button includes REST discovery metadata:
+Each workspace destination has one explicit state:
 
 ```json
 {
-  "routeDiscovery": {
-    "method": "GET",
-    "href": "/internal/dashboard/module-routes/{moduleId}"
-  }
+  "id": "add-new-patient",
+  "title": "Add New Patient",
+  "state": "available",
+  "reason": "Destination available.",
+  "href": "/modules/add-new-patient"
 }
 ```
 
-The discovery endpoint returns `/modules/{moduleId}` with `placeholder: true`. Target module owns implementation and data.
+`available` destinations include a gateway-relative route. `unavailable` and
+`unauthorized` destinations include no route. Target modules own implementation
+and data.
