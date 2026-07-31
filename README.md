@@ -111,11 +111,15 @@ export DIAGNOSIS_CSRF_SECURE=false
 Behind HTTPS set those `*_SECURE*` flags to `true` (this is what the production
 `compose.release.yaml` enforces).
 
-Optional first-boot admin username (default `Admin`):
+Optional first-boot admin username (default for the local unified run is
+`admin`; the Auth module's own default if unset is `Admin`):
 
 ```bash
-export AUTH_ADMIN_USERNAME=Admin
+export AUTH_ADMIN_USERNAME=admin   # or Admin
 ```
+
+The local defaults for `run.sh` and `compose.yaml` seed an admin login of
+**`admin` / `admin`** (first empty DB only).
 
 `AUTH_ADMIN_PASSWORD` seeds the admin **only on first database create**. Changing
 it later does not rotate an existing admin row — use Auth admin APIs or a fresh
@@ -134,8 +138,9 @@ dependencies are not ready (paths and secrets are not leaked in responses).
 ### 5. Sign in
 
 1. Open http://localhost:8080/ (Auth UI).
-2. Log in with seeded admin: username `Admin` (or `AUTH_ADMIN_USERNAME`) and the
-   `AUTH_ADMIN_PASSWORD` you set **at first volume init**.
+2. Log in with the seeded admin: **`admin` / `admin`** for the local unified
+   run (or whatever `AUTH_ADMIN_USERNAME` / `AUTH_ADMIN_PASSWORD` you set **at
+   first volume init**).
 3. Create psychiatrist accounts from Auth admin surfaces (via Dashboard admin
    workspace after login).
 4. Psychiatrists accept the clinical disclaimer and complete any password-change
@@ -176,7 +181,7 @@ these mandatory (`:?set …`).
 | Variable | Purpose |
 | --- | --- |
 | `AUTH_JWT_SECRET` | HS256 signing secret for Auth sessions |
-| `AUTH_ADMIN_PASSWORD` | Seed admin password (first DB only) |
+| `AUTH_ADMIN_PASSWORD` | Seed admin password (first DB only); `admin` for the local run |
 | `ADD_NEW_PATIENT_CSRF_SECRET` | CSRF secret (≥32 chars recommended) |
 | `DIAGNOSIS_CSRF_SECRET` | CSRF secret |
 | `SEVERITY_CSRF_SECRET` | CSRF secret |
@@ -191,7 +196,7 @@ Common optional / defaults:
 | `AUTH_SECURE_COOKIE` | `true` in compose; set `false` for plain HTTP local |
 | `ADD_NEW_PATIENT_CSRF_SECURE` | `true` |
 | `DIAGNOSIS_CSRF_SECURE` | `true` |
-| `AUTH_ADMIN_USERNAME` | `Admin` (module default if unset) |
+| `AUTH_ADMIN_USERNAME` | `admin` for the local unified run; `Admin` (module default) if unset |
 | `NODE_ENV` / `TP_ENV` | `production` in compose |
 
 Entrypoint also wires Treatment Plan internal URLs to loopback Auth/DDI and runs

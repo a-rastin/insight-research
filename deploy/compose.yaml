@@ -14,7 +14,8 @@ services:
       NODE_ENV: production
       TP_ENV: production
       AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-local-dev-jwt-secret-do-not-use-in-prod}
-      AUTH_ADMIN_PASSWORD: ${AUTH_ADMIN_PASSWORD:-local-admin-change-me}
+      AUTH_ADMIN_USERNAME: ${AUTH_ADMIN_USERNAME:-admin}
+      AUTH_ADMIN_PASSWORD: ${AUTH_ADMIN_PASSWORD:-admin}
       AUTH_SECURE_COOKIE: ${AUTH_SECURE_COOKIE:-false}
       ADD_NEW_PATIENT_CSRF_SECRET: ${ADD_NEW_PATIENT_CSRF_SECRET:-local-dev-csrf-secret-32chars-min-addnewpatient}
       ADD_NEW_PATIENT_CSRF_SECURE: ${ADD_NEW_PATIENT_CSRF_SECURE:-false}
