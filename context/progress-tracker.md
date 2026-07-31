@@ -8,6 +8,8 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-048: Replace hypothetical clinical-context URLs with provider contracts
+  (In progress).
 - INS-035: Reconcile BN Pharmacotherapy XML semantics and provenance (In
   progress).
 - INS-030: Implement the approved structured suicide-risk module (In progress).
@@ -305,6 +307,36 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-048 clinical-context provider contract migration (In progress). The
+  Treatment Plan assembler now calls the published Add New Patient intake v2,
+  Diagnosis snapshot v2, Severity assessment v2, Medical History latest v2,
+  and Suicide Risk snapshot v1 reads. Severity requires its authoritative
+  Assessment UUID because that provider has no Encounter-latest route. The
+  fabricated DDI and BN latest-read dependencies were removed; those remain
+  versioned recommendation-stage POST computations. Responses are validated
+  against their provider shapes and header/body versions before use, canonical
+  Patient/Encounter/resource UUIDs and strong ETags are enforced, and source
+  capture binds interface/schema/resource and provider-specific versions,
+  retrieval time, exact response SHA-256, ETag, and the Suicide Risk provider
+  content hash. Outbound reads forward only the configured Authentication
+  session cookie and safe request/correlation/causation UUIDs, add a new request
+  UUID per hop, and sign the exact GET path and empty body with per-destination
+  HMAC credentials; browser CSRF, authorization, and asserted user/role headers
+  are not forwarded. Eligibility now consumes the real owner shapes, keeps the
+  psychiatrist diagnosis decision separate from computed criteria, requires a
+  complete PANSS source, blocks unresolved medication identities, and treats
+  Suicide Risk as its own fail-closed owner. Focused assembler tests passed 7/7;
+  the Treatment Plan full suite passed 62/62; Add New Patient and Diagnosis
+  provider contract suites each passed 12/12; Medical History's full suite
+  passed; and common REST plus internal-service-auth checks passed 12/12.
+  Changed Python compilation and `git diff --check` passed. Severity provider
+  verification remains blocked by pre-existing tracked `node_modules` deletions
+  including `express`. Suicide Risk domain checks passed 5/5, but its repository
+  test uses a fixed 2026-07-30 creation time that now expires before its
+  immediate idempotency replay, causing a duplicate-ID failure; no runtime test
+  data was modified. Provider-side HMAC enforcement and a Severity
+  Encounter-latest contract remain separate rollout gaps, so INS-048 stays in
+  progress. No file under `insight-research/doc/` was read or modified.
 - INS-035 BN Pharmacotherapy XML reconciliation (In progress). Mapping version
   `2.0.0` now hash-locks the exact APA Statement 4 extract and unchanged
   canonical registry XML, maps every XML node once to source line references,

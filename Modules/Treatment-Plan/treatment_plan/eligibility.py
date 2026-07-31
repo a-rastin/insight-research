@@ -31,8 +31,7 @@ SCHIZOPHRENIA_RESEARCH_V1=PathwayPolicy("schizophrenia-research-v1",("F20",),(
  FactRule("diagnosis",Dependency.DIAGNOSIS,True,86400),
  FactRule("severity",Dependency.SEVERITY,True,86400),
  FactRule("medical-history",Dependency.MEDICAL_HISTORY,True,2592000),
- FactRule("ddi",Dependency.DDI,True,86400), FactRule("bn",Dependency.BN,True,86400),
- FactRule("suicide-risk",Dependency.SEVERITY,False,86400)))
+ FactRule("suicide-risk",Dependency.SUICIDE_RISK,True,86400)))
 PATHWAY_POLICIES={SCHIZOPHRENIA_RESEARCH_V1.pathway_id:SCHIZOPHRENIA_RESEARCH_V1}
 
 class GenerationEligibilityPolicy:
@@ -47,23 +46,22 @@ class GenerationEligibilityPolicy:
             value=context.inputs.get(rule.dependency)
             if value is None and rule.required:
                 findings.append(self._f("required-fact-missing",Blocker.HARD,rule.name,"required authoritative fact is unavailable"))
-            elif value is not None and rule.freshness_seconds is not None and self._stale(value.get("observedAt"),now,rule.freshness_seconds):
+            elif value is not None and rule.freshness_seconds is not None and self._stale(self._observed_at(rule.dependency,value),now,rule.freshness_seconds):
                 blocker=Blocker.SOFT if rule.dependency is Dependency.MEDICAL_HISTORY else Blocker.HARD
                 findings.append(self._f("stale-fact",blocker,rule.name,"fact exceeds the pathway freshness window"))
         for error in context.findings:
             if error.code is not ContextErrorCode.STALE:
                 findings.append(self._f(f"source-{error.code.value}",Blocker.HARD,error.dependency.value,error.detail))
-        diagnosis=context.inputs.get(Dependency.DIAGNOSIS,{}).get("diagnosis",{})
-        code=str(diagnosis.get("code",""))
-        if code and not code.startswith(policy.diagnosis_prefixes): findings.append(self._f("unsupported-diagnosis",Blocker.HARD,"diagnosis","diagnosis is outside the selected pathway"))
+        diagnosis=context.inputs.get(Dependency.DIAGNOSIS,{})
+        if diagnosis and (diagnosis.get("status") != "decided" or not diagnosis.get("clinicianDecision")):
+            findings.append(self._f("diagnosis-not-confirmed",Blocker.HARD,"diagnosis","psychiatrist diagnosis decision is required"))
         severity=context.inputs.get(Dependency.SEVERITY,{})
-        if str(severity.get("status","complete")).lower() in {"pending","preliminary","in-progress"}: findings.append(self._f("severity-pending",Blocker.HARD,"severity","severity assessment is not final"))
-        meds=context.inputs.get(Dependency.PATIENT,{}).get("currentMedications",[])
-        if any(str(x.get("status",x.get("resolutionStatus","resolved"))).lower() in {"unresolved","unknown","pending"} for x in meds if isinstance(x,Mapping)): findings.append(self._f("medication-unresolved",Blocker.HARD,"patient-and-medications","current medication reconciliation is unresolved"))
-        raw=severity.get("severity",{}).get("suicideRisk"); values=raw if isinstance(raw,list) else [raw]
-        signals={str(x).strip().lower() for x in values if x is not None}
-        if len(signals)>1: findings.append(self._f("suicide-risk-contradiction",Blocker.SAFETY,"suicide-risk","contradictory suicide-risk evidence requires explicit safety review"))
-        elif signals & {"high","imminent","positive"}: findings.append(self._f("high-suicide-risk",Blocker.SAFETY,"suicide-risk","high-risk evidence requires explicit safety review"))
+        if severity and severity.get("status") != "completed": findings.append(self._f("severity-incomplete",Blocker.HARD,"severity","completed PANSS assessment is required"))
+        meds=context.inputs.get(Dependency.MEDICAL_HISTORY,{}).get("medications",[])
+        if any(item.get("normalizedIdentity",{}).get("state") != "matched" for item in meds if isinstance(item,Mapping)): findings.append(self._f("medication-unresolved",Blocker.HARD,"medical-history","medication reconciliation is unresolved"))
+        risk=context.inputs.get(Dependency.SUICIDE_RISK,{}).get("assessment",{}).get("riskState")
+        if risk in {"imminent-suicide-risk","substantial-suicide-risk-requiring-urgent-evaluation"}: findings.append(self._f("urgent-suicide-risk",Blocker.SAFETY,"suicide-risk","urgent risk requires the emergency safety pathway"))
+        elif risk in {"unknown","unavailable","conflicting"}: findings.append(self._f("suicide-risk-unresolved",Blocker.HARD,"suicide-risk","suicide-risk state is unresolved"))
         result=Eligibility.SAFETY_PATHWAY if any(x.blocker is Blocker.SAFETY for x in findings) else Eligibility.BLOCKED if any(x.blocker is Blocker.HARD for x in findings) else Eligibility.ELIGIBLE
         unique={(x.code,x.fact):x for x in findings}
         observer=current_observability()
@@ -76,5 +74,11 @@ class GenerationEligibilityPolicy:
         if not value:return False
         try:return (now-datetime.fromisoformat(str(value).replace("Z","+00:00"))).total_seconds()>window
         except (ValueError,TypeError):return True
+    @staticmethod
+    def _observed_at(dependency:Dependency,value:Mapping[str,Any])->Any:
+        if dependency is Dependency.PATIENT:return value.get("provenance",{}).get("updatedAt")
+        if dependency is Dependency.SEVERITY:return value.get("provenance",{}).get("updatedAt")
+        if dependency is Dependency.SUICIDE_RISK:return value.get("assessment",{}).get("updatedAt")
+        return value.get("updatedAt")
     @staticmethod
     def _f(code,blocker,fact,detail):return EligibilityFinding(code,blocker,fact,detail)
