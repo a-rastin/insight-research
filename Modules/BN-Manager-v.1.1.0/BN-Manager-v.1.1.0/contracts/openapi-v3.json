@@ -1,6 +1,6 @@
 {
   "openapi": "3.1.0",
-  "info": {"title": "INSIGHT BN Manager API", "version": "3.1.0"},
+  "info": {"title": "INSIGHT BN Manager API", "version": "3.2.0"},
   "servers": [{"url": "/api/bn-manager/v3"}],
   "paths": {
     "/models": {
@@ -50,12 +50,70 @@
           "422": {"description": "Model validation or evaluation failed"}
         }
       }
+    },
+    "/admin/models": {
+      "get": {
+        "operationId": "listBnRegistryAdministrationV3",
+        "description": "List manifest-owned model inventory, validation evidence, provenance, hashes, lifecycle, and activation blockers.",
+        "security": [{"cookieSession": []}],
+        "responses": {"200": {"description": "Admin registry inventory"}, "401": {"description": "Authentication required"}, "403": {"description": "Admin role required"}}
+      }
+    },
+    "/admin/models/{stable_id}": {
+      "get": {
+        "operationId": "getBnRegistryAdministrationV3",
+        "parameters": [{"$ref": "#/components/parameters/StableId"}],
+        "security": [{"cookieSession": []}],
+        "responses": {"200": {"description": "Admin registry model detail"}, "404": {"description": "Manifest-owned model not found"}}
+      }
+    },
+    "/admin/models/{stable_id}/review": {
+      "post": {
+        "operationId": "reviewBnRegistryModelV3",
+        "parameters": [{"$ref": "#/components/parameters/StableId"}],
+        "security": [{"cookieSession": [], "csrfToken": []}],
+        "requestBody": {"$ref": "#/components/requestBodies/LifecycleAction"},
+        "responses": {"200": {"description": "Model reviewed with validation evidence"}, "409": {"description": "Lifecycle conflict"}, "422": {"description": "Validation failed"}}
+      }
+    },
+    "/admin/models/{stable_id}/activate": {
+      "post": {
+        "operationId": "activateBnRegistryModelV3",
+        "parameters": [{"$ref": "#/components/parameters/StableId"}],
+        "security": [{"cookieSession": [], "csrfToken": []}],
+        "requestBody": {"$ref": "#/components/requestBodies/LifecycleAction"},
+        "responses": {"200": {"description": "Model activated"}, "409": {"description": "Lifecycle or manifest admission conflict"}}
+      }
+    },
+    "/admin/models/{stable_id}/retire": {
+      "post": {
+        "operationId": "retireBnRegistryModelV3",
+        "parameters": [{"$ref": "#/components/parameters/StableId"}],
+        "security": [{"cookieSession": [], "csrfToken": []}],
+        "requestBody": {"$ref": "#/components/requestBodies/LifecycleAction"},
+        "responses": {"200": {"description": "Model retired"}, "409": {"description": "Lifecycle conflict"}}
+      }
+    },
+    "/admin/models/{stable_id}/rollback": {
+      "post": {
+        "operationId": "rollbackBnRegistryModelV3",
+        "parameters": [{"$ref": "#/components/parameters/StableId"}],
+        "security": [{"cookieSession": [], "csrfToken": []}],
+        "requestBody": {"$ref": "#/components/requestBodies/LifecycleAction"},
+        "responses": {"200": {"description": "Previous governed lifecycle status restored"}, "409": {"description": "No safe rollback target"}}
+      }
     }
   },
   "components": {
     "securitySchemes": {
       "cookieSession": {"type": "apiKey", "in": "cookie", "name": "session"},
       "csrfToken": {"type": "apiKey", "in": "header", "name": "X-CSRF-Token"}
+    },
+    "requestBodies": {
+      "LifecycleAction": {
+        "required": true,
+        "content": {"application/json": {"schema": {"$ref": "bn-manager-v3.schema.json#/$defs/lifecycleRequest"}}}
+      }
     },
     "parameters": {
       "StableId": {

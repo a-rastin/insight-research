@@ -18,8 +18,15 @@ class ModelRegistryEntry:
     target_node: str
     active_version: str
     status: str
-    lifecycle_status: str = "active"
-    clinical_use_status: str = "research-only"
+    artifact_id: str
+    source_artifact_id: str
+    source_path: str
+    manifest_sha256: str
+    source_sha256: str
+    approval_state: str = "unapproved"
+    allowed_runtime_use: bool = False
+    lifecycle_status: str = "draft"
+    clinical_use_status: str = "blocked-by-manifest"
     mapping_version: str = "1.0.0"
     engine_version: str = "clinical-graph-models/3.0.0"
     schema_path: str = XML_SCHEMA_PATH
@@ -27,8 +34,13 @@ class ModelRegistryEntry:
     clinical_recommendation_use: str | None = None
     mapping_path: str | None = None
 
-    def payload(self) -> dict[str, str]:
+    def payload(self, lifecycle_status: str | None = None) -> dict[str, str | bool]:
         payload = asdict(self)
+        for key in (
+            "artifact_id", "source_artifact_id", "source_path", "manifest_sha256",
+            "source_sha256", "approval_state", "allowed_runtime_use",
+        ):
+            payload.pop(key)
         model_bytes = resolve_owned_registry_file(self.file_path).read_bytes()
         schema_bytes = resolve_owned_registry_file(self.schema_path).read_bytes()
         payload.update(
@@ -48,7 +60,23 @@ class ModelRegistryEntry:
             payload.pop("calibration_status")
         if self.clinical_recommendation_use is None:
             payload.pop("clinical_recommendation_use")
+        payload["lifecycle_status"] = lifecycle_status or self.lifecycle_status
+        payload["status"] = payload["lifecycle_status"]
         return payload
+
+    def manifest_payload(self) -> dict[str, str | bool]:
+        return {
+            "artifact_id": self.artifact_id,
+            "source_artifact_id": self.source_artifact_id,
+            "source_path": self.source_path,
+            "source_sha256": self.source_sha256,
+            "registry_path": self.file_path,
+            "registry_sha256": self.manifest_sha256,
+            "approval_state": self.approval_state,
+            "allowed_runtime_use": self.allowed_runtime_use,
+            "source_status": "runtime-registry-copy",
+            "canonical_owner": "bn-manager",
+        }
 
 
 MODEL_REGISTRY: tuple[ModelRegistryEntry, ...] = (
@@ -58,7 +86,12 @@ MODEL_REGISTRY: tuple[ModelRegistryEntry, ...] = (
         file_path="xml/BN-Pharmacotherapy.xml",
         target_node="management_recommendation",
         active_version="1.0.0",
-        status="active",
+        status="draft",
+        artifact_id="registry.pharmacotherapy.xml",
+        source_artifact_id="source.pharmacotherapy.xml",
+        source_path="BNs/Pharmacotherapy/BN-Pharmacotherapy.xml",
+        manifest_sha256="ead00b30d6c832c91d3085ffdc58aea68073bf98786e177a4c05bbd878fecfd3",
+        source_sha256="ead00b30d6c832c91d3085ffdc58aea68073bf98786e177a4c05bbd878fecfd3",
         mapping_version="2.0.0",
         calibration_status="qualitative-uncalibrated",
         clinical_recommendation_use="blocked-until-calibrated-and-approved",
@@ -70,7 +103,12 @@ MODEL_REGISTRY: tuple[ModelRegistryEntry, ...] = (
         file_path="xml/BN-Treatment-Setting.xml",
         target_node="management_recommendation",
         active_version="1.0.0",
-        status="active",
+        status="draft",
+        artifact_id="registry.treatment-setting.xml",
+        source_artifact_id="source.treatment-setting.xml",
+        source_path="BNs/Treatment-Setting/BN-Treatment-Setting.xml",
+        manifest_sha256="0282bbb4c1b4378728c4f8429a9bc71396d8cd94e61dd508aaef19c08d92ee65",
+        source_sha256="0282bbb4c1b4378728c4f8429a9bc71396d8cd94e61dd508aaef19c08d92ee65",
     ),
     ModelRegistryEntry(
         stable_id="bnm.involuntary-treatment-considerations",
@@ -78,7 +116,12 @@ MODEL_REGISTRY: tuple[ModelRegistryEntry, ...] = (
         file_path="xml/BN-Involuntary-Treatment-Considerations.xml",
         target_node="management_recommendation",
         active_version="1.0.0",
-        status="active",
+        status="draft",
+        artifact_id="registry.involuntary-treatment.xml",
+        source_artifact_id="source.involuntary-treatment.xml",
+        source_path="BNs/Involuntary-Treatment-Considerations/BN-Involuntary-Treatment-Considerations.xml",
+        manifest_sha256="6c42ea3f0f2491e7f15a7624d60dcb6b84055a5545bd258cf67b0ad8b211cd0d",
+        source_sha256="6c42ea3f0f2491e7f15a7624d60dcb6b84055a5545bd258cf67b0ad8b211cd0d",
     ),
     ModelRegistryEntry(
         stable_id="bnm.clozapine-suicide-risk",
@@ -86,7 +129,12 @@ MODEL_REGISTRY: tuple[ModelRegistryEntry, ...] = (
         file_path="xml/BN-Clozapine-in-Suicide-Risk.xml",
         target_node="Clinical_Action_Pattern",
         active_version="1.0.0",
-        status="active",
+        status="draft",
+        artifact_id="registry.clozapine-suicide-risk.xml",
+        source_artifact_id="source.clozapine-suicide-risk.xml",
+        source_path="BNs/Clozapine in Suicide Risk/BN-Clozapine-in-Suicide-Risk.xml",
+        manifest_sha256="90f633bee7da1625ca4d44d35ace5acace5ca51ee7d597541ee7a5d0089acf3a",
+        source_sha256="90f633bee7da1625ca4d44d35ace5acace5ca51ee7d597541ee7a5d0089acf3a",
     ),
 )
 

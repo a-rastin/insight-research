@@ -22,6 +22,10 @@ class BnManagerSettings:
     auth_session_url: str = DEFAULT_AUTH_SESSION_URL
     auth_timeout_seconds: float = 2.0
     csrf_header_name: str = "x-csrf-token"
+    governance_db_path: Path = Path(os.environ.get(
+        "BN_MANAGER_GOVERNANCE_DB",
+        Path(os.environ.get("BN_REGISTRY_ROOT", Path(__file__).resolve().parent / "model_registry")) / "governance.sqlite3",
+    ))
 
     @classmethod
     def from_env(cls) -> "BnManagerSettings":
@@ -31,6 +35,10 @@ class BnManagerSettings:
             auth_session_url=os.getenv("BN_MANAGER_AUTH_SESSION_URL", DEFAULT_AUTH_SESSION_URL),
             auth_timeout_seconds=float(os.getenv("BN_MANAGER_AUTH_TIMEOUT_SECONDS", "2.0")),
             csrf_header_name=os.getenv("BN_MANAGER_CSRF_HEADER_NAME", "x-csrf-token"),
+            governance_db_path=Path(os.getenv(
+                "BN_MANAGER_GOVERNANCE_DB",
+                Path(os.getenv("BN_REGISTRY_ROOT", Path(__file__).resolve().parent / "model_registry")) / "governance.sqlite3",
+            )),
         )
 
 

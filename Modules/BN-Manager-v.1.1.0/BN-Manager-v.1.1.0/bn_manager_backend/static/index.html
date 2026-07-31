@@ -3,38 +3,212 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>BN Manager</title>
+    <title>INSIGHT BN Registry</title>
     <style>
-      :root { color-scheme: light; font-family: Arial, sans-serif; background: #f7f8fa; color: #20242a; }
-      body { margin: 0; }
-      main { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
-      h1 { margin: 0 0 8px; font-size: 32px; }
-      p { max-width: 760px; line-height: 1.5; }
-      .status { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin: 28px 0; }
-      .panel { border: 1px solid #d7dce2; border-radius: 8px; background: #fff; padding: 18px; }
-      .label { color: #5a6573; font-size: 13px; margin-bottom: 6px; }
-      .value { font-size: 18px; font-weight: 700; }
-      ul { line-height: 1.8; }
-      code { background: #eef1f4; border-radius: 4px; padding: 2px 5px; }
+      :root {
+        color-scheme: light;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --primary: #087f74; --primary-hover: #06665e; --primary-light: #e6f6f5;
+        --ink: #111827; --muted: #6b7280; --canvas: #fff; --surface: #f9fafb;
+        --border: #d1d5db; --warning: #92400e; --warning-bg: #fffbeb;
+        --urgent: #b91c1c; --urgent-bg: #fef2f2; --normal: #047857; --normal-bg: #ecfdf5;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--surface); color: var(--ink); }
+      main { max-width: 1200px; margin: 0 auto; padding: 28px; }
+      header { display: flex; justify-content: space-between; gap: 20px; align-items: end; margin-bottom: 24px; }
+      h1 { margin: 0 0 6px; font-size: 28px; }
+      h2 { margin: 0; font-size: 19px; }
+      p { line-height: 1.55; }
+      .muted { color: var(--muted); margin: 0; }
+      .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+      .card { border: 1px solid var(--border); border-radius: 12px; background: var(--canvas); padding: 20px; }
+      .metric { font: 700 24px "SFMono-Regular", Consolas, monospace; margin-top: 6px; }
+      .models { display: grid; gap: 16px; }
+      .model-head { display: flex; justify-content: space-between; gap: 16px; align-items: start; }
+      .badge { display: inline-flex; padding: 4px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+      .badge.good { color: var(--normal); background: var(--normal-bg); }
+      .badge.warn { color: var(--warning); background: var(--warning-bg); }
+      dl { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 8px 14px; margin: 18px 0; }
+      dt { color: var(--muted); font-size: 13px; font-weight: 700; }
+      dd { margin: 0; overflow-wrap: anywhere; }
+      code { font: 12px "SFMono-Regular", Consolas, monospace; }
+      .notice { border-left: 4px solid var(--warning); background: var(--warning-bg); padding: 12px; margin: 14px 0; }
+      .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+      button { min-height: 36px; border: 1px solid var(--border); border-radius: 8px; background: #fff; color: var(--ink); padding: 8px 14px; font-weight: 700; cursor: pointer; }
+      button.primary { color: #fff; border-color: var(--primary); background: var(--primary); }
+      button:hover:not(:disabled) { border-color: var(--primary-hover); }
+      button.primary:hover:not(:disabled) { background: var(--primary-hover); }
+      button:disabled { cursor: not-allowed; opacity: .55; }
+      button:focus-visible, textarea:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+      .error { border-left: 4px solid var(--urgent); background: var(--urgent-bg); padding: 14px; margin-bottom: 16px; }
+      dialog { width: min(520px, calc(100% - 32px)); border: 0; border-radius: 12px; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,.15); }
+      dialog::backdrop { background: rgba(17,24,39,.45); }
+      label { display: block; font-weight: 700; margin: 18px 0 6px; }
+      textarea { width: 100%; min-height: 110px; border: 1px solid var(--border); border-radius: 8px; padding: 10px; font: inherit; }
+      .dialog-actions { display: flex; justify-content: end; gap: 8px; margin-top: 16px; }
+      @media (max-width: 720px) {
+        main { padding: 16px; } header { display: block; } .summary { grid-template-columns: 1fr; }
+        dl { grid-template-columns: 1fr; gap: 3px; } dd { margin-bottom: 8px; } button { min-height: 44px; }
+      }
+      @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
     </style>
   </head>
   <body>
     <main>
-      <h1>BN Manager</h1>
-      <p>INSIGHT Bayesian Network service for schema validation, registry discovery, and posterior evaluation of the four canonical XML models.</p>
-      <section class="status" aria-label="Module status">
-        <div class="panel"><div class="label">Contract</div><div class="value">2.0.0</div></div>
-        <div class="panel"><div class="label">Canonical format</div><div class="value">BIF 0.3 XML</div></div>
-        <div class="panel"><div class="label">Registered models</div><div class="value">4</div></div>
+      <header>
+        <div>
+          <h1>INSIGHT BN Registry</h1>
+          <p class="muted">Manifest-owned model review and lifecycle administration. Clinical activation fails closed without required approval.</p>
+        </div>
+        <button id="refresh" type="button">Refresh inventory</button>
+      </header>
+      <div id="error" class="error" role="alert" hidden></div>
+      <section class="summary" aria-label="Registry summary">
+        <div class="card"><span class="muted">Manifest models</span><div class="metric" id="count">...</div></div>
+        <div class="card"><span class="muted">Validation passing</span><div class="metric" id="valid">...</div></div>
+        <div class="card"><span class="muted">Activation eligible</span><div class="metric" id="eligible">...</div></div>
       </section>
-      <h2>Networks</h2>
-      <ul>
-        <li>Pharmacotherapy</li>
-        <li>Treatment Setting</li>
-        <li>Involuntary Treatment Considerations</li>
-        <li>Clozapine in Suicide Risk</li>
-      </ul>
-      <p>Use <code>/api/bn-manager/v1/models</code> for registry metadata and <code>/api/bn-manager/v1/models/schema/xml-0.3</code> for the canonical schema.</p>
+      <section id="models" class="models" aria-live="polite" aria-busy="true"><p>Loading registry inventory...</p></section>
     </main>
+    <dialog id="action-dialog" aria-labelledby="dialog-title">
+      <form id="action-form">
+        <h2 id="dialog-title">Registry action</h2>
+        <p id="dialog-description" class="muted"></p>
+        <label for="rationale">Attributable rationale</label>
+        <textarea id="rationale" minlength="20" maxlength="2000" required aria-describedby="rationale-help"></textarea>
+        <p id="rationale-help" class="muted">20 to 2,000 characters. Stored in lifecycle history.</p>
+        <div class="dialog-actions">
+          <button id="cancel" type="button">Cancel</button>
+          <button class="primary" type="submit">Confirm action</button>
+        </div>
+      </form>
+    </dialog>
+    <script>
+      const api = "/api/bn-manager/v3/admin/models";
+      const models = document.querySelector("#models");
+      const error = document.querySelector("#error");
+      const dialog = document.querySelector("#action-dialog");
+      const form = document.querySelector("#action-form");
+      let pending = null;
+      let invokingButton = null;
+
+      function csrfToken() {
+        const value = document.cookie.split("; ").find(row => /^(csrf_token|XSRF-TOKEN|xsrf_token)=/.test(row));
+        return value ? decodeURIComponent(value.split("=").slice(1).join("=")) : "";
+      }
+
+      function showError(message) {
+        error.textContent = message;
+        error.hidden = false;
+      }
+
+      function clearError() { error.hidden = true; error.textContent = ""; }
+
+      function text(tag, value, className) {
+        const node = document.createElement(tag);
+        node.textContent = value;
+        if (className) node.className = className;
+        return node;
+      }
+
+      function detail(list, label, value, code = false) {
+        list.append(text("dt", label));
+        const valueNode = document.createElement("dd");
+        valueNode.append(text(code ? "code" : "span", value));
+        list.append(valueNode);
+      }
+
+      function actionButton(model, action, disabled = false, reason = "") {
+        const button = text("button", action[0].toUpperCase() + action.slice(1));
+        button.type = "button";
+        button.disabled = disabled;
+        if (reason) button.title = reason;
+        button.addEventListener("click", () => {
+          pending = { stableId: model.stable_id, action };
+          invokingButton = button;
+          document.querySelector("#dialog-title").textContent = `${button.textContent}: ${model.title}`;
+          document.querySelector("#dialog-description").textContent = reason || `Change lifecycle status from ${model.lifecycle.status}.`;
+          form.reset();
+          dialog.showModal();
+          document.querySelector("#rationale").focus();
+        });
+        return button;
+      }
+
+      function renderModel(model) {
+        const card = document.createElement("article");
+        card.className = "card";
+        const head = document.createElement("div");
+        head.className = "model-head";
+        const title = document.createElement("div");
+        title.append(text("h2", model.title), text("code", model.stable_id));
+        head.append(title, text("span", model.lifecycle.status, `badge ${model.validation_evidence.valid ? "good" : "warn"}`));
+        card.append(head);
+        const details = document.createElement("dl");
+        detail(details, "Version", model.semantic_version);
+        detail(details, "Model SHA-256", model.content_hash, true);
+        detail(details, "Source", model.manifest.source_path, true);
+        detail(details, "Source SHA-256", `sha256:${model.manifest.source_sha256}`, true);
+        detail(details, "Validation", model.validation_evidence.valid ? "Passed structural, semantic, target, and manifest hash checks" : "Failed validation checks");
+        detail(details, "Clinical use", model.clinical_use_status);
+        card.append(details);
+        if (model.activation_blockers.length) {
+          card.append(text("p", `Activation blocked: ${model.activation_blockers.join(" ")}`, "notice"));
+        }
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        actions.append(
+          actionButton(model, "review", model.lifecycle.status !== "draft", "Review requires draft status and passing validation."),
+          actionButton(model, "activate", !model.activation_eligible, model.activation_blockers.join(" ")),
+          actionButton(model, "retire", !["reviewed", "active"].includes(model.lifecycle.status), "Retirement requires reviewed or active status."),
+          actionButton(model, "rollback", model.lifecycle.history.length === 0, "Rollback requires lifecycle history.")
+        );
+        card.append(actions);
+        return card;
+      }
+
+      async function loadInventory() {
+        clearError();
+        models.setAttribute("aria-busy", "true");
+        try {
+          const response = await fetch(api, { credentials: "same-origin", headers: { Accept: "application/json" } });
+          const payload = await response.json();
+          if (!response.ok || !payload.ok) throw new Error(payload.error?.message || "Registry inventory unavailable.");
+          const inventory = payload.data.models;
+          models.replaceChildren(...inventory.map(renderModel));
+          document.querySelector("#count").textContent = inventory.length;
+          document.querySelector("#valid").textContent = inventory.filter(item => item.validation_evidence.valid).length;
+          document.querySelector("#eligible").textContent = inventory.filter(item => item.activation_eligible).length;
+        } catch (cause) {
+          models.replaceChildren(text("p", "Registry inventory could not be loaded."));
+          showError(cause.message);
+        } finally {
+          models.setAttribute("aria-busy", "false");
+        }
+      }
+
+      form.addEventListener("submit", async event => {
+        event.preventDefault();
+        clearError();
+        const token = csrfToken();
+        if (!token) { dialog.close(); showError("CSRF token is unavailable. Reload through the authenticated INSIGHT workspace."); return; }
+        try {
+          const response = await fetch(`${api}/${encodeURIComponent(pending.stableId)}/${pending.action}`, {
+            method: "POST", credentials: "same-origin",
+            headers: { "Content-Type": "application/json", "X-CSRF-Token": token },
+            body: JSON.stringify({ rationale: document.querySelector("#rationale").value })
+          });
+          const payload = await response.json();
+          if (!response.ok || !payload.ok) throw new Error(payload.error?.message || "Registry action failed.");
+          dialog.close();
+          await loadInventory();
+        } catch (cause) { dialog.close(); showError(cause.message); }
+      });
+      document.querySelector("#cancel").addEventListener("click", () => dialog.close());
+      document.querySelector("#refresh").addEventListener("click", loadInventory);
+      dialog.addEventListener("close", () => invokingButton?.focus());
+      loadInventory();
+    </script>
   </body>
 </html>

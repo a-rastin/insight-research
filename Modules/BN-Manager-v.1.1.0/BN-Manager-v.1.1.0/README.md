@@ -1,6 +1,6 @@
 # BN Manager
 
-BN Manager is the standalone FastAPI service for validating, discovering, and evaluating the INSIGHT clinical Bayesian Networks. Contract v3 uses the supplied BIF 0.3 XML schema and accepts canonical registry models only for clinical evaluation.
+BN Manager is the standalone FastAPI service for validating, discovering, governing, and evaluating the INSIGHT clinical Bayesian Networks. Contract v3 uses the supplied BIF 0.3 XML schema and accepts canonical manifest-owned registry models only.
 
 The complete machine-readable v3 contract is published in `contracts/` as
 `bn-manager-v3.contract.json`, `bn-manager-v3.schema.json`, and
@@ -84,6 +84,16 @@ content hash, BIF/XSD identity, engine version, lifecycle and clinical-use
 status, target, mapping version/hash, and calibration status without returning model text. Evaluation
 returns accepted and ignored evidence, warnings, posterior, mapping version,
 evaluation UUID, and UTC evaluation time.
+
+Administrator-only registry routes are available under
+`/api/bn-manager/v3/admin/models`. Inventory and detail responses include live
+validation evidence, manifest source provenance and hashes, lifecycle history,
+and activation blockers. Review, activation, retirement, and rollback writes
+require CSRF and a 20-2,000 character rationale. Lifecycle state is stored in
+the module registry at `governance.sqlite3`; set `BN_MANAGER_GOVERNANCE_DB` to
+override that path. Current manifest entries are unapproved and disallow runtime
+use, so activation fails closed until the authoritative manifest records both
+required approvals. No administration route accepts a caller path or model text.
 
 ### Validate a registry model
 

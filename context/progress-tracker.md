@@ -8,6 +8,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-071: Add BN registry review and lifecycle administration (In progress).
 - INS-069: Implement Follow-up capture, history, and retrieval (In progress).
 - INS-067: Replace Dashboard placeholders with the real role-scoped workspace
   (In progress).
@@ -329,6 +330,32 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-071 BN registry review and lifecycle administration (In progress). BN
+  Manager contract 3.2.0 now publishes admin-only manifest-owned inventory and
+  detail routes plus CSRF-protected review, activation, retirement, and rollback
+  actions. Responses expose live structural/semantic/target validation evidence,
+  exact model/schema/mapping hashes, source artifact provenance, lifecycle
+  history, and explicit activation blockers without returning model text or
+  accepting caller paths. Lifecycle transitions and attributable rationales are
+  persisted in module-owned SQLite within the registry volume. The bounded
+  responsive UI uses gateway-relative APIs, visible failure and blocker text,
+  semantic controls, keyboard focus return, minimum mobile targets, and reduced
+  motion; admin authorization is enforced server-side for both UI and routes.
+  Current manifest entries remain `unapproved` with runtime use disallowed, so
+  activation and active-state rollback fail closed until the authoritative
+  manifest records both required approvals; no protected model, XSD, clinical
+  source, runtime data, or generated artifact was changed. Focused registry
+  administration tests passed 5/5 with ResourceWarnings promoted to errors;
+  contract tests passed 8/8; the full BN Manager suite passed 62/62; affected
+  model-manifest, common REST, and pharmacotherapy governance tests passed
+  18/18; root discovery passed 93/93 with two expected unconfigured live-gateway
+  skips. Changed Python compiled, contract JSON parsed, the Draft 2020-12 schema
+  validated, and `git diff --check` passed. Live authenticated gateway/browser
+  execution and an approved manifest revision remain pending, so INS-071 stays
+  in progress. Next step is model-owner and clinical approval in the
+  authoritative manifest, followed by activation and rollback rehearsal through
+  the deployed admin workspace. No file under `insight-research/doc/` was read
+  or modified.
 - INS-069 Follow-up capture, history, and retrieval (In progress). Dashboard now
   exposes the gateway-relative `/modules/patient-follow-up` psychiatrist route.
   The Add New Patient owner provides patient search and selection, atomic

@@ -1,7 +1,7 @@
 {
   "contractId": "insight.bn-manager",
-  "interfaceVersion": "3.1.0",
-  "schemaVersion": "3.1.0",
+  "interfaceVersion": "3.2.0",
+  "schemaVersion": "3.2.0",
   "moduleOwner": "bn-manager",
   "status": "published",
   "basePath": "/api/bn-manager/v3",
@@ -13,7 +13,13 @@
   "operations": [
     {"method": "GET", "path": "/models", "operationId": "listBnModelsV3"},
     {"method": "GET", "path": "/models/{stable_id}", "operationId": "getBnModelV3"},
-    {"method": "POST", "path": "/evaluations", "operationId": "createBnEvaluationV3"}
+    {"method": "POST", "path": "/evaluations", "operationId": "createBnEvaluationV3"},
+    {"method": "GET", "path": "/admin/models", "operationId": "listBnRegistryAdministrationV3"},
+    {"method": "GET", "path": "/admin/models/{stable_id}", "operationId": "getBnRegistryAdministrationV3"},
+    {"method": "POST", "path": "/admin/models/{stable_id}/review", "operationId": "reviewBnRegistryModelV3"},
+    {"method": "POST", "path": "/admin/models/{stable_id}/activate", "operationId": "activateBnRegistryModelV3"},
+    {"method": "POST", "path": "/admin/models/{stable_id}/retire", "operationId": "retireBnRegistryModelV3"},
+    {"method": "POST", "path": "/admin/models/{stable_id}/rollback", "operationId": "rollbackBnRegistryModelV3"}
   ],
   "evaluation": {
     "registryOnly": true,
@@ -34,7 +40,18 @@
     "completeEvidenceRequired": true,
     "returnsGateResultWithPosterior": true,
     "cptRevisionIdentity": ["semantic_version", "content_hash"],
-    "cptMutationOperation": "not-published-in-v3.1.0"
+    "cptMutationOperation": "not-published-in-v3.2.0"
+  },
+  "registryAdministration": {
+    "allowedRole": "admin",
+    "csrfRequiredForWrites": true,
+    "manifestOwnedOnly": true,
+    "callerPathsAllowed": false,
+    "lifecycle": ["draft", "reviewed", "active", "retired"],
+    "actions": ["review", "activate", "retire", "rollback"],
+    "rationaleLength": {"minimum": 20, "maximum": 2000},
+    "activationRequires": ["structural-and-semantic-validation", "manifest-approval", "manifest-runtime-use-permission"],
+    "returns": ["inventory", "validation-evidence", "source-provenance", "hashes", "lifecycle-history", "activation-blockers"]
   },
   "callerModelText": {
     "allowedOperation": "POST /api/bn-manager/v1/models/validate",

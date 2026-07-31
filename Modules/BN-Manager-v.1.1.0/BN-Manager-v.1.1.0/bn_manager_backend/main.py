@@ -15,6 +15,7 @@ from clinical_graph_models import (
     DECISION_IDS,
     ERROR_CODES,
     MODULE_ID,
+    CONTRACT_VERSION,
     XmlBifCompileError,
     compile_xmlbif,
     contract_payload,
@@ -27,7 +28,8 @@ from clinical_graph_models.model import ClinicalGraphModel
 
 from .auth_adapter import AuthenticationRestAdapter, CsrfError, SessionAdapter, SessionState, assert_csrf_token
 from .config import BnManagerSettings, get_settings
-from .model_registry import get_registry_entry, list_registry_entries, read_registry_model, read_registry_schema
+from .governance import GovernanceConflict, GovernanceStore
+from .model_registry import MODEL_REGISTRY, get_registry_entry, list_registry_entries, read_registry_model, read_registry_schema
 from .pharmacotherapy import evaluate_candidate_gates
 
 EVALUATION_ROLES = frozenset({"psychiatrist", "admin"})
@@ -65,6 +67,7 @@ def create_app(
         settings.auth_timeout_seconds,
     )
     app.state.evaluation_idempotency = {}
+    app.state.governance_store = None
 
     @app.exception_handler(BnManagerHttpError)
     def bn_manager_error(request: Request, exc: BnManagerHttpError) -> JSONResponse:
@@ -108,6 +111,24 @@ def create_app(
 
         return dependency
 
+    def require_read_roles(allowed_roles: frozenset[str]):
+        def dependency(session: SessionState = Depends(require_verified_session)) -> SessionState:
+            if session.roles.isdisjoint(allowed_roles):
+                raise BnManagerHttpError(
+                    403,
+                    ERROR_CODES["forbidden"],
+                    "Authenticated user does not have a required BN Manager role.",
+                    {"required_roles": sorted(allowed_roles), "roles": sorted(session.roles)},
+                )
+            return session
+
+        return dependency
+
+    def governance_store() -> GovernanceStore:
+        if app.state.governance_store is None:
+            app.state.governance_store = GovernanceStore(settings.governance_db_path)
+        return app.state.governance_store
+
     @app.get(f"{settings.api_prefix}/health")
     def health() -> dict[str, Any]:
         return ok_response(
@@ -150,7 +171,7 @@ def create_app(
     def model_registry_list_v3() -> dict[str, Any]:
         return ok_response(
             {
-                "interface_version": "3.1.0",
+                "interface_version": CONTRACT_VERSION,
                 "models": list_registry_entries(),
                 "schema": {"format": "XML", "version": "BIF-0.3"},
             }
@@ -161,7 +182,88 @@ def create_app(
         entry = get_registry_entry(stable_id)
         if entry is None:
             raise BnManagerHttpError(404, ERROR_CODES["model_not_found"], "BN Manager registry model not found.")
-        return ok_response({"interface_version": "3.1.0", "model": entry.payload()})
+        return ok_response({"interface_version": CONTRACT_VERSION, "model": entry.payload()})
+
+    @app.get("/api/bn-manager/v3/admin/models")
+    def admin_model_inventory(
+        session: SessionState = Depends(require_read_roles(ADMIN_ROLES)),
+    ) -> dict[str, Any]:
+        store = governance_store()
+        return ok_response({
+            "interface_version": CONTRACT_VERSION,
+            "models": [_admin_model_payload(entry, store.get(entry.stable_id)) for entry in MODEL_REGISTRY],
+            "viewed_by": session.subject,
+        })
+
+    @app.get("/api/bn-manager/v3/admin/models/{stable_id}")
+    def admin_model_detail(
+        stable_id: str,
+        session: SessionState = Depends(require_read_roles(ADMIN_ROLES)),
+    ) -> dict[str, Any]:
+        entry = _require_registry_entry(stable_id)
+        return ok_response({
+            "interface_version": CONTRACT_VERSION,
+            "model": _admin_model_payload(entry, governance_store().get(stable_id)),
+            "viewed_by": session.subject,
+        })
+
+    def lifecycle_action(stable_id: str, action: str, payload: dict[str, Any], session: SessionState) -> dict[str, Any]:
+        entry = _require_registry_entry(stable_id)
+        rationale = _lifecycle_rationale(payload)
+        evidence = _validation_evidence(entry)
+        if action == "review" and not evidence["valid"]:
+            raise BnManagerHttpError(
+                422, ERROR_CODES["model_validation_failed"], "Registry model failed validation.", evidence
+            )
+        if action == "activate":
+            _assert_manifest_activation_allowed(entry, evidence)
+        store = governance_store()
+        try:
+            if action == "rollback":
+                current = store.get(stable_id)
+                if current["history"] and current["history"][-1]["from_status"] == "active":
+                    _assert_manifest_activation_allowed(entry, evidence)
+                state = store.rollback(stable_id, session.subject or "unknown", rationale, evidence)
+            else:
+                state = store.transition(stable_id, action, session.subject or "unknown", rationale, evidence)
+        except GovernanceConflict as exc:
+            raise BnManagerHttpError(409, ERROR_CODES["lifecycle_conflict"], str(exc)) from exc
+        return ok_response({
+            "interface_version": CONTRACT_VERSION,
+            "model": _admin_model_payload(entry, state),
+        })
+
+    @app.post("/api/bn-manager/v3/admin/models/{stable_id}/review")
+    def review_model(
+        stable_id: str,
+        payload: dict[str, Any] = Body(...),
+        session: SessionState = Depends(require_roles(ADMIN_ROLES)),
+    ) -> dict[str, Any]:
+        return lifecycle_action(stable_id, "review", payload, session)
+
+    @app.post("/api/bn-manager/v3/admin/models/{stable_id}/activate")
+    def activate_model(
+        stable_id: str,
+        payload: dict[str, Any] = Body(...),
+        session: SessionState = Depends(require_roles(ADMIN_ROLES)),
+    ) -> dict[str, Any]:
+        return lifecycle_action(stable_id, "activate", payload, session)
+
+    @app.post("/api/bn-manager/v3/admin/models/{stable_id}/retire")
+    def retire_model(
+        stable_id: str,
+        payload: dict[str, Any] = Body(...),
+        session: SessionState = Depends(require_roles(ADMIN_ROLES)),
+    ) -> dict[str, Any]:
+        return lifecycle_action(stable_id, "retire", payload, session)
+
+    @app.post("/api/bn-manager/v3/admin/models/{stable_id}/rollback")
+    def rollback_model(
+        stable_id: str,
+        payload: dict[str, Any] = Body(...),
+        session: SessionState = Depends(require_roles(ADMIN_ROLES)),
+    ) -> dict[str, Any]:
+        return lifecycle_action(stable_id, "rollback", payload, session)
 
     @app.get("/api/bn-manager/v1/models/schema/xml-0.3")
     def model_registry_schema() -> dict[str, Any]:
@@ -282,11 +384,11 @@ def create_app(
     index_path = settings.static_dir / "index.html"
 
     @app.get(settings.ui_mount_path, include_in_schema=False)
-    def ui_index(session: SessionState = Depends(require_verified_session)) -> FileResponse:
+    def ui_index(session: SessionState = Depends(require_read_roles(ADMIN_ROLES))) -> FileResponse:
         return FileResponse(index_path)
 
     @app.get(f"{settings.ui_mount_path}/{{asset_path:path}}", include_in_schema=False)
-    def ui_asset(asset_path: str, session: SessionState = Depends(require_verified_session)) -> FileResponse:
+    def ui_asset(asset_path: str, session: SessionState = Depends(require_read_roles(ADMIN_ROLES))) -> FileResponse:
         static_dir = Path(settings.static_dir).resolve()
         if not asset_path:
             return FileResponse(index_path)
@@ -535,7 +637,7 @@ def _evaluate_payload_v3(payload: dict[str, Any], session: SessionState) -> dict
             }
         )
     response_data = {
-        "interface_version": "3.1.0",
+        "interface_version": CONTRACT_VERSION,
         "evaluation_id": str(uuid4()),
         "evaluated_at": evaluated_at,
         "model": entry.payload(),
@@ -553,3 +655,84 @@ def _evaluate_payload_v3(payload: dict[str, Any], session: SessionState) -> dict
     return ok_response(
         response_data
     )
+
+
+def _require_registry_entry(stable_id: str):
+    entry = get_registry_entry(stable_id)
+    if entry is None:
+        raise BnManagerHttpError(
+            404, ERROR_CODES["model_not_found"], "BN Manager registry model not found.", {"stable_id": stable_id}
+        )
+    return entry
+
+
+def _validation_evidence(entry) -> dict[str, Any]:
+    model = _load_model({"stable_id": entry.stable_id}, allow_text=False)
+    messages = [asdict(message) for message in validate_model(model, target_node_ids=[entry.target_node])]
+    live_hash = entry.payload()["content_hash"].removeprefix("sha256:")
+    hash_matches = live_hash == entry.manifest_sha256
+    if not hash_matches:
+        messages.append({
+            "severity": "error",
+            "code": "BNM_MANIFEST_HASH_MISMATCH",
+            "path": "model.content_hash",
+            "message": "Registry bytes do not match the manifest-owned artifact hash.",
+        })
+    return {
+        "valid": hash_matches and not any(message["severity"] == "error" for message in messages),
+        "checked_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        "model_hash_matches_manifest": hash_matches,
+        "messages": messages,
+    }
+
+
+def _admin_model_payload(entry, lifecycle: dict[str, Any]) -> dict[str, Any]:
+    return {
+        **entry.payload(lifecycle["status"]),
+        "manifest": entry.manifest_payload(),
+        "validation_evidence": _validation_evidence(entry),
+        "lifecycle": lifecycle,
+        "activation_eligible": (
+            entry.approval_state == "approved"
+            and entry.allowed_runtime_use
+            and lifecycle["status"] in {"reviewed", "retired"}
+        ),
+        "activation_blockers": [
+            reason
+            for blocked, reason in (
+                (entry.approval_state != "approved", "Manifest approval is required."),
+                (not entry.allowed_runtime_use, "Manifest runtime-use permission is required."),
+            )
+            if blocked
+        ],
+    }
+
+
+def _lifecycle_rationale(payload: dict[str, Any]) -> str:
+    if set(payload) != {"rationale"}:
+        raise BnManagerHttpError(
+            400, ERROR_CODES["invalid_request"], "Lifecycle request must contain only rationale."
+        )
+    rationale = payload.get("rationale")
+    if not isinstance(rationale, str) or not 20 <= len(rationale.strip()) <= 2000:
+        raise BnManagerHttpError(
+            400, ERROR_CODES["invalid_request"], "Lifecycle rationale must contain 20 to 2000 characters."
+        )
+    return rationale.strip()
+
+
+def _assert_manifest_activation_allowed(entry, evidence: dict[str, Any]) -> None:
+    blockers = []
+    if entry.approval_state != "approved":
+        blockers.append("manifest-approval-required")
+    if not entry.allowed_runtime_use:
+        blockers.append("manifest-runtime-use-blocked")
+    if not evidence["valid"]:
+        blockers.append("validation-failed")
+    if blockers:
+        raise BnManagerHttpError(
+            409,
+            ERROR_CODES["activation_blocked"],
+            "Model activation is blocked by manifest admission policy.",
+            {"blockers": blockers},
+        )

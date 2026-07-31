@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass
 from typing import Any
 
 MODULE_ID = "bn-manager"
-CONTRACT_VERSION = "3.1.0"
+CONTRACT_VERSION = "3.2.0"
 PYTHON_PACKAGE = "clinical_graph_models"
 ROUTE_PREFIX = "/api/bn-manager/v1"
 V3_ROUTE_PREFIX = "/api/bn-manager/v3"
@@ -87,6 +87,7 @@ PERMISSIONS = {
     "evaluate_add_new_patient": "bnm:add-new-patient:evaluate",
     "evaluate_follow_up": "bnm:follow-up:evaluate",
     "validate_model": "bnm:model:validate",
+    "administer_registry": "bnm:registry:administer",
 }
 
 ROLE_PERMISSIONS: dict[str, tuple[str, ...]] = {
@@ -167,6 +168,8 @@ ERROR_CODES: dict[str, str] = {
     "unknown_target_node": "BNM_UNKNOWN_TARGET_NODE",
     "evaluation_failed": "BNM_EVALUATION_FAILED",
     "safety_review_required": "BNM_SAFETY_REVIEW_REQUIRED",
+    "lifecycle_conflict": "BNM_LIFECYCLE_CONFLICT",
+    "activation_blocked": "BNM_ACTIVATION_BLOCKED",
     "internal_error": "BNM_INTERNAL_ERROR",
 }
 

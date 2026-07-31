@@ -55,7 +55,7 @@ class BnManagerBackendTests(unittest.TestCase):
 
         self.assertEqual(health["data"]["module_id"], "bn-manager")
         self.assertTrue(ready["data"]["contract_loaded"])
-        self.assertEqual(contract["data"]["contract_version"], "3.1.0")
+        self.assertEqual(contract["data"]["contract_version"], "3.2.0")
         self.assertEqual(contract["data"]["xml_target"]["extension"], ".xml")
 
     def test_models_list_contains_exactly_the_four_canonical_networks(self) -> None:
@@ -198,8 +198,8 @@ class BnManagerBackendTests(unittest.TestCase):
         for model in models:
             self.assertRegex(model["content_hash"], r"^sha256:[0-9a-f]{64}$")
             self.assertEqual(model["schema_version"], "BIF-0.3")
-            self.assertEqual(model["lifecycle_status"], "active")
-            self.assertEqual(model["clinical_use_status"], "research-only")
+            self.assertEqual(model["lifecycle_status"], "draft")
+            self.assertEqual(model["clinical_use_status"], "blocked-by-manifest")
             self.assertNotIn("text", model)
             self.assertIn("mapping_version", model)
         pharmacotherapy = next(model for model in models if model["stable_id"] == "bnm.pharmacotherapy")
@@ -246,7 +246,7 @@ class BnManagerBackendTests(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         result = response.json()["data"]
-        self.assertEqual(result["interface_version"], "3.1.0")
+        self.assertEqual(result["interface_version"], "3.2.0")
         self.assertEqual(result["candidate_id"], "candidate-a")
         self.assertEqual(result["candidate_gate"]["disposition"], "eligible-for-clinician-comparison")
         self.assertEqual(result["accepted_evidence"], PHARMACOTHERAPY_EVIDENCE)
