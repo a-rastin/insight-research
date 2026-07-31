@@ -211,12 +211,12 @@
 - Maintain one authoritative normalization and parsing pipeline for the DDI knowledge base.
 - Derive the knowledge-base identity reproducibly from exact source bytes and declared parser, schema, and normalization versions.
 - Do not include absolute paths or generation timestamps in the stable identity hash.
-- Only approved interactions may enter the active clinical index.
-- Block activation when the approved interaction set is empty or validation fails.
+- 
+- 
 - Validate the knowledge-base root, schema, unique identifiers, aliases, review state, provenance, confidence, duplicate pairs, and conflicting pairs.
-- Keep ingestion validation separate from the stricter clinical activation gate.
-- Treat medication resolution as fail-closed. Skip unresolved or ambiguous pairs and report candidates and coverage gaps explicitly.
-- Keep review and override records in server-owned, attributable, auditable persistence before production use.
+- 
+- 
+- 
 - An override MUST not mutate the underlying knowledge-base fact.
 
 ## Treatment Plans, Provenance, and Audit

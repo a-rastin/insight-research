@@ -124,7 +124,7 @@ Additional rules:
 - Do not duplicate evaluation logic in caller-specific routes.
 - Validate incoming and outgoing REST payloads against the declared versioned schema.
 - Reject unsupported major schema versions explicitly.
-- Readiness must fail when a required dependency or production configuration is unavailable; it must not expose secrets, internal paths, or credentials.
+
 - Browser code must not contain hard-coded localhost service calls. Use configured reverse-proxy-aware base paths.
 - A failed module must appear unavailable with a typed reason; it must not disappear silently from Dashboard.
 

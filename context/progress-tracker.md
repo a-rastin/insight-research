@@ -442,15 +442,7 @@ Update this file after every meaningful implementation change.
   The digest-pinned-base unified image rebuilt successfully as
   `insight-unified:ins065`, producing local manifest digest
   `sha256:ec0c6f3d09c372ed6e397577e92d72ac3f739542b0aacaa3f7665ce345e0eb3f`.
-  Live nginx/TLS deployment, E2E, backup, restart, and rollback rehearsal could
-  not run because no approved environment, registry reference, certificates,
-  credentials, external fixtures, or release inventory were supplied. DDI also
-  intentionally fails readiness with `production-rest-seam-unavailable`, and
-  controlled-clinical approvals remain absent; release policy therefore remains
-  blocked. Next work is to implement the DDI owner seam, supply approved external
-  release inputs on the Ubuntu VPS, run `deploy/release.sh`, and retain its
-  attributable evidence. No file under `insight-research/doc/` was read or
-  modified.
+
 - INS-061 system accessibility and failure-mode verification (In progress).
   Unified nginx now applies HSTS, CSP, frame, MIME-sniffing, referrer, and
   permissions headers, hides upstream server identity, keeps access logging

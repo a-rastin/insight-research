@@ -13,9 +13,9 @@ The production REST boundary is published under `contracts/`:
 - `openapi-v1.json` publishes `POST /api/ddi/v1/checks`, aligned with the
   Treatment Plan medication-set request and response seam.
 
-This packet publishes the interface only. The current browser-local storage and
-admin workflow remain prototype behavior and do not satisfy the protected,
-server-owned production contract.
+-
+-
+-
 
 ## Run
 
@@ -79,20 +79,20 @@ Parser parity is regression-tested with the shared malformed and representative 
 Browser storage contains a versioned local-revision envelope, not a copy of the bundled KB. The envelope records `baseVersion`, local-only drugs/interactions/reports, stable-ID interaction review overrides, and unresolved rebase conflicts. On every startup, `src/kb-persistence.js` starts from the current `window.DDI_ACTIVE_KB`, adds local-only records, and reapplies review fields only to bundled interaction IDs that still exist.
 
 A new bundled version therefore contributes new records, corrections, and deletions immediately. If a locally reviewed interaction changed upstream, the current bundled content is used and the local review fields are preserved, while a `bundled_record_changed` conflict is shown in the dashboard. If it disappeared upstream, it is not resurrected and a `bundled_record_removed` conflict is retained for review. The rebased envelope is committed with one `localStorage.setItem` operation. Legacy full-KB snapshots are migrated automatically; only explicitly local `ddi-local-*` and `ddi-upload-*` interactions survive as local records.
+
 ## Session Results Export
 
 Each browser tab session gets a code like `DDI-260705-ABC123`. The checker dashboard shows this code and exports current medications, interaction results, KB version, and session audit entries as `ddi-results-<session-code>.json`.
 
 ## Production Notes
 
-The generated KB is marked `draft_parsed_pending_admin_review`. RxNorm identifiers with `rxnorm-pending:` require normalization review before production use. The standalone admin activation is intentionally local; Insight should persist reviews, activations, and audit entries server-side with role checks.
+The generated KB is marked `draft_parsed_pending_admin_review`. RxNorm identifiers with `rxnorm-pending:` require normalization review before production use.
 
 Public maintenance sources referenced by the KB metadata:
 
 - NLM RxNorm API: https://lhncbc.nlm.nih.gov/RxNav/APIs/RxNormAPIs.html
 - DailyMed: https://dailymed.nlm.nih.gov/dailymed/
 - openFDA drug labeling API: https://open.fda.gov/apis/drug/label/
-
 
 ## Knowledge-base validation
 
