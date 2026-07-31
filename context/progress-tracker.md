@@ -8,6 +8,8 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-051: Connect React review UI to authenticated backend routes (In
+  progress).
 - INS-050: Implement recommendation-run create and status routes (In progress).
 - INS-049: Implement Treatment Plan contract and schema discovery routes (In
   progress).
@@ -310,6 +312,32 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-051 Treatment Plan authenticated review UI connection (In progress).
+  The React workspace copied into the mirrored Treatment Plan module now
+  replaces all synthetic plan, finding, rationale, alternative, and provenance
+  content with credentialed gateway-relative reads of
+  `GET /api/treatment-plan/v1/plans/{plan_id}` and its `/provenance` route. The
+  host supplies the Plan UUID and CSRF token without URL or browser-storage
+  persistence. Content-shaped loading, retryable read errors, unavailable
+  finalization provenance, missing ETag, and missing CSRF context are explicit;
+  the plan remains reviewable when optional provenance fails, while editing
+  fails closed. The UI validates and maps the server plan, keeps the immutable
+  recommendation visible beside psychiatrist changes, displays plan and source
+  provenance, never invents omitted alternatives, and submits canonical JSON
+  Pointer edits to the draft route. Sequential writes carry the newest strong
+  ETag in each `If-Match`, include cookie credentials and `X-CSRF-Token`, retain
+  failed edits, and expose server rejection without presenting the edit as
+  saved. Focused frontend API and screen tests passed 4/4 with `npm test`;
+  `npm run typecheck` and `npm run build` passed. The full Treatment Plan suite
+  passed 70/70 with `python3 -B -m unittest discover -s tests -v`; common REST
+  checks passed 8/8; root discovery passed 70/70; and `git diff --check` passed.
+  Generated `node_modules/` and `dist/` were removed after verification. No file
+  under `insight-research/doc/`, protected source/module file, runtime data, or
+  generated `graphify-out/` was read or modified. A configured host/gateway
+  must still inject a live Plan UUID and CSRF token and serve the built frontend;
+  no such integrated browser harness exists in this repository, so a real
+  authenticated gateway browser run is the next step and INS-051 remains in
+  progress.
 - INS-050 recommendation-run create and status routes (In progress). The
   canonical OpenAPI and runtime schema now publish authenticated, psychiatrist-
   only `POST /api/treatment-plan/v1/recommendation-runs` and actor-scoped
