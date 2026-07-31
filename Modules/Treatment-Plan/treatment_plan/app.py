@@ -272,6 +272,14 @@ def create_app(
             raise HTTPException(404, str(exc)) from exc
         return JSONResponse(view.to_dict(), headers={"ETag": view.etag, "X-Schema-Version": "1.1.0"})
 
+    @app.get("/api/treatment-plan/v1/patients/{patient_id}/plans")
+    def read_patient_plans(patient_id: UUID, request: Request):
+        authorized_session(request, Capability.PLAN_READ)
+        return JSONResponse(
+            {"patientId": str(patient_id), "items": plan_ledger.list_for_patient(str(patient_id))},
+            headers={"X-Schema-Version": "1.1.0"},
+        )
+
     @app.post("/api/treatment-plan/v1/assistant/advisory")
     def assistant_advisory(body: dict[str, Any], request: Request):
         authorized_session(request, Capability.PLAN_READ)

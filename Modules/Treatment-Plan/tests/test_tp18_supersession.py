@@ -403,6 +403,32 @@ class TP53SupersessionRouteTests(unittest.TestCase):
         self.assertEqual(1, len(provider.calls))
         self.assertEqual(before, ledger.get_finalization(PRIOR_PRIMARY_ID))
 
+    def test_patient_plan_history_retrieves_final_and_supersession_state(self):
+        ledger = finalized_ledger(InMemoryPlanEditStore())
+        session = Session(
+            "00000000-0000-4000-8000-000000000071",
+            frozenset({"psychiatrist"}),
+            datetime(2026, 7, 15, 19, 0, tzinfo=timezone.utc),
+            "csrf-secret",
+            session_id="00000000-0000-4000-8000-000000000072",
+        )
+        app = create_app(
+            Settings(environment="test"),
+            InMemoryRepository(),
+            Security(InMemoryAuthenticationAdapter({"session=opaque": session}), now=lambda: NOW),
+            plan_ledger=ledger,
+        )
+        with TestClient(app) as client:
+            response = client.get(
+                f"/api/treatment-plan/v1/patients/{PATIENT_ID}/plans",
+                headers={"Cookie": "session=opaque"},
+            )
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(PATIENT_ID, response.json()["patientId"])
+        self.assertEqual(PRIOR_FINAL_ID, response.json()["items"][0]["finalPlan"]["planId"])
+        self.assertIsNone(response.json()["items"][0]["supersession"])
+        self.assertEqual("1.1.0", response.headers["X-Schema-Version"])
+
 
 if __name__ == "__main__":
     unittest.main()

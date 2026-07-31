@@ -265,6 +265,47 @@ class PatientEncounterV2ContractTest(unittest.TestCase):
             self.assertEqual(stale[0], 412)
             self.assertEqual(stale[1]["code"], "COMMON_PRECONDITION_FAILED")
 
+    def test_follow_up_create_history_and_idempotent_replay(self) -> None:
+        with AddNewPatientServer() as base:
+            created = request_v2(
+                base,
+                f"{V2}/patients",
+                "POST",
+                create_headers(base),
+                valid_v2_payload(),
+            )[1]
+            patient_id = created["patient"]["patientId"]
+            prior_encounter_id = created["encounter"]["encounterId"]
+            patient = request_v2(base, f"{V2}/patients/{patient_id}", headers=PSY_HEADER)
+            payload = {
+                "priorEncounterId": prior_encounter_id,
+                "occurredAt": "2026-07-30T10:00:00Z",
+                "priorFinalPlanId": str(uuid4()),
+                "changes": [{
+                    "domain": "severity",
+                    "summary": "Synthetic severity changed.",
+                    "sourceResourceId": str(uuid4()),
+                }],
+            }
+            headers = {
+                **csrf_headers(base, PSY_HEADER),
+                "x-schema-version": "2.0.0",
+                "idempotency-key": "follow-up-create-0001",
+                "if-match": patient[2]["etag"],
+            }
+            first = request_v2(base, f"{V2}/patients/{patient_id}/follow-ups", "POST", headers, payload)
+            replay = request_v2(base, f"{V2}/patients/{patient_id}/follow-ups", "POST", headers, payload)
+            self.assertEqual(first[0], 201)
+            self.assertEqual(first[1], replay[1])
+            self.assertEqual(replay[2]["idempotency-replayed"], "true")
+            self.validate_definition("createFollowUpResponse", first[1])
+            self.assertEqual(first[1]["encounter"]["encounterType"], "follow-up")
+            history = request_v2(base, f"{V2}/patients/{patient_id}/history", headers=PSY_HEADER)
+            self.assertEqual(history[0], 200)
+            self.validate_definition("patientHistoryResponse", history[1])
+            self.assertEqual([item["encounter"]["encounterType"] for item in history[1]["items"]], ["follow-up", "initial"])
+            self.assertTrue(history[2]["etag"].startswith('"'))
+
     def test_list_and_search_pagination(self) -> None:
         with AddNewPatientServer() as base:
             for index in range(3):
@@ -500,7 +541,7 @@ class PatientEncounterV2MigrationTest(unittest.TestCase):
             self.assertEqual(encounter["occurred_at"], "2026-07-01T10:00:00Z")
             with sqlite3.connect(db_path) as conn:
                 migrations = conn.execute("SELECT version, name FROM schema_migrations ORDER BY version").fetchall()
-            self.assertEqual(migrations, [(1, "patient-intake-v1"), (2, "patient-encounter-v2")])
+            self.assertEqual(migrations, [(1, "patient-intake-v1"), (2, "patient-encounter-v2"), (3, "follow-up-delta-v1")])
 
     def test_fresh_database_applies_ordered_migrations(self) -> None:
         from add_new_patient_backend.db import LATEST_SCHEMA_VERSION, SQLiteAdapter

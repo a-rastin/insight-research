@@ -150,6 +150,56 @@
           <p class="status-message" id="statusMessage" role="status" aria-live="polite"></p>
         </form>
       </section>
+
+      <section class="patient-view follow-up-view" id="followUpView" aria-labelledby="followUpTitle" hidden>
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Longitudinal care</p>
+            <h1 id="followUpTitle">Patient Follow-up</h1>
+          </div>
+          <a class="secondary-action button-link" href="/dashboard/">Back to Dashboard</a>
+        </header>
+
+        <section class="form-section" aria-labelledby="findPatientTitle">
+          <h2 id="findPatientTitle">1. Find patient</h2>
+          <form id="followUpSearchForm" class="inline-form">
+            <label class="field">
+              <span>Name or patient code</span>
+              <input id="followUpSearch" name="query" maxlength="80" required autocomplete="off">
+            </label>
+            <button class="primary-action" type="submit">Search</button>
+          </form>
+          <p id="followUpSearchStatus" class="status-message" role="status" aria-live="polite"></p>
+          <div id="followUpResults" class="result-list" aria-label="Patient search results"></div>
+        </section>
+
+        <section id="followUpWorkspace" hidden>
+          <section class="form-section" aria-labelledby="historyTitle">
+            <h2 id="historyTitle">2. Review longitudinal history</h2>
+            <p id="selectedPatient" class="selected-patient"></p>
+            <div class="history-grid">
+              <div><h3>Encounters</h3><div id="encounterHistory" class="history-list"></div></div>
+              <div><h3>Treatment Plans</h3><div id="planHistory" class="history-list"></div></div>
+            </div>
+          </section>
+
+          <form id="followUpForm" class="patient-form" novalidate>
+            <section class="form-section" aria-labelledby="deltaTitle">
+              <h2 id="deltaTitle">3. Capture Follow-up Delta</h2>
+              <div class="field-grid">
+                <label class="field"><span>Prior Encounter</span><select name="priorEncounterId" required></select></label>
+                <label class="field"><span>Prior Final Treatment Plan</span><select name="priorFinalPlanId" required></select></label>
+                <label class="field"><span>Follow-up date and time</span><input name="occurredAt" type="datetime-local" required></label>
+                <label class="field"><span>Changed domain</span><select name="domain" required><option value="diagnosis">Diagnosis</option><option value="severity">Severity</option><option value="medical-history">Medical history</option><option value="medication">Medication</option><option value="encounter">Encounter</option></select></label>
+                <label class="field wide-field"><span>Change summary</span><textarea name="summary" maxlength="500" required></textarea></label>
+                <label class="field wide-field"><span>Source resource ID</span><input name="sourceResourceId" maxlength="128" required></label>
+              </div>
+            </section>
+            <div class="form-actions"><button class="primary-action" type="submit">Create Follow-up Encounter</button></div>
+            <p id="followUpStatus" class="status-message" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+      </section>
     </main>
 
     <script src="./app.js" type="module"></script>

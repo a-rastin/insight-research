@@ -282,9 +282,10 @@ class DashboardBackendTest(unittest.TestCase):
             )
             self.assertEqual(
                 [button["state"] for button in workspace["workspace"]["buttons"]],
-                ["available", "unavailable", "unavailable", "unavailable"] + ["unauthorized"] * 4,
+                ["available", "available", "unavailable", "unavailable"] + ["unauthorized"] * 4,
             )
-            self.assertTrue(all("href" not in button for button in workspace["workspace"]["buttons"][1:]))
+            self.assertEqual(workspace["workspace"]["buttons"][1]["href"], "/modules/patient-follow-up")
+            self.assertTrue(all("href" not in button for button in workspace["workspace"]["buttons"][2:]))
             self.assertNotIn("cards", workspace["workspace"])
             self.assertNotIn("patients", workspace)
             self.assertNotIn("drafts", workspace)
@@ -297,6 +298,9 @@ class DashboardBackendTest(unittest.TestCase):
             self.assertEqual(route["href"], "/modules/add-new-patient")
             self.assertEqual(route["state"], "available")
             self.assertNotIn("placeholder", route)
+            status, route = request_json(base, "/internal/dashboard/module-routes/patient-follow-up", headers={"x-dashboard-session": created["sessionId"]})
+            self.assertEqual(status, 200)
+            self.assertEqual(route["href"], "/modules/patient-follow-up")
 
     def test_admin_workspace_model_has_unavailable_and_unauthorized_destinations(self) -> None:
         with DashboardServer() as base:

@@ -137,6 +137,27 @@
         "version": {"type": "integer", "minimum": 0}
       }
     },
+    "PatientPlanHistory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["patientId", "items"],
+      "properties": {
+        "patientId": {"$ref": "#/$defs/Uuid"},
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["planView", "finalPlan", "supersession"],
+            "properties": {
+              "planView": {"$ref": "#/$defs/PlanView"},
+              "finalPlan": {"oneOf": [{"$ref": "#/$defs/FinalPlan"}, {"type": "null"}]},
+              "supersession": {"oneOf": [{"$ref": "#/$defs/SupersessionRecord"}, {"type": "null"}]}
+            }
+          }
+        }
+      }
+    },
     "SupersessionSectionComparison": {
       "type": "object",
       "additionalProperties": false,

@@ -161,6 +161,7 @@ class PlanEditStore(Protocol):
         record: Mapping[str, Any],
     ) -> None: ...
     def read_supersession(self, prior_plan_id: str) -> dict[str, Any] | None: ...
+    def list_plan_ids_by_patient(self, patient_id: str) -> tuple[str, ...]: ...
 
 
 class InMemoryPlanEditStore:
@@ -234,6 +235,14 @@ class InMemoryPlanEditStore:
         with self._lock:
             value = self._supersessions.get(prior_plan_id)
             return _json_copy(value) if value is not None else None
+
+    def list_plan_ids_by_patient(self, patient_id: str) -> tuple[str, ...]:
+        with self._lock:
+            return tuple(
+                plan_id
+                for plan_id, plan in self._plans.items()
+                if plan.get("patientId") == patient_id
+            )
 
 
 @dataclass(frozen=True)
@@ -402,6 +411,26 @@ class PlanEditLedger:
             raise PlanNotFound(f"plan {prior_plan_id!r} was not found")
         value = self._store.read_supersession(prior_plan_id)
         return _json_copy(value) if value is not None else None
+
+    def list_for_patient(self, patient_id: str) -> list[dict[str, Any]]:
+        items = []
+        for plan_id in self._store.list_plan_ids_by_patient(patient_id):
+            view = self.get(plan_id)
+            finalization = self.get_finalization(plan_id)
+            items.append({
+                "planView": view.to_dict(),
+                "finalPlan": _json_copy(finalization["finalPlan"]) if finalization else None,
+                "supersession": self.get_supersession(plan_id),
+            })
+        return sorted(
+            items,
+            key=lambda item: str(
+                item["planView"]["primaryPlan"].get("createdAt")
+                or (item["finalPlan"] or {}).get("finalizedAt")
+                or ""
+            ),
+            reverse=True,
+        )
 
     def _category(
         self,

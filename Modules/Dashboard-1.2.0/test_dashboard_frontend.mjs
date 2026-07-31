@@ -9,7 +9,7 @@ function workspaceModel(role) {
       title: "Workspace",
       buttons: [
         { id: "add-new-patient", title: "Add New Patient", state: psychiatrist ? "available" : "unauthorized", reason: psychiatrist ? "Destination available." : "Not authorized for current role.", ...(psychiatrist ? { href: "/modules/add-new-patient" } : {}) },
-        { id: "patient-follow-up", title: "Patient Follow-up", state: psychiatrist ? "unavailable" : "unauthorized", reason: psychiatrist ? "Destination is not available in this release." : "Not authorized for current role." },
+        { id: "patient-follow-up", title: "Patient Follow-up", state: psychiatrist ? "available" : "unauthorized", reason: psychiatrist ? "Destination available." : "Not authorized for current role.", ...(psychiatrist ? { href: "/modules/patient-follow-up" } : {}) },
         { id: "list-of-patients", title: "List of Patients", state: psychiatrist ? "unavailable" : "unauthorized", reason: psychiatrist ? "Destination is not available in this release." : "Not authorized for current role." },
         { id: "setting", title: "Setting", state: psychiatrist ? "unavailable" : "unauthorized", reason: psychiatrist ? "Destination is not available in this release." : "Not authorized for current role." },
         { id: "add-new-user", title: "Add New User", state: psychiatrist ? "unauthorized" : "unavailable", reason: psychiatrist ? "Not authorized for current role." : "Destination is not available in this release." },

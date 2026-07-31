@@ -264,6 +264,42 @@ class PatientCodeResolveV2(V2Model):
     _code = field_validator("patientCode")(PatientDemographics.normalize_code.__func__)
 
 
+class FollowUpChangeV1(V2Model):
+    domain: Literal["diagnosis", "severity", "medical-history", "medication", "encounter"]
+    summary: str = Field(min_length=1, max_length=500)
+    sourceResourceId: str = Field(min_length=1, max_length=128)
+
+    @field_validator("summary", "sourceResourceId")
+    @classmethod
+    def trim_follow_up_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Follow-up change fields cannot be blank.")
+        return value
+
+
+class FollowUpCreateV1(V2Model):
+    priorEncounterId: str
+    occurredAt: str
+    priorFinalPlanId: str
+    changes: list[FollowUpChangeV1] = Field(min_length=1, max_length=50)
+
+    _occurred_at = field_validator("occurredAt")(normalize_utc_timestamp)
+
+    @field_validator("priorEncounterId", "priorFinalPlanId")
+    @classmethod
+    def canonical_uuid(cls, value: str) -> str:
+        from uuid import UUID
+
+        try:
+            canonical = str(UUID(value))
+        except ValueError as error:
+            raise ValueError("Identifier must be a canonical UUID.") from error
+        if canonical != value:
+            raise ValueError("Identifier must be a canonical UUID.")
+        return canonical
+
+
 def generate_patient_code() -> str:
     import secrets
 

@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS idempotency_records (
   created_at TEXT NOT NULL,
   PRIMARY KEY (actor_id, operation, idempotency_key)
 );
+
 """
 
 MIGRATION_TABLE_SQL = """
@@ -90,7 +91,7 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
   applied_at TEXT NOT NULL
 )
 """
-LATEST_SCHEMA_VERSION = 2
+LATEST_SCHEMA_VERSION = 3
 
 PATIENT_IDENTITY_COLUMNS = {
     "id",
@@ -200,6 +201,9 @@ class SQLiteAdapter:
                 execute_sql_script(conn, SCHEMA)
                 migrate_v2_contracts(conn)
                 record_migration(conn, 2, "patient-encounter-v2")
+            if 3 not in applied:
+                execute_sql_script(conn, FOLLOW_UP_DELTA_TABLE_SQL)
+                record_migration(conn, 3, "follow-up-delta-v1")
             conn.commit()
         except Exception:
             conn.rollback()
@@ -215,6 +219,22 @@ class SQLiteAdapter:
 
 def now_iso() -> str:
     return datetime.now(UTC).isoformat().replace("+00:00", "Z")
+
+
+FOLLOW_UP_DELTA_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS follow_up_deltas (
+  delta_id TEXT PRIMARY KEY,
+  patient_id TEXT NOT NULL REFERENCES patients(id),
+  prior_encounter_id TEXT NOT NULL REFERENCES encounters(encounter_id),
+  encounter_id TEXT NOT NULL UNIQUE REFERENCES encounters(encounter_id),
+  prior_final_plan_id TEXT NOT NULL,
+  changes_json TEXT NOT NULL,
+  schema_version TEXT NOT NULL DEFAULT '1.0.0',
+  resource_version INTEGER NOT NULL DEFAULT 1,
+  created_by_user_id TEXT NOT NULL,
+  recorded_at TEXT NOT NULL
+)
+"""
 
 
 def execute_sql_script(conn: sqlite3.Connection, script: str) -> None:

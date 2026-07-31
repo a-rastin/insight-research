@@ -21,7 +21,7 @@ app = FastAPI(title="Dashboard Backend")
 
 DESTINATIONS = [
     {"id": "add-new-patient", "title": "Add New Patient", "role": "PSYCHIATRIST", "href": "/modules/add-new-patient"},
-    {"id": "patient-follow-up", "title": "Patient Follow-up", "role": "PSYCHIATRIST"},
+    {"id": "patient-follow-up", "title": "Patient Follow-up", "role": "PSYCHIATRIST", "href": "/modules/patient-follow-up"},
     {"id": "list-of-patients", "title": "List of Patients", "role": "PSYCHIATRIST"},
     {"id": "setting", "title": "Setting", "role": "PSYCHIATRIST"},
     {"id": "add-new-user", "title": "Add New User", "role": "ADMIN"},

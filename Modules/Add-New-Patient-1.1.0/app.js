@@ -55,6 +55,16 @@ async function readJsonResponse(response) {
   }
 }
 
+function escapeHtml(value = "") {
+  return String(value).replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[character]);
+}
+
 // ponytail: client-side validation kept minimal — server is contract source. Duplicate rules risk drift.
 function validatePatientPayload(patient) {
   const errors = {};
@@ -156,6 +166,18 @@ function createAddNewPatientModule({ root = document, apiBaseUrl = window.ADD_NE
   const patientCode = getRequiredElement(root, "#patientCode");
   const regenerateCodeButton = getRequiredElement(root, "#regenerateCodeButton");
   const statusMessage = getRequiredElement(root, "#statusMessage");
+  const followUpView = getRequiredElement(root, "#followUpView");
+  const followUpSearchForm = getRequiredElement(root, "#followUpSearchForm");
+  const followUpSearchStatus = getRequiredElement(root, "#followUpSearchStatus");
+  const followUpResults = getRequiredElement(root, "#followUpResults");
+  const followUpWorkspace = getRequiredElement(root, "#followUpWorkspace");
+  const selectedPatient = getRequiredElement(root, "#selectedPatient");
+  const encounterHistory = getRequiredElement(root, "#encounterHistory");
+  const planHistory = getRequiredElement(root, "#planHistory");
+  const followUpForm = getRequiredElement(root, "#followUpForm");
+  const followUpStatus = getRequiredElement(root, "#followUpStatus");
+  let followUpSelection = null;
+  let followUpIdempotencyKey = null;
 
   function setStatus(message, tone = "") {
     statusMessage.textContent = message;
@@ -269,6 +291,167 @@ function createAddNewPatientModule({ root = document, apiBaseUrl = window.ADD_NE
     return result.csrfToken;
   }
 
+  async function apiJson(path, options = {}) {
+    const response = await fetch(`${normalizedApiBaseUrl}${path}`, {
+      credentials: "include",
+      ...options,
+      headers: { "Content-Type": "application/json", ...(options.headers || {}) }
+    });
+    const result = await readJsonResponse(response);
+    if (!response.ok) {
+      throw new Error(result.title || result.detail || result.message || "Request failed.");
+    }
+    return { result, response };
+  }
+
+  async function searchFollowUpPatients(event) {
+    event.preventDefault();
+    const query = String(new FormData(followUpSearchForm).get("query") || "").trim();
+    if (!query) return;
+    followUpSearchStatus.textContent = "Searching patients...";
+    followUpResults.replaceChildren();
+    followUpWorkspace.hidden = true;
+    try {
+      const { result } = await apiJson("/api/add-new-patient/v2/patients/search", {
+        method: "POST",
+        headers: { "X-Schema-Version": "2.0.0" },
+        body: JSON.stringify({ query, pageSize: 50 })
+      });
+      if (!result.items.length) {
+        followUpSearchStatus.textContent = "No matching patients found.";
+        return;
+      }
+      followUpSearchStatus.textContent = `${result.items.length} patient result${result.items.length === 1 ? "" : "s"}.`;
+      followUpResults.innerHTML = result.items.map(({ patient, patientCodeAlias }) => `
+        <button class="result-item" type="button" data-patient-id="${escapeHtml(patient.patientId)}">
+          <strong>${escapeHtml(patient.lastName)}, ${escapeHtml(patient.firstName)}</strong>
+          <span>Patient code ${escapeHtml(patientCodeAlias.patientCode)}</span>
+        </button>
+      `).join("");
+      followUpResults.querySelectorAll("[data-patient-id]").forEach((button) => {
+        button.addEventListener("click", () => loadFollowUpPatient(button.dataset.patientId));
+      });
+    } catch (error) {
+      followUpSearchStatus.textContent = `Patient search failed: ${error.message}`;
+    }
+  }
+
+  function renderEncounterHistory(items) {
+    encounterHistory.innerHTML = items.length ? items.map(({ encounter, followUpDelta }) => `
+      <div class="history-item">
+        <strong>${encounter.encounterType === "follow-up" ? "Follow-up" : "Initial"} Encounter</strong>
+        <span>${escapeHtml(new Date(encounter.occurredAt).toLocaleString())}</span>
+        <span>${followUpDelta ? `${followUpDelta.changes.length} recorded change(s)` : "Initial intake"}</span>
+      </div>
+    `).join("") : '<p class="status-message">No Encounter history available.</p>';
+  }
+
+  function renderPlanHistory(items) {
+    planHistory.innerHTML = items.length ? items.map(({ planView, finalPlan, supersession }) => `
+      <div class="history-item">
+        <strong>${finalPlan ? "Final Treatment Plan" : "Primary Treatment Plan"}</strong>
+        <span>${escapeHtml(finalPlan ? finalPlan.finalizedAt : planView.primaryPlan.createdAt || "Date unavailable")}</span>
+        <span>${supersession ? "Superseded by a later plan" : finalPlan ? "Immutable final plan" : "Review in progress"}</span>
+      </div>
+    `).join("") : '<p class="status-message">No Treatment Plans available.</p>';
+  }
+
+  async function loadFollowUpPatient(patientId) {
+    followUpSearchStatus.textContent = "Loading patient history and Treatment Plans...";
+    followUpWorkspace.hidden = true;
+    const patientRequest = apiJson(`/api/add-new-patient/v2/patients/${encodeURIComponent(patientId)}`);
+    const historyRequest = apiJson(`/api/add-new-patient/v2/patients/${encodeURIComponent(patientId)}/history`);
+    const planRequest = apiJson(`/api/treatment-plan/v1/patients/${encodeURIComponent(patientId)}/plans`);
+    const [patientResult, historyResult, planResult] = await Promise.allSettled([
+      patientRequest, historyRequest, planRequest
+    ]);
+    if (patientResult.status === "rejected") {
+      followUpSearchStatus.textContent = `Patient load failed: ${patientResult.reason.message}`;
+      return;
+    }
+    const patient = patientResult.value.result;
+    const history = historyResult.status === "fulfilled" ? historyResult.value.result.items : [];
+    const plans = planResult.status === "fulfilled" ? planResult.value.result.items : [];
+    const finalPlans = plans.map((item) => item.finalPlan).filter(Boolean);
+    followUpSelection = {
+      patient,
+      patientEtag: patientResult.value.response.headers.get("ETag"),
+      history,
+      finalPlans
+    };
+    followUpIdempotencyKey = null;
+    selectedPatient.textContent = `${patient.lastName}, ${patient.firstName}`;
+    renderEncounterHistory(history);
+    renderPlanHistory(plans);
+    const encounterSelect = followUpForm.elements.priorEncounterId;
+    encounterSelect.innerHTML = history.map(({ encounter }) => `
+      <option value="${escapeHtml(encounter.encounterId)}">${encounter.encounterType} - ${escapeHtml(new Date(encounter.occurredAt).toLocaleString())}</option>
+    `).join("");
+    const planSelect = followUpForm.elements.priorFinalPlanId;
+    planSelect.innerHTML = finalPlans.map((plan) => `
+      <option value="${escapeHtml(plan.planId)}" data-encounter-id="${escapeHtml(plan.encounterId)}">Finalized ${escapeHtml(new Date(plan.finalizedAt).toLocaleString())}</option>
+    `).join("");
+    if (finalPlans[0]) encounterSelect.value = finalPlans[0].encounterId;
+    followUpWorkspace.hidden = false;
+    const failures = [];
+    if (historyResult.status === "rejected") failures.push(`Encounter history failed: ${historyResult.reason.message}`);
+    if (planResult.status === "rejected") failures.push(`Treatment Plan retrieval failed: ${planResult.reason.message}`);
+    if (!finalPlans.length && !failures.length) failures.push("A prior Final Treatment Plan is required before follow-up capture.");
+    followUpSearchStatus.textContent = failures.join(" ") || "Patient history loaded.";
+    followUpForm.querySelector('button[type="submit"]').disabled = Boolean(failures.length || !followUpSelection.patientEtag);
+  }
+
+  function syncPriorEncounter() {
+    const option = followUpForm.elements.priorFinalPlanId.selectedOptions[0];
+    if (option?.dataset.encounterId) followUpForm.elements.priorEncounterId.value = option.dataset.encounterId;
+  }
+
+  async function submitFollowUp(event) {
+    event.preventDefault();
+    if (!followUpSelection?.patientEtag) return;
+    const data = new FormData(followUpForm);
+    const occurredAt = new Date(String(data.get("occurredAt")));
+    if (Number.isNaN(occurredAt.getTime())) {
+      followUpStatus.textContent = "Enter a valid follow-up date and time.";
+      return;
+    }
+    const payload = {
+      priorEncounterId: data.get("priorEncounterId"),
+      priorFinalPlanId: data.get("priorFinalPlanId"),
+      occurredAt: occurredAt.toISOString(),
+      changes: [{
+        domain: data.get("domain"),
+        summary: String(data.get("summary") || "").trim(),
+        sourceResourceId: String(data.get("sourceResourceId") || "").trim()
+      }]
+    };
+    followUpStatus.textContent = "Creating Follow-up Encounter...";
+    followUpIdempotencyKey ||= `follow-up-${crypto.randomUUID()}`;
+    try {
+      const csrfToken = await getCsrfToken();
+      const { result } = await apiJson(
+        `/api/add-new-patient/v2/patients/${encodeURIComponent(followUpSelection.patient.patientId)}/follow-ups`,
+        {
+          method: "POST",
+          headers: {
+            "X-CSRF-Token": csrfToken,
+            "X-Schema-Version": "2.0.0",
+            "Idempotency-Key": followUpIdempotencyKey,
+            "If-Match": followUpSelection.patientEtag
+          },
+          body: JSON.stringify(payload)
+        }
+      );
+      followUpIdempotencyKey = null;
+      followUpStatus.textContent = "Follow-up Encounter and Delta saved. Treatment Plan history remains unchanged until a successor is generated.";
+      followUpSelection.history.unshift({ encounter: result.encounter, followUpDelta: result.followUpDelta });
+      renderEncounterHistory(followUpSelection.history);
+      followUpForm.querySelector('button[type="submit"]').disabled = true;
+    } catch (error) {
+      followUpStatus.textContent = `Follow-up was not saved: ${error.message}`;
+    }
+  }
+
   async function savePatient(payload) {
     const csrfToken = await getCsrfToken();
     const response = await fetch(`${normalizedApiBaseUrl}/api/patients`, {
@@ -359,6 +542,15 @@ function createAddNewPatientModule({ root = document, apiBaseUrl = window.ADD_NE
   regenerateCodeButton.addEventListener("click", regenerateCode);
   patientForm.addEventListener("submit", submitPatient);
   patientForm.elements.phoneNumber.addEventListener("input", formatPhoneInput);
+  followUpSearchForm.addEventListener("submit", searchFollowUpPatients);
+  followUpForm.addEventListener("submit", submitFollowUp);
+  followUpForm.elements.priorFinalPlanId.addEventListener("change", syncPriorEncounter);
+
+  if (location.pathname.startsWith("/modules/patient-follow-up")) {
+    dashboardView.hidden = true;
+    patientView.hidden = true;
+    followUpView.hidden = false;
+  }
 
   return {
     activate: activateModule,
@@ -370,6 +562,9 @@ function createAddNewPatientModule({ root = document, apiBaseUrl = window.ADD_NE
       regenerateCodeButton.removeEventListener("click", regenerateCode);
       patientForm.removeEventListener("submit", submitPatient);
       patientForm.elements.phoneNumber.removeEventListener("input", formatPhoneInput);
+      followUpSearchForm.removeEventListener("submit", searchFollowUpPatients);
+      followUpForm.removeEventListener("submit", submitFollowUp);
+      followUpForm.elements.priorFinalPlanId.removeEventListener("change", syncPriorEncounter);
     }
   };
 }

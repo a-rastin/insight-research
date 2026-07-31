@@ -165,6 +165,19 @@ def intake_v2_row(row: Any) -> dict[str, Any]:
     }
 
 
+def follow_up_delta_row(row: Any) -> dict[str, Any]:
+    return {
+        "schemaVersion": row["schema_version"],
+        "deltaId": row["delta_id"],
+        "patientId": row["patient_id"],
+        "priorEncounterId": row["prior_encounter_id"],
+        "encounterId": row["encounter_id"],
+        "priorFinalPlanId": row["prior_final_plan_id"],
+        "recordedAt": row["recorded_at"],
+        "changes": json.loads(row["changes_json"]),
+    }
+
+
 def _find_patient_id_row(conn: Any, id_or_code: str) -> Any:
     return conn.execute(
         "SELECT id FROM patients WHERE id = ? OR patient_code = ?",
@@ -351,6 +364,124 @@ class PatientRepository:
                 (encounter_id,),
             ).fetchone()
         return intake_v2_row(row) if row else None
+
+    def list_history_v2(self, patient_id: str) -> list[dict[str, Any]] | None:
+        with self.adapter.connect() as conn:
+            if not conn.execute("SELECT 1 FROM patients WHERE id = ?", (patient_id,)).fetchone():
+                return None
+            rows = conn.execute(
+                """
+                SELECT e.*, d.delta_id, d.prior_encounter_id, d.prior_final_plan_id,
+                       d.changes_json, d.recorded_at, d.schema_version AS delta_schema_version
+                FROM encounters e
+                LEFT JOIN follow_up_deltas d ON d.encounter_id = e.encounter_id
+                WHERE e.patient_id = ?
+                ORDER BY e.occurred_at DESC, e.created_at DESC
+                """,
+                (patient_id,),
+            ).fetchall()
+        history = []
+        for row in rows:
+            item: dict[str, Any] = {"encounter": encounter_v2_row(row), "followUpDelta": None}
+            if row["delta_id"]:
+                item["followUpDelta"] = {
+                    "schemaVersion": row["delta_schema_version"],
+                    "deltaId": row["delta_id"],
+                    "patientId": row["patient_id"],
+                    "priorEncounterId": row["prior_encounter_id"],
+                    "encounterId": row["encounter_id"],
+                    "priorFinalPlanId": row["prior_final_plan_id"],
+                    "recordedAt": row["recorded_at"],
+                    "changes": json.loads(row["changes_json"]),
+                }
+            history.append(item)
+        return history
+
+    def create_follow_up_v1(
+        self,
+        patient_id: str,
+        data: dict[str, Any],
+        actor_id: str,
+        idempotency_key: str,
+        request_fingerprint: str,
+        expected_patient_version: int,
+    ) -> tuple[dict[str, Any], bool]:
+        operation = f"create-follow-up-v1:{patient_id}"
+        with self.adapter.connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
+            now = now_iso()
+            retention_cutoff = (datetime.now(UTC) - timedelta(days=1)).isoformat().replace("+00:00", "Z")
+            conn.execute("DELETE FROM idempotency_records WHERE created_at < ?", (retention_cutoff,))
+            previous = conn.execute(
+                "SELECT request_fingerprint, response_body FROM idempotency_records "
+                "WHERE actor_id = ? AND operation = ? AND idempotency_key = ?",
+                (actor_id, operation, idempotency_key),
+            ).fetchone()
+            if previous:
+                if previous["request_fingerprint"] != request_fingerprint:
+                    raise IdempotencyConflictError("Idempotency key was reused with a different request")
+                return json.loads(previous["response_body"]), True
+            patient = conn.execute(
+                "SELECT resource_version FROM patients WHERE id = ?", (patient_id,)
+            ).fetchone()
+            if not patient:
+                raise KeyError("patient")
+            if patient["resource_version"] != expected_patient_version:
+                raise StaleResourceError("Patient resource version is stale")
+            prior = conn.execute(
+                "SELECT * FROM encounters WHERE encounter_id = ? AND patient_id = ?",
+                (data["priorEncounterId"], patient_id),
+            ).fetchone()
+            if not prior:
+                raise KeyError("priorEncounter")
+            if data["occurredAt"] <= prior["occurred_at"]:
+                raise ValueError("Follow-up Encounter must occur after the prior Encounter")
+            encounter_id = str(uuid4())
+            delta_id = str(uuid4())
+            conn.execute(
+                """
+                INSERT INTO encounters
+                  (encounter_id, patient_id, encounter_type, occurred_at, schema_version,
+                   resource_version, created_by_user_id, created_at, updated_at)
+                VALUES (?, ?, 'follow-up', ?, ?, 1, ?, ?, ?)
+                """,
+                (encounter_id, patient_id, data["occurredAt"], SCHEMA_VERSION_V2, actor_id, now, now),
+            )
+            conn.execute(
+                """
+                INSERT INTO follow_up_deltas
+                  (delta_id, patient_id, prior_encounter_id, encounter_id, prior_final_plan_id,
+                   changes_json, created_by_user_id, recorded_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    delta_id,
+                    patient_id,
+                    data["priorEncounterId"],
+                    encounter_id,
+                    data["priorFinalPlanId"],
+                    json.dumps(data["changes"], separators=(",", ":")),
+                    actor_id,
+                    now,
+                ),
+            )
+            encounter = conn.execute(
+                "SELECT * FROM encounters WHERE encounter_id = ?", (encounter_id,)
+            ).fetchone()
+            delta = conn.execute(
+                "SELECT * FROM follow_up_deltas WHERE delta_id = ?", (delta_id,)
+            ).fetchone()
+            body = {"encounter": encounter_v2_row(encounter), "followUpDelta": follow_up_delta_row(delta)}
+            conn.execute(
+                """
+                INSERT INTO idempotency_records
+                  (actor_id, operation, idempotency_key, request_fingerprint,
+                   response_status, response_body, created_at)
+                VALUES (?, ?, ?, ?, 201, ?, ?)
+                """,
+                (actor_id, operation, idempotency_key, request_fingerprint, json.dumps(body), now),
+            )
+            return body, False
 
     def list_patients_v2(
         self,
