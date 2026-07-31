@@ -16,6 +16,20 @@ do
   test -d "$directory" && test -w "$directory"
 done
 
+seed_registry() {
+  source="$1"
+  target="$2"
+  if [ ! -e "$target" ]; then
+    temporary="${target}.seed"
+    rm -rf "$temporary"
+    cp -R "$source" "$temporary"
+    mv "$temporary" "$target"
+  fi
+}
+
+seed_registry /opt/insight/Modules/DDI-Checker-1.2.0/data /var/lib/insight/ddi-checker/registry
+seed_registry /opt/insight/Modules/BN-Manager-v.1.1.0/BN-Manager-v.1.1.0/bn_manager_backend/model_registry /var/lib/insight/bn-manager/registry
+
 export TP_DATABASE_PATH="${TP_DATABASE_PATH:-/var/lib/insight/treatment-plan/treatment-plan.db}"
 export TP_AUTHENTICATION_SESSION_URL="${TP_AUTHENTICATION_SESSION_URL:-http://127.0.0.1:8101/api/auth/v2/session}"
 export TP_TRUSTED_INTERNAL_ORIGINS="${TP_TRUSTED_INTERNAL_ORIGINS:-http://127.0.0.1:8101}"

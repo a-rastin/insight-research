@@ -3,6 +3,7 @@ import { createServer } from "node:http";
 import { extname, resolve, sep } from "node:path";
 
 const root = resolve(process.env.DDI_ROOT || "/opt/insight/Modules/DDI-Checker-1.2.0");
+const registryRoot = resolve(process.env.DDI_REGISTRY_ROOT || resolve(root, "data"));
 const port = Number(process.env.PORT || 8107);
 const types = { ".css": "text/css", ".html": "text/html", ".js": "text/javascript", ".json": "application/json" };
 
@@ -23,8 +24,10 @@ const server = createServer((request, response) => {
   });
 
   const relative = pathname === "/" ? "index.html" : decodeURIComponent(pathname.slice(1));
-  const file = resolve(root, relative);
-  const allowed = file.startsWith(`${root}${sep}`) && /^(index\.html|src\/[\w.-]+\.(css|js)|data\/active-kb\.(js|json))$/.test(relative);
+  const registryFile = /^data\/active-kb\.(js|json)$/.test(relative);
+  const file = registryFile ? resolve(registryRoot, relative.slice(5)) : resolve(root, relative);
+  const base = registryFile ? registryRoot : root;
+  const allowed = file.startsWith(`${base}${sep}`) && /^(index\.html|src\/[\w.-]+\.(css|js)|data\/active-kb\.(js|json))$/.test(relative);
   if (!allowed || !existsSync(file)) return json(response, 404, { error: "not-found" });
   response.writeHead(200, { "Content-Type": types[extname(file)] || "application/octet-stream", "Cache-Control": "no-store" });
   createReadStream(file).pipe(response);

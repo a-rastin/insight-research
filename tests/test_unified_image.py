@@ -69,6 +69,19 @@ class UnifiedImageTests(unittest.TestCase):
         self.assertIn("production-rest-seam-unavailable", source)
         self.assertNotIn('json(response, 200, { status: "ready"', source)
 
+    def test_image_contains_module_backup_operations(self):
+        dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+        entrypoint = (DEPLOY / "entrypoint.sh").read_text(encoding="utf-8")
+        supervisor = (DEPLOY / "supervisord.conf").read_text(encoding="utf-8")
+        policy = json.loads((DEPLOY / "backup-policy.json").read_text(encoding="utf-8"))
+        self.assertIn("openssl", dockerfile)
+        self.assertFalse(policy["automaticDownMigration"])
+        self.assertEqual({module["id"] for module in POLICY["modules"]}, {module["id"] for module in policy["modules"]})
+        for module_id, variable in (("ddi-checker", "DDI_REGISTRY_ROOT"), ("bn-manager", "BN_REGISTRY_ROOT")):
+            module = next(item for item in policy["modules"] if item["id"] == module_id)
+            self.assertIn(module["source"], entrypoint)
+            self.assertIn(f'{variable}="{module["source"]}"', supervisor)
+
 
 if __name__ == "__main__":
     unittest.main()

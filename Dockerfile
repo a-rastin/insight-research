@@ -19,7 +19,7 @@ ENV PATH=/opt/venv/bin:/usr/local/bin:$PATH \
     PYTHONUNBUFFERED=1
 
 RUN apt-get update \
-    && apt-get install --yes --no-install-recommends nginx supervisor \
+    && apt-get install --yes --no-install-recommends nginx openssl supervisor \
     && rm -rf /var/lib/apt/lists/* \
     && python -m venv /opt/venv
 COPY --from=node /usr/local/ /usr/local/

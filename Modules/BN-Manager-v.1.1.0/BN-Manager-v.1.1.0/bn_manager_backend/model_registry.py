@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from hashlib import sha256
+import os
 from pathlib import Path
 
 
-MODEL_REGISTRY_DIR = Path(__file__).resolve().parent / "model_registry"
+MODEL_REGISTRY_DIR = Path(os.environ.get("BN_REGISTRY_ROOT", Path(__file__).resolve().parent / "model_registry"))
 XML_SCHEMA_PATH = "schemas/XSD.xml"
 
 

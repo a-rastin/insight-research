@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.0.0",
+  "manifestSchemaVersion": "1.0.0",
+  "backupFormatVersion": "1.0.0",
+  "migrationPolicy": "module-owned-forward-only-on-startup",
+  "automaticDownMigration": false,
+  "metadataRetentionDays": 30,
+  "modules": [
+    {"id":"authentication","moduleVersion":"1.1.0","dataSchemaVersion":"7","kind":"sqlite","sourceEnv":"AUTH_DB_PATH","source":"/var/lib/insight/authentication/auth.db","readinessUrl":"http://127.0.0.1:8101/readyz"},
+    {"id":"dashboard","moduleVersion":"1.2.0","dataSchemaVersion":"1.0.0","kind":"sqlite","sourceEnv":"DASHBOARD_DB_PATH","source":"/var/lib/insight/dashboard/dashboard.db","readinessUrl":"http://127.0.0.1:8102/readyz"},
+    {"id":"add-new-patient","moduleVersion":"1.1.0","dataSchemaVersion":"2","kind":"sqlite","sourceEnv":"ADD_NEW_PATIENT_DB_PATH","source":"/var/lib/insight/add-new-patient/patients.db","readinessUrl":"http://127.0.0.1:8103/readyz"},
+    {"id":"diagnosis","moduleVersion":"1.2.0","dataSchemaVersion":"2.0.0","kind":"sqlite","sourceEnv":"DIAGNOSIS_DB_PATH","source":"/var/lib/insight/diagnosis/diagnosis.db","readinessUrl":"http://127.0.0.1:8104/ready"},
+    {"id":"severity","moduleVersion":"1.1.0","dataSchemaVersion":"2.0.0","kind":"sqlite","sourceEnv":"SEVERITY_DB_PATH","source":"/var/lib/insight/severity/severity.db","readinessUrl":"http://127.0.0.1:8105/readyz"},
+    {"id":"medical-history","moduleVersion":"1.0.0","dataSchemaVersion":"2.0.0","kind":"sqlite","sourceEnv":"MEDICAL_HISTORY_DB_PATH","source":"/var/lib/insight/medical-history/medical-history.db","readinessUrl":"http://127.0.0.1:8106/readyz"},
+    {"id":"ddi-checker","moduleVersion":"1.2.0","dataSchemaVersion":"1.0.0","kind":"registry","sourceEnv":"DDI_REGISTRY_ROOT","source":"/var/lib/insight/ddi-checker/registry","readinessUrl":"http://127.0.0.1:8107/readyz"},
+    {"id":"bn-manager","moduleVersion":"1.1.0","dataSchemaVersion":"3.1.0","kind":"registry","sourceEnv":"BN_REGISTRY_ROOT","source":"/var/lib/insight/bn-manager/registry","readinessUrl":"http://127.0.0.1:8108/api/ready"},
+    {"id":"suicide-risk","moduleVersion":"1.0.0","dataSchemaVersion":"1.0.0","kind":"sqlite","sourceEnv":"SUICIDE_RISK_DB_PATH","source":"/var/lib/insight/suicide-risk/suicide-risk.db","readinessUrl":"http://127.0.0.1:8109/readyz"},
+    {"id":"treatment-plan","moduleVersion":"1.1.0","dataSchemaVersion":"1.1.0","kind":"sqlite","sourceEnv":"TP_DATABASE_PATH","source":"/var/lib/insight/treatment-plan/treatment-plan.db","readinessUrl":"http://127.0.0.1:8110/ready"}
+  ]
+}

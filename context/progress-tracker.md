@@ -8,6 +8,8 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-060: Implement module-aware backup, restore, migration, and rollback (In
+  progress).
 - INS-059: Implement the follow-up gateway E2E scenario (In progress).
 - INS-058: Implement the initial-assessment gateway E2E scenario (In progress).
 - INS-057: Add cross-module contract and identity CI (In progress).
@@ -321,6 +323,36 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-060 module-aware backup, restore, migration, retention, and rollback (In
+  progress). Versioned deployment policy now covers all ten module-owned stores:
+  eight SQLite databases plus DDI and BN registries seeded into their separate
+  writable volumes. Module-side commands create transactionally consistent
+  SQLite or path-safe registry packages, authenticate and encrypt them with an
+  externally mounted mode-restricted key, and emit PHI-safe UUID artifact names.
+  Metadata-only orchestration creates complete versioned manifests, rejects
+  missing, duplicate, corrupt, wrong-key, wrong-module, and unsupported-version
+  sets before any activation, restores through isolated staging, runs declared
+  owner commands only for forward schema migrations, verifies integrity and all
+  configured readiness endpoints before atomic file/directory activation, and
+  writes aggregate reports. Retention requires explicit policy approval and can
+  delete only expired operations-owned manifest/report metadata; module
+  artifacts and owner records remain untouched. Image rollback requires exact
+  current-schema compatibility and never invokes a down-migration. Synthetic
+  backup/verify/activation/reopen coverage passed for every database and
+  registry, including corruption, missing-module, wrong-version, wrong-key,
+  staged migration, retention, restart, and compatible/incompatible rollback,
+  with `python3 -B -m unittest tests/test_module_backup.py
+  tests/test_administration_operations.py tests/test_unified_image.py
+  tests/test_runtime_policy.py -v` (19/19). Root discovery passed 84 tests with
+  two expected unconfigured live-gateway skips; DDI passed 46/46; BN Manager
+  passed 57/57; changed Python compilation, shell and JavaScript syntax, JSON
+  parsing, and `git diff --check` passed. No file under
+  `insight-research/doc/`, protected model/clinical source, applied migration,
+  runtime data, or generated artifact was read or modified. Live unified-image
+  backup/restore/restart remains unverified, and normal readiness-gated restore
+  remains blocked while DDI deliberately reports
+  `production-rest-seam-unavailable`; run the full rehearsal after that owner
+  seam is implemented, so INS-060 remains in progress.
 - INS-059 follow-up gateway E2E scenario (In progress). A stdlib live
   browser/gateway harness now defines exactly the no-change,
   changed-medication, new-risk, missing-data, concurrent-retry,
