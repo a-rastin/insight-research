@@ -24,7 +24,7 @@ class TreatmentPlanContractTests(unittest.TestCase):
         compatibility = self.openapi["x-insight-compatibility"]
         self.assertEqual("breaking-contract-correction", compatibility["classification"])
         self.assertTrue(compatibility["runtimeBehaviorChanged"])
-        self.assertFalse(compatibility["newClinicalBehavior"])
+        self.assertTrue(compatibility["newClinicalBehavior"])
 
     def test_live_router_and_openapi_have_exact_operation_parity(self):
         live = set()
@@ -58,6 +58,8 @@ class TreatmentPlanContractTests(unittest.TestCase):
                 operation_ids.append(operation["operationId"])
                 expected_issue = "INS-049" if operation["operationId"] in {
                     "discoverTreatmentPlanContract", "getTreatmentPlanOpenApi", "getTreatmentPlanSchema"
+                } else "INS-050" if operation["operationId"] in {
+                    "createRecommendationRun", "getRecommendationRun"
                 } else "INS-020"
                 self.assertEqual(expected_issue, operation["x-insight-implementation-issue"])
                 self.assertIn("responses", operation)

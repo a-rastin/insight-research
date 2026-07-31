@@ -3,23 +3,23 @@
   "info": {
     "title": "INSIGHT Treatment Plan live API",
     "version": "1.1.0",
-    "description": "Contract for the routes implemented by treatment_plan.app. This contract records current runtime behavior; it does not add recommendation-run or supersession routes."
+    "description": "Contract for the routes implemented by treatment_plan.app, including authenticated recommendation-run creation and status retrieval."
   },
   "servers": [{"url": "/"}],
   "x-insight-compatibility": {
     "classification": "breaking-contract-correction",
     "supersedes": "treatment-plan.openapi.v1.0.0.json",
     "runtimeBehaviorChanged": true,
-    "newClinicalBehavior": false,
+    "newClinicalBehavior": true,
     "runtimeValidationCorrections": [
       "plan_id path parameters reject non-UUID values",
       "X-Request-ID is required and UUID-formatted for finalization"
     ],
-    "removedUndocumentedRuntimeClaims": [
+    "restoredImplementedClaims": [
       "POST /api/treatment-plan/v1/recommendation-runs",
-      "GET /api/treatment-plan/v1/recommendation-runs/{runId}",
-      "POST /api/treatment-plan/v1/plans/{planId}/supersede"
-    ]
+      "GET /api/treatment-plan/v1/recommendation-runs/{run_id}"
+    ],
+    "removedUndocumentedRuntimeClaims": ["POST /api/treatment-plan/v1/plans/{planId}/supersede"]
   },
   "x-insight-provider-contracts": [
     {
@@ -155,6 +155,59 @@
             "content": {"application/json": {"schema": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/Session"}}}
           },
           "401": {"$ref": "#/components/responses/RuntimeError"},
+          "503": {"$ref": "#/components/responses/RuntimeError"}
+        }
+      }
+    },
+    "/api/treatment-plan/v1/recommendation-runs": {
+      "post": {
+        "operationId": "createRecommendationRun",
+        "x-insight-implementation-issue": "INS-050",
+        "tags": ["clinical-plans"],
+        "description": "Creates one actor-scoped idempotent recommendation run. The server assembles authoritative context and fails closed on incomplete, incompatible, unsafe, or unavailable inputs.",
+        "security": [{"cookieSession": [], "csrfToken": []}],
+        "parameters": [
+          {"$ref": "#/components/parameters/IdempotencyKey"},
+          {"$ref": "#/components/parameters/RequestId"},
+          {"$ref": "#/components/parameters/CorrelationId"}
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/CreateRecommendationRunRequest"}}}
+        },
+        "responses": {
+          "202": {
+            "description": "Recommendation run accepted or exactly replayed",
+            "headers": {
+              "Idempotency-Key": {"$ref": "#/components/headers/IdempotencyKey"},
+              "X-Schema-Version": {"$ref": "#/components/headers/RecommendationRunSchemaVersion"},
+              "X-Request-ID": {"$ref": "#/components/headers/RequestId"},
+              "X-Correlation-ID": {"$ref": "#/components/headers/CorrelationId"}
+            },
+            "content": {"application/json": {"schema": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/RecommendationRun"}}}
+          },
+          "401": {"$ref": "#/components/responses/RuntimeError"},
+          "409": {"$ref": "#/components/responses/RuntimeError"},
+          "422": {"$ref": "#/components/responses/RuntimeError"},
+          "503": {"$ref": "#/components/responses/RuntimeError"}
+        }
+      }
+    },
+    "/api/treatment-plan/v1/recommendation-runs/{run_id}": {
+      "get": {
+        "operationId": "getRecommendationRun",
+        "x-insight-implementation-issue": "INS-050",
+        "tags": ["clinical-plans"],
+        "security": [{"cookieSession": []}],
+        "parameters": [{"$ref": "#/components/parameters/RunId"}],
+        "responses": {
+          "200": {
+            "description": "Current persisted recommendation-run status",
+            "headers": {"X-Schema-Version": {"$ref": "#/components/headers/RecommendationRunSchemaVersion"}},
+            "content": {"application/json": {"schema": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/RecommendationRun"}}}
+          },
+          "401": {"$ref": "#/components/responses/RuntimeError"},
+          "404": {"$ref": "#/components/responses/RuntimeError"},
           "503": {"$ref": "#/components/responses/RuntimeError"}
         }
       }
@@ -361,6 +414,12 @@
         "required": true,
         "schema": {"type": "string", "format": "uuid"}
       },
+      "RunId": {
+        "name": "run_id",
+        "in": "path",
+        "required": true,
+        "schema": {"type": "string", "format": "uuid"}
+      },
       "IfMatch": {
         "name": "If-Match",
         "in": "header",
@@ -402,6 +461,7 @@
       "ETag": {"schema": {"type": "string", "minLength": 1}},
       "PlanViewSchemaVersion": {"schema": {"const": "1.1.0"}},
       "FinalPlanSchemaVersion": {"schema": {"const": "1.0.0"}},
+      "RecommendationRunSchemaVersion": {"schema": {"const": "1.1.0"}},
       "IdempotencyKey": {"schema": {"type": "string", "minLength": 1}},
       "RequestId": {"schema": {"type": "string", "format": "uuid"}},
       "CorrelationId": {"schema": {"type": "string", "format": "uuid"}}

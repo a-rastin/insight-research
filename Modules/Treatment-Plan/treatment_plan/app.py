@@ -8,6 +8,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from .config import Settings
+from .clinical_context import OutboundRequestContext
 from .edit_ledger import (
     InMemoryPlanEditStore,
     InvalidEdit,
@@ -29,6 +30,14 @@ from .finalization import (
 from .logging import configure_logging
 from .observability import Observability
 from .repository import InMemoryRepository, Repository
+from .recommendation_run import (
+    RecommendationRunError,
+    RecommendationRunIdempotencyConflict,
+    RecommendationRunNotFound,
+    RecommendationRunRequest,
+    RecommendationRunUnavailable,
+    RecommendationRunWorkflow,
+)
 from .sqlite_edit_store import SQLitePlanEditStore
 from .sqlite_repository import SQLiteRepository
 from .security import AccessDenied, AuthenticationUnavailable, Capability, HttpAuthenticationAdapter, Security, Session
@@ -62,6 +71,7 @@ def create_app(
     plan_ledger: PlanEditLedger | None = None,
     plan_finalizer: PlanFinalizer | None = None,
     observability: Observability | None = None,
+    recommendation_workflow: RecommendationRunWorkflow | None = None,
 ) -> FastAPI:
     settings = settings or Settings.from_env()
     configure_logging(settings.log_level)
@@ -175,6 +185,73 @@ def create_app(
     @app.get("/api/treatment-plan/v1/session")
     def session(current_actor: str = Depends(actor)):
         return {"actor": current_actor, "mode": "development-stub" if settings.auth_stub_enabled else "rest"}
+
+    @app.post("/api/treatment-plan/v1/recommendation-runs", status_code=202)
+    async def create_recommendation_run(
+        body: dict[str, Any],
+        request: Request,
+        csrf_token: str | None = Header(default=None, alias="X-CSRF-Token"),
+        idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+        request_id: UUID = Header(alias="X-Request-ID"),
+    ):
+        current_session = authorized_session(request, Capability.PLAN_MUTATE, csrf_token)
+        if recommendation_workflow is None:
+            raise HTTPException(503, "recommendation generation is not configured")
+        expected = {"patientId", "encounterId", "severityAssessmentId", "timezone"}
+        unknown = sorted(set(body) - expected)
+        missing = sorted(expected - set(body))
+        if unknown:
+            raise HTTPException(422, "unsupported recommendation-run fields: " + ", ".join(unknown))
+        if missing:
+            raise HTTPException(422, "missing recommendation-run fields: " + ", ".join(missing))
+        try:
+            command = RecommendationRunRequest(
+                str(UUID(str(body["patientId"]))),
+                str(UUID(str(body["encounterId"]))),
+                str(UUID(str(body["severityAssessmentId"]))),
+                body["timezone"],
+            )
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(422, "clinical identifiers must be canonical UUIDs") from exc
+        session_cookie = request.cookies.get("session") or request.cookies.get("insight_session")
+        if not session_cookie:
+            raise HTTPException(401, "configured session cookie is required")
+        try:
+            result = await recommendation_workflow.create(
+                command,
+                actor_id=current_session.user_id,
+                idempotency_key=idempotency_key or "",
+                outbound_context=OutboundRequestContext(
+                    session_cookie, str(request_id), observability.correlation_id
+                ),
+            )
+        except RecommendationRunIdempotencyConflict as exc:
+            raise HTTPException(409, str(exc)) from exc
+        except RecommendationRunError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        return JSONResponse(
+            result.to_dict(),
+            status_code=202,
+            headers={
+                "Idempotency-Key": idempotency_key or "",
+                "X-Schema-Version": "1.1.0",
+                "X-Request-ID": str(request_id),
+                "X-Correlation-ID": observability.correlation_id,
+            },
+        )
+
+    @app.get("/api/treatment-plan/v1/recommendation-runs/{run_id}")
+    def read_recommendation_run(run_id: UUID, request: Request):
+        current_session = authorized_session(request, Capability.PLAN_READ)
+        if recommendation_workflow is None:
+            raise HTTPException(503, "recommendation generation is not configured")
+        try:
+            result = recommendation_workflow.read(str(run_id), current_session.user_id)
+        except RecommendationRunNotFound as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except RecommendationRunUnavailable as exc:
+            raise HTTPException(503, str(exc)) from exc
+        return JSONResponse(result.to_dict(), headers={"X-Schema-Version": "1.1.0"})
 
     @app.get("/api/treatment-plan/v1/plans/{plan_id}")
     def read_plan(plan_id: UUID, request: Request):

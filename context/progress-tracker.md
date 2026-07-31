@@ -8,6 +8,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-050: Implement recommendation-run create and status routes (In progress).
 - INS-049: Implement Treatment Plan contract and schema discovery routes (In
   progress).
 - INS-048: Replace hypothetical clinical-context URLs with provider contracts
@@ -309,6 +310,38 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-050 recommendation-run create and status routes (In progress). The
+  canonical OpenAPI and runtime schema now publish authenticated, psychiatrist-
+  only `POST /api/treatment-plan/v1/recommendation-runs` and actor-scoped
+  `GET /api/treatment-plan/v1/recommendation-runs/{run_id}`. Creates require
+  CSRF, a UUID request ID, canonical Patient/Encounter/Severity Assessment UUIDs,
+  an IANA-style timezone, and a bounded actor-scoped idempotency key. Exact
+  retries replay the persisted result without re-running dependencies; changed
+  key reuse returns 409, another psychiatrist receives 404, and every state
+  transition is monotonic and persisted through `requested`,
+  `gathering-inputs`, `inputs-incomplete`, `evaluating`, `generated`, or
+  `generation-failed`. The workflow calls the existing authoritative context
+  assembler and eligibility policy before any model work, skips model generation
+  for explicit blockers, and provides a concrete adapter over the existing BN,
+  deterministic safety, constrained synthesis, exact current-plus-proposed DDI,
+  and immutable Primary Plan ledger seams. DDI failure or unresolved identity
+  blocks plan persistence; deterministic candidate metadata must exactly cover
+  the BN posterior; unsupported DDI severity also fails closed. Focused route,
+  lifecycle, idempotency, actor-scope, dependency-failure, response-schema, and
+  OpenAPI parity checks passed 12/12 with `python3 -B -m unittest
+  tests.test_tp50_recommendation_runs tests.test_tp05_contracts -v`. The full
+  Treatment Plan suite passed 70/70 with `python3 -B -m unittest discover -s
+  tests -v`; common REST checks passed 8/8; root discovery passed 70/70; changed
+  Python compilation, all changed JSON syntax, both Draft 2020-12 schema checks,
+  and `git diff --check` passed. No file under `insight-research/doc/`, protected
+  clinical/model source, runtime data, or generated `graphify-out/` was modified.
+  Release composition must still inject configured provider adapters and an
+  approved source-backed `RecommendationInputMapper`; absent that configuration,
+  the route fails closed with 503. The active scope policy also remains
+  unapproved, so real requests stop at explicit `inputs-incomplete` rather than
+  producing a clinical recommendation. Those governance and deployment wiring
+  gates keep INS-050 in progress; the next step is approval of the mapper and
+  runtime provider configuration followed by a real HTTP integration run.
 - INS-049 Treatment Plan contract and schema discovery (In progress). The
   unauthenticated `GET /api/treatment-plan/v1/contract` response now conforms
   to the accepted common REST discovery schema, identifies interface `1.1.0`

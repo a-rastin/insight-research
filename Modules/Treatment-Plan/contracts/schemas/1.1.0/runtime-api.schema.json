@@ -33,6 +33,47 @@
         "mode": {"enum": ["development-stub", "rest"]}
       }
     },
+    "CreateRecommendationRunRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["patientId", "encounterId", "severityAssessmentId", "timezone"],
+      "properties": {
+        "patientId": {"$ref": "#/$defs/Uuid"},
+        "encounterId": {"$ref": "#/$defs/Uuid"},
+        "severityAssessmentId": {"$ref": "#/$defs/Uuid"},
+        "timezone": {"type": "string", "pattern": "^[A-Za-z_]+/[A-Za-z_+-]+$"}
+      }
+    },
+    "RecommendationRunFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "source", "detail", "retryable"],
+      "properties": {
+        "code": {"type": "string", "minLength": 1},
+        "source": {"type": "string", "minLength": 1},
+        "detail": {"type": "string", "minLength": 1},
+        "retryable": {"type": "boolean"}
+      }
+    },
+    "RecommendationRun": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "runId", "patientId", "encounterId", "snapshotId", "policyVersion", "status", "requestedAt", "updatedAt", "findings"],
+      "properties": {
+        "schemaVersion": {"const": "1.1.0"},
+        "runId": {"$ref": "#/$defs/Uuid"},
+        "patientId": {"$ref": "#/$defs/Uuid"},
+        "encounterId": {"$ref": "#/$defs/Uuid"},
+        "snapshotId": {"$ref": "#/$defs/Uuid"},
+        "policyVersion": {"const": "schizophrenia-research-v1"},
+        "status": {"enum": ["requested", "gathering-inputs", "inputs-incomplete", "evaluating", "generated", "generation-failed"]},
+        "requestedAt": {"type": "string", "format": "date-time"},
+        "updatedAt": {"type": "string", "format": "date-time"},
+        "completedAt": {"type": "string", "format": "date-time"},
+        "primaryPlanId": {"$ref": "#/$defs/Uuid"},
+        "findings": {"type": "array", "items": {"$ref": "#/$defs/RecommendationRunFinding"}}
+      }
+    },
     "PlanEditEvent": {
       "type": "object",
       "additionalProperties": false,
