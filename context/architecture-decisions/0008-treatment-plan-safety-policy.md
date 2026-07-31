@@ -9,10 +9,7 @@
 
 Treatment Plan needs bounded sections and deterministic behavior for scheduling,
 emergencies, uncertainty, allergies, contraindications, suicide risk, and severe
-drug interactions. Repository contracts do not assign appointment, availability,
-or timezone ownership and do not define an emergency-services integration or an
-approved non-pharmacological intervention taxonomy. Missing contracts cannot be
-replaced by inferred capability.
+drug interactions.
 
 This decision follows the [project overview](../project-overview.md), the
 [INS-010 specification](../feature-specs/10-emergency.md), the existing
@@ -38,8 +35,7 @@ intervals may appear as clinical recommendations, but they are not appointments.
 
 Emergency states stop routine recommendation generation and plan finalization.
 The persistent result directs the psychiatrist to the applicable local emergency
-protocol for immediate clinical evaluation. It does not contact, dispatch, book,
-or claim availability of emergency services and cannot be overridden.
+protocol for immediate clinical evaluation.
 
 Missing, unknown, unavailable, stale, conflicting, or invalid clinically required
 inputs block processing with distinct reasons and resolution actions. Optional
@@ -66,7 +62,6 @@ safety validation, and final attestation. Other hard blockers remain effective.
 
 - DG-04, DG-05, and DG-06 have explicit, testable fail-closed policy decisions.
 - Scheduling and non-pharmacological generation remain visibly unavailable.
-- Emergency output cannot imply unimplemented integration.
 - Scope gates from INS-008 still block every Treatment Plan generation because no
   supported population is approved.
 - No module runtime, API, persistence, UI, clinical source, or model changes in
