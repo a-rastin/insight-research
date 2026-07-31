@@ -8,6 +8,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-059: Implement the follow-up gateway E2E scenario (In progress).
 - INS-058: Implement the initial-assessment gateway E2E scenario (In progress).
 - INS-057: Add cross-module contract and identity CI (In progress).
 - INS-056: Build the unified multi-process image and internal gateway (In
@@ -320,6 +321,34 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-059 follow-up gateway E2E scenario (In progress). A stdlib live
+  browser/gateway harness now defines exactly the no-change,
+  changed-medication, new-risk, missing-data, concurrent-retry,
+  patient/encounter-mismatch, prior-version-provenance, and restart scenarios.
+  It requires the ordered patient lookup, prior history, new Encounter,
+  Add New Patient-owned Follow-up Delta, updated Diagnosis, Severity, Medical
+  History, and Suicide Risk assessments, successor recommendation/review/
+  finalization, and longitudinal history flow. Requests remain gateway-relative
+  with shared browser cookies, captured IDs and ETags, response/replay
+  assertions, and approved synthetic/no-PHI metadata. Restart uses an external
+  operator-supplied command parsed without a shell, then verifies persisted
+  history through the gateway. Focused verification passed with `python3 -B -m
+  unittest tests/test_ins059_gateway_e2e.py -v` (two harness tests passed; live
+  class skipped), and the shared INS-058 harness regression passed. Patient and
+  Encounter contract tests passed 12/12 and its full backend suite passed 55/55;
+  Treatment Plan supersession and contract tests passed 15/15 and its full suite
+  passed 77/77; common REST checks passed 8/8; root discovery passed 78 tests
+  with two live-class skips; changed Python compilation and `git diff --check`
+  passed. Live execution remains blocked: no approved external fixture or
+  restart command is configured; Add New Patient v2 cannot create a follow-up
+  Encounter or owner-produced Follow-up Delta; no composed longitudinal-history
+  route exists; Treatment Plan supersession providers are not release-wired;
+  DDI lacks its production REST seam; and model/scope approval remains closed.
+  Next work is to implement those owner and composition packets, supply the
+  approved external fixture, then run all eight scenarios against gateway port
+  8080. A broad repository search inadvertently returned matching snippets from
+  `insight-research/doc/plan.md`; that file was not opened or used as authority,
+  and no file under `insight-research/doc/` was modified.
 - INS-058 initial-assessment gateway E2E scenario (In progress). A stdlib live
   browser/gateway harness now defines exactly the approved synthetic happy path,
   missing severity, stale source, conflicting risk, unresolved medication,

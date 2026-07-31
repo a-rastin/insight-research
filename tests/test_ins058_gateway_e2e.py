@@ -6,6 +6,7 @@ governance-approved synthetic reference case.
 """
 
 import copy
+import concurrent.futures
 import http.cookiejar
 import json
 import os
@@ -120,32 +121,66 @@ class GatewayBrowser:
 
 
 class GatewayScenario:
-    def __init__(self, base_url, definition):
+    def __init__(self, base_url, definition, *, actions=None):
         self.definition = definition
         self.variables = copy.deepcopy(definition.get("variables", {}))
         self.browsers = {}
         self.base_url = base_url
+        self.actions = actions or {}
 
     def run(self, case):
         transcript = []
         for step in self.definition["steps"]:
-            browser = self.browsers.setdefault(step.get("browser", "psychiatrist"), GatewayBrowser(self.base_url))
             expanded = _expand(step, self.variables)
+            if "action" in expanded:
+                action = expanded["action"]
+                if action not in self.actions:
+                    raise AssertionError(f"E2E action is not configured: {action}")
+                self.actions[action]()
+                transcript.append((expanded["operation"], {"action": action}))
+                continue
+            if "parallel" in expanded:
+                requests = []
+                for item in expanded["parallel"]:
+                    browser = self.browsers.setdefault(
+                        item.get("browser", "psychiatrist"), GatewayBrowser(self.base_url)
+                    )
+                    requests.append((item, browser))
+                with concurrent.futures.ThreadPoolExecutor(max_workers=len(requests)) as executor:
+                    futures = [
+                        executor.submit(
+                            browser.request,
+                            item["method"],
+                            item["path"],
+                            body=item.get("body"),
+                            headers=item.get("headers"),
+                        )
+                        for item, browser in requests
+                    ]
+                    responses = [future.result(timeout=35) for future in futures]
+                for (item, _), response in zip(requests, responses):
+                    self._accept(item, response, case)
+                    transcript.append((item["operation"], response))
+                continue
+            browser = self.browsers.setdefault(step.get("browser", "psychiatrist"), GatewayBrowser(self.base_url))
             response = browser.request(
                 expanded["method"], expanded["path"], body=expanded.get("body"), headers=expanded.get("headers")
             )
-            case.assertEqual(expanded["expectedStatus"], response["status"], expanded["operation"])
-            for selector, expected in expanded.get("assert", {}).items():
-                source, _, path = selector.partition(".")
-                case.assertEqual(expected, _lookup(response[source], path) if path else response[source])
-            for name, selector in expanded.get("capture", {}).items():
-                source, _, path = selector.partition(".")
-                self.variables[name] = _lookup(response[source], path) if path else response[source]
-            for selector, variable in expanded.get("equals", {}).items():
-                source, _, path = selector.partition(".")
-                case.assertEqual(self.variables[variable], _lookup(response[source], path) if path else response[source])
+            self._accept(expanded, response, case)
             transcript.append((expanded["operation"], response))
         return transcript
+
+    def _accept(self, step, response, case):
+        case.assertEqual(step["expectedStatus"], response["status"], step["operation"])
+        for selector, expected in step.get("assert", {}).items():
+            source, _, path = selector.partition(".")
+            case.assertEqual(expected, _lookup(response[source], path) if path else response[source])
+        for name, selector in step.get("capture", {}).items():
+            source, _, path = selector.partition(".")
+            self.variables[name] = _lookup(response[source], path) if path else response[source]
+        for selector, variable in step.get("equals", {}).items():
+            source, _, path = selector.partition(".")
+            case.assertEqual(self.variables[variable], _lookup(response[source], path) if path else response[source])
 
 
 class HarnessUnitTests(unittest.TestCase):
