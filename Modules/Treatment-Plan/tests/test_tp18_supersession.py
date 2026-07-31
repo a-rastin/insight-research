@@ -8,6 +8,10 @@ from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
 
+from fastapi.testclient import TestClient
+
+from treatment_plan.app import create_app
+from treatment_plan.config import Settings
 from treatment_plan.edit_ledger import (
     InMemoryPlanEditStore,
     PlanEditLedger,
@@ -16,6 +20,8 @@ from treatment_plan.edit_ledger import (
 )
 from treatment_plan.sqlite_edit_store import SQLitePlanEditStore
 from treatment_plan.sqlite_repository import SQLiteRepository
+from treatment_plan.repository import InMemoryRepository
+from treatment_plan.security import InMemoryAuthenticationAdapter, Security, Session
 from treatment_plan.supersession import (
     PlanSuperseder,
     RevalidatedPrimaryPlan,
@@ -331,6 +337,71 @@ class TP18SupersessionTests(unittest.IsolatedAsyncioTestCase):
                     )
             finally:
                 connection.close()
+
+
+class TP53SupersessionRouteTests(unittest.TestCase):
+    def test_authenticated_route_creates_and_replays_successor_without_mutating_prior(self):
+        ledger = finalized_ledger(InMemoryPlanEditStore())
+        before = ledger.get_finalization(PRIOR_PRIMARY_ID)
+        provider = SnapshotProvider()
+        superseder = PlanSuperseder(ledger, provider, Generator(), clock=lambda: NOW)
+        session = Session(
+            "00000000-0000-4000-8000-000000000071",
+            frozenset({"psychiatrist"}),
+            datetime(2026, 7, 15, 19, 0, tzinfo=timezone.utc),
+            "csrf-secret",
+            session_id="00000000-0000-4000-8000-000000000072",
+        )
+        security = Security(
+            InMemoryAuthenticationAdapter({"session=opaque": session}),
+            now=lambda: NOW,
+        )
+        app = create_app(
+            Settings(environment="test"),
+            InMemoryRepository(),
+            security,
+            plan_ledger=ledger,
+            plan_superseder=superseder,
+        )
+        headers = {
+            "Cookie": "session=opaque",
+            "X-CSRF-Token": "csrf-secret",
+            "Idempotency-Key": "supersede-delta-0001",
+            "X-Request-ID": "00000000-0000-4000-8000-000000000073",
+        }
+
+        with TestClient(app) as client:
+            rejected = client.post(
+                f"/api/treatment-plan/v1/plans/{PRIOR_PRIMARY_ID}/supersede",
+                headers={key: value for key, value in headers.items() if key != "X-CSRF-Token"},
+                json=follow_up_delta(),
+            )
+            created = client.post(
+                f"/api/treatment-plan/v1/plans/{PRIOR_PRIMARY_ID}/supersede",
+                headers=headers,
+                json=follow_up_delta(),
+            )
+            replay = client.post(
+                f"/api/treatment-plan/v1/plans/{PRIOR_PRIMARY_ID}/supersede",
+                headers=headers,
+                json=follow_up_delta(),
+            )
+
+        self.assertEqual(401, rejected.status_code)
+        self.assertEqual(201, created.status_code)
+        self.assertEqual(created.json(), replay.json())
+        self.assertTrue(created.headers["ETag"].startswith('"plan-'))
+        self.assertEqual("1.1.0", created.headers["X-Schema-Version"])
+        self.assertEqual(SUCCESSOR_ID, created.json()["planView"]["primaryPlan"]["planId"])
+        self.assertEqual(
+            ["unchanged", "changed", "unchanged"],
+            [item["status"] for item in created.json()["supersession"]["sectionComparisons"]],
+        )
+        self.assertTrue(all(
+            item["reason"] for item in created.json()["supersession"]["sectionComparisons"]
+        ))
+        self.assertEqual(1, len(provider.calls))
+        self.assertEqual(before, ledger.get_finalization(PRIOR_PRIMARY_ID))
 
 
 if __name__ == "__main__":

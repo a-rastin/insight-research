@@ -15,6 +15,7 @@ from .edit_ledger import (
     PlanEditLedger,
     PlanFinalized,
     PlanNotFound,
+    PlanSuperseded,
     PreconditionFailed,
     PreconditionRequired,
     ReasonRequired,
@@ -40,6 +41,7 @@ from .recommendation_run import (
 )
 from .sqlite_edit_store import SQLitePlanEditStore
 from .sqlite_repository import SQLiteRepository
+from .supersession import PlanSuperseder, SupersessionError
 from .security import AccessDenied, AuthenticationUnavailable, Capability, HttpAuthenticationAdapter, Security, Session
 
 
@@ -72,6 +74,7 @@ def create_app(
     plan_finalizer: PlanFinalizer | None = None,
     observability: Observability | None = None,
     recommendation_workflow: RecommendationRunWorkflow | None = None,
+    plan_superseder: PlanSuperseder | None = None,
 ) -> FastAPI:
     settings = settings or Settings.from_env()
     configure_logging(settings.log_level)
@@ -262,6 +265,42 @@ def create_app(
         except PlanNotFound as exc:
             raise HTTPException(404, str(exc)) from exc
         return JSONResponse(view.to_dict(), headers={"ETag": view.etag, "X-Schema-Version": "1.1.0"})
+
+    @app.post("/api/treatment-plan/v1/plans/{plan_id}/supersede", status_code=201)
+    async def supersede_plan(
+        plan_id: UUID,
+        body: dict[str, Any],
+        request: Request,
+        csrf_token: str | None = Header(default=None, alias="X-CSRF-Token"),
+        idempotency_key: str = Header(alias="Idempotency-Key"),
+        request_id: UUID = Header(alias="X-Request-ID"),
+    ):
+        plan_id = str(plan_id)
+        authorized_session(request, Capability.PLAN_MUTATE, csrf_token)
+        if not idempotency_key.strip() or len(idempotency_key) > 200:
+            raise HTTPException(422, "Idempotency-Key must contain 1 to 200 characters")
+        if plan_superseder is None:
+            raise HTTPException(503, "follow-up supersession is not configured")
+        try:
+            result = await plan_superseder.supersede(plan_id, body)
+            successor = plan_ledger.get(result.primary_plan["planId"])
+        except PlanNotFound as exc:
+            raise HTTPException(404, str(exc)) from exc
+        except PlanSuperseded as exc:
+            raise HTTPException(409, str(exc)) from exc
+        except (InvalidEdit, SupersessionError) as exc:
+            raise HTTPException(422, str(exc)) from exc
+        return JSONResponse(
+            {"planView": successor.to_dict(), "supersession": result.supersession},
+            status_code=201,
+            headers={
+                "ETag": successor.etag,
+                "Idempotency-Key": idempotency_key,
+                "X-Schema-Version": "1.1.0",
+                "X-Request-ID": str(request_id),
+                "X-Correlation-ID": observability.correlation_id,
+            },
+        )
 
     @app.patch("/api/treatment-plan/v1/plans/{plan_id}/draft")
     def edit_draft(

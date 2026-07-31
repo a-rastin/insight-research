@@ -3,7 +3,7 @@
   "info": {
     "title": "INSIGHT Treatment Plan live API",
     "version": "1.1.0",
-    "description": "Contract for the routes implemented by treatment_plan.app, including authenticated recommendation-run creation and status retrieval."
+    "description": "Contract for the routes implemented by treatment_plan.app, including authenticated recommendation runs and follow-up supersession."
   },
   "servers": [{"url": "/"}],
   "x-insight-compatibility": {
@@ -17,9 +17,9 @@
     ],
     "restoredImplementedClaims": [
       "POST /api/treatment-plan/v1/recommendation-runs",
-      "GET /api/treatment-plan/v1/recommendation-runs/{run_id}"
-    ],
-    "removedUndocumentedRuntimeClaims": ["POST /api/treatment-plan/v1/plans/{planId}/supersede"]
+      "GET /api/treatment-plan/v1/recommendation-runs/{run_id}",
+      "POST /api/treatment-plan/v1/plans/{plan_id}/supersede"
+    ]
   },
   "x-insight-provider-contracts": [
     {
@@ -230,6 +230,43 @@
           },
           "401": {"$ref": "#/components/responses/RuntimeError"},
           "404": {"$ref": "#/components/responses/RuntimeError"},
+          "503": {"$ref": "#/components/responses/RuntimeError"}
+        }
+      }
+    },
+    "/api/treatment-plan/v1/plans/{plan_id}/supersede": {
+      "post": {
+        "operationId": "supersedeTreatmentPlan",
+        "x-insight-implementation-issue": "INS-053",
+        "tags": ["clinical-plans"],
+        "description": "Psychiatrist-only follow-up action. The supplied owner-produced Follow-up Delta is validated against the prior immutable Final Plan, fresh source snapshots are gathered, and one linked successor review workflow is created atomically.",
+        "security": [{"cookieSession": [], "csrfToken": []}],
+        "parameters": [
+          {"$ref": "#/components/parameters/PlanId"},
+          {"$ref": "#/components/parameters/IdempotencyKey"},
+          {"$ref": "#/components/parameters/RequestId"},
+          {"$ref": "#/components/parameters/CorrelationId"}
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"$ref": "../schemas/1.0.0/treatment-plan.schema.json#/$defs/FollowUpDelta"}}}
+        },
+        "responses": {
+          "201": {
+            "description": "Successor Primary Plan review workflow and immutable supersession evidence",
+            "headers": {
+              "ETag": {"$ref": "#/components/headers/ETag"},
+              "Idempotency-Key": {"$ref": "#/components/headers/IdempotencyKey"},
+              "X-Schema-Version": {"$ref": "#/components/headers/PlanViewSchemaVersion"},
+              "X-Request-ID": {"$ref": "#/components/headers/RequestId"},
+              "X-Correlation-ID": {"$ref": "#/components/headers/CorrelationId"}
+            },
+            "content": {"application/json": {"schema": {"$ref": "../schemas/1.1.0/runtime-api.schema.json#/$defs/SupersedePlanResponse"}}}
+          },
+          "401": {"$ref": "#/components/responses/RuntimeError"},
+          "404": {"$ref": "#/components/responses/RuntimeError"},
+          "409": {"$ref": "#/components/responses/RuntimeError"},
+          "422": {"$ref": "#/components/responses/RuntimeError"},
           "503": {"$ref": "#/components/responses/RuntimeError"}
         }
       }

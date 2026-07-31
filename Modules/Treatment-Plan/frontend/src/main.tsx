@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { structuredEdits, updateReviewField, type ReviewField, type ReviewWorkspace } from "./review-workspace";
-import { loadReview, submitDraftEdits } from "./treatment-plan-api";
+import {
+  loadReview,
+  submitDraftEdits,
+  supersedePlan,
+  type FollowUpDelta,
+  type SupersessionComparison,
+} from "./treatment-plan-api";
 import "./styles.css";
 
 declare global {
   interface Window {
-    __INSIGHT_TREATMENT_PLAN__?: { planId?: string; csrfToken?: string };
+    __INSIGHT_TREATMENT_PLAN__?: { planId?: string; csrfToken?: string; followUpDelta?: FollowUpDelta };
   }
 }
 
@@ -20,6 +26,7 @@ function configuredContext() {
   return {
     planId: window.__INSIGHT_TREATMENT_PLAN__?.planId ?? root?.dataset.planId ?? "",
     csrfToken: window.__INSIGHT_TREATMENT_PLAN__?.csrfToken ?? document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? "",
+    followUpDelta: window.__INSIGHT_TREATMENT_PLAN__?.followUpDelta,
   };
 }
 
@@ -53,6 +60,9 @@ export function App() {
   const [statusMessage, setStatusMessage] = useState("Draft review in progress.");
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
+  const [activePlanId, setActivePlanId] = useState(context.planId);
+  const [superseding, setSuperseding] = useState(false);
+  const [supersessionComparisons, setSupersessionComparisons] = useState<SupersessionComparison[]>([]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -90,7 +100,7 @@ export function App() {
     setSaving(true);
     setStatusMessage("Saving structured edits with concurrency protection.");
     try {
-      const updated = await submitDraftEdits(context.planId, state.etag, context.csrfToken, structuredEdits(workspace, reason));
+      const updated = await submitDraftEdits(activePlanId, state.etag, context.csrfToken, structuredEdits(workspace, reason));
       setState({ kind: "ready", ...updated });
       setReason("");
       setStatusMessage("Structured edits saved. The server returned a new ETag.");
@@ -98,6 +108,22 @@ export function App() {
       setStatusMessage(error instanceof Error ? `Edits were not saved: ${error.message}` : "Edits were not saved.");
     } finally {
       setSaving(false);
+    }
+  };
+  const supersede = async () => {
+    if (!context.followUpDelta || !context.csrfToken) return;
+    setSuperseding(true);
+    setStatusMessage("Gathering fresh follow-up snapshots and revalidating each plan section.");
+    try {
+      const successor = await supersedePlan(activePlanId, context.followUpDelta, context.csrfToken);
+      setActivePlanId(successor.successorPlanId);
+      setSupersessionComparisons(successor.comparisons);
+      setState({ kind: "ready", workspace: successor.workspace, etag: successor.etag, partialMessages: successor.partialMessages });
+      setStatusMessage("Successor workflow created. The prior Final Plan remains unchanged.");
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? `Successor was not created: ${error.message}` : "Successor was not created.");
+    } finally {
+      setSuperseding(false);
     }
   };
   const editingBlocked = !state.etag || !context.csrfToken;
@@ -122,6 +148,11 @@ export function App() {
         <div><p className="eyebrow">Plan context</p><h2 id="patient-context-title">{workspace.patient.displayId}</h2></div>
         <dl><div><dt>Age band</dt><dd>{workspace.patient.ageBand}</dd></div><div><dt>Encounter</dt><dd>{workspace.patient.encounterLabel}</dd></div><div><dt>Draft status</dt><dd><span className="status-text"><span aria-hidden="true">●</span> Editing</span></dd></div></dl>
       </section>
+
+      {context.followUpDelta && <section className="follow-up-card" aria-labelledby="follow-up-title">
+        <div><p className="eyebrow">Follow-up supersession</p><h2 id="follow-up-title">Create a new plan without altering the prior Final Plan</h2><p>The server validates the fresh Follow-up Delta, gathers current owner snapshots, and revalidates every supported plan section.</p></div>
+        {supersessionComparisons.length === 0 ? <button className="primary-button" type="button" onClick={supersede} disabled={superseding || !context.csrfToken}>{superseding ? "Creating successor" : "Create successor workflow"}</button> : <div className="supersession-result" role="status" aria-live="polite"><p><strong>Successor workflow created.</strong> Prior finalized content was preserved.</p><dl>{supersessionComparisons.map((comparison) => <div key={comparison.section}><dt>{comparison.section === "nextAppointment" ? "Next appointment" : comparison.section}</dt><dd><span className={`comparison-status ${comparison.status}`}>{comparison.status === "changed" ? "Changed" : "Unchanged"}</span><span>{comparison.reason}</span></dd></div>)}</dl></div>}
+      </section>}
 
       <div className="content-grid">
         <aside aria-label="Review context">

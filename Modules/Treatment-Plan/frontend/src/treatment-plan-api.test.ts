@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { loadReview, submitDraftEdits } from "./treatment-plan-api";
+import { loadReview, submitDraftEdits, supersedePlan, type FollowUpDelta } from "./treatment-plan-api";
 
 const planId = "00000000-0000-4000-8000-000000000051";
 const planView = {
@@ -19,6 +19,16 @@ const planView = {
     safetyFindings: [],
   },
   edits: [], version: 0,
+};
+const delta: FollowUpDelta = {
+  schemaVersion: "1.0.0",
+  deltaId: "00000000-0000-4000-8000-000000000061",
+  patientId: "00000000-0000-4000-8000-000000000062",
+  priorEncounterId: planView.primaryPlan.encounterId,
+  encounterId: "00000000-0000-4000-8000-000000000063",
+  priorFinalPlanId: "00000000-0000-4000-8000-000000000064",
+  recordedAt: "2026-07-31T02:00:00Z",
+  changes: [{ domain: "severity", summary: "Severity changed.", sourceResourceId: "severity-2" }],
 };
 
 describe("Treatment Plan review API", () => {
@@ -52,5 +62,36 @@ describe("Treatment Plan review API", () => {
     expect(seen).toEqual(['"etag-0"', '"etag-1"']);
     expect(new Headers(fetcher.mock.calls[0][1]?.headers).get("X-CSRF-Token")).toBe("csrf-token");
     expect(result.etag).toBe('"etag-2"');
+  });
+
+  it("posts the fresh Follow-up Delta and maps all server-derived section reasons", async () => {
+    const successorView = {
+      ...planView,
+      primaryPlan: { ...planView.primaryPlan, planId: "00000000-0000-4000-8000-000000000065", encounterId: delta.encounterId },
+    };
+    const sectionComparisons = [
+      { section: "setting", status: "unchanged", reason: "Fresh severity still supports outpatient care." },
+      { section: "pharmacotherapy", status: "changed", reason: "Fresh severity supports a revised dose." },
+      { section: "nextAppointment", status: "unchanged", reason: "Fresh evidence supports seven days." },
+    ];
+    const fetcher = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(
+      JSON.stringify({ planView: successorView, supersession: { sectionComparisons } }),
+      { status: 201, headers: { "Content-Type": "application/json", ETag: '"successor-etag"' } },
+    ));
+
+    const result = await supersedePlan(
+      planId,
+      delta,
+      "csrf-token",
+      fetcher as typeof fetch,
+      "00000000-0000-4000-8000-000000000066",
+    );
+
+    const init = fetcher.mock.calls[0][1];
+    expect(init).toMatchObject({ method: "POST", credentials: "include", body: JSON.stringify(delta) });
+    expect(new Headers(init?.headers).get("X-CSRF-Token")).toBe("csrf-token");
+    expect(new Headers(init?.headers).get("Idempotency-Key")).toBe(`supersede-${delta.deltaId}`);
+    expect(result.successorPlanId).toBe(successorView.primaryPlan.planId);
+    expect(result.comparisons).toEqual(sectionComparisons);
   });
 });

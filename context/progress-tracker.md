@@ -8,6 +8,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-053: Wire follow-up supersession route and UI (In progress).
 - INS-051: Connect React review UI to authenticated backend routes (In
   progress).
 - INS-050: Implement recommendation-run create and status routes (In progress).
@@ -312,6 +313,30 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-053 follow-up supersession route and UI (In progress). The canonical
+  Treatment Plan OpenAPI and runtime schema now publish authenticated,
+  psychiatrist-only `POST /api/treatment-plan/v1/plans/{plan_id}/supersede`
+  with CSRF, UUID request tracing, and a bounded idempotency key. The route is
+  wired to the existing `PlanSuperseder`, validates the owner-produced Follow-up
+  Delta against the prior immutable Final Plan, gathers and validates fresh
+  source snapshots, atomically creates or exactly replays one successor review
+  workflow, and returns its ETag plus the immutable supersession evidence. The
+  React host contract accepts the fresh Follow-up Delta, submits it with cookie
+  credentials, switches subsequent edits to the successor Plan UUID, and shows
+  explicit Changed or Unchanged text with the server-derived reason for setting,
+  pharmacotherapy, and next appointment. Focused supersession and contract tests
+  passed 15/15; the full Treatment Plan backend suite passed 71/71; frontend
+  tests passed 5/5; TypeScript checking and the production build passed; common
+  REST checks passed 8/8; root discovery passed 70/70; changed Python files
+  compiled; both JSON artifacts passed syntax and Draft 2020-12 schema checks;
+  and both repository `git diff --check` commands passed. No file under
+  `insight-research/doc/`, protected clinical/model source, applied migration, or
+  runtime data was read or modified. Release composition must still inject the
+  configured fresh-snapshot provider and approved successor generator, and the
+  host follow-up flow must supply the Add New Patient-owned Follow-up Delta; the
+  route fails closed with 503 when the supersession service is absent. A live
+  authenticated host/gateway run is the next integration verification, so
+  INS-053 remains in progress.
 - INS-051 Treatment Plan authenticated review UI connection (In progress).
   The React workspace copied into the mirrored Treatment Plan module now
   replaces all synthetic plan, finding, rationale, alternative, and provenance

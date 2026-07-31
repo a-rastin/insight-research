@@ -14,6 +14,32 @@ export type DraftEdit = {
   reason?: string;
 };
 
+export type FollowUpDelta = {
+  schemaVersion: "1.0.0";
+  deltaId: string;
+  patientId: string;
+  priorEncounterId: string;
+  encounterId: string;
+  priorFinalPlanId: string;
+  recordedAt: string;
+  changes: Array<{
+    domain: "diagnosis" | "severity" | "medical-history" | "medication" | "encounter";
+    summary: string;
+    sourceResourceId: string;
+  }>;
+};
+
+export type SupersessionComparison = {
+  section: "setting" | "pharmacotherapy" | "nextAppointment";
+  status: "changed" | "unchanged";
+  reason: string;
+};
+
+export type SupersededReview = LoadedReview & {
+  successorPlanId: string;
+  comparisons: SupersessionComparison[];
+};
+
 type FetchLike = typeof fetch;
 type JsonObject = Record<string, unknown>;
 
@@ -186,5 +212,58 @@ export async function submitDraftEdits(
     workspace: createReviewWorkspace(mapPlanView(lastPayload, undefined)),
     etag: currentEtag,
     partialMessages: ["Finalization provenance is not available for this draft plan."],
+  };
+}
+
+export async function supersedePlan(
+  planId: string,
+  delta: FollowUpDelta,
+  csrfToken: string,
+  fetcher: FetchLike = fetch,
+  requestId: string = crypto.randomUUID(),
+): Promise<SupersededReview> {
+  const response = await fetcher(`/api/treatment-plan/v1/plans/${encodeURIComponent(planId)}/supersede`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "Idempotency-Key": `supersede-${delta.deltaId}`,
+      "X-CSRF-Token": csrfToken,
+      "X-Request-ID": requestId,
+    },
+    body: JSON.stringify(delta),
+  });
+  if (!response.ok) throw await responseError(response);
+  const etag = response.headers.get("ETag");
+  if (!etag) throw new Error("The supersession response did not include the successor ETag.");
+  const payload = object(await response.json(), "supersession response");
+  const supersession = object(payload.supersession, "supersession");
+  const comparisons = array(supersession.sectionComparisons, "supersession.sectionComparisons").map((raw, index) => {
+    const comparison = object(raw, `section comparison ${index + 1}`);
+    const section = text(comparison.section, `section comparison ${index + 1} section`);
+    const status = text(comparison.status, `section comparison ${index + 1} status`);
+    if (!["setting", "pharmacotherapy", "nextAppointment"].includes(section)) {
+      throw new Error(`Section comparison ${index + 1} has an unsupported section.`);
+    }
+    if (status !== "changed" && status !== "unchanged") {
+      throw new Error(`Section comparison ${index + 1} has an unsupported status.`);
+    }
+    return {
+      section: section as SupersessionComparison["section"],
+      status: status as SupersessionComparison["status"],
+      reason: text(comparison.reason, `section comparison ${index + 1} reason`),
+    };
+  });
+  if (comparisons.length !== 3 || new Set(comparisons.map((item) => item.section)).size !== 3) {
+    throw new Error("The supersession response must explain all three plan sections.");
+  }
+  const planView = object(payload.planView, "successor plan view");
+  const primaryPlan = object(planView.primaryPlan, "successor primaryPlan");
+  return {
+    workspace: createReviewWorkspace(mapPlanView(planView, undefined)),
+    etag,
+    partialMessages: ["Finalization provenance is not available for this successor draft."],
+    successorPlanId: text(primaryPlan.planId, "successor primaryPlan.planId"),
+    comparisons,
   };
 }

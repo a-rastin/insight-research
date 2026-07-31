@@ -117,6 +117,67 @@
         "version": {"type": "integer", "minimum": 0}
       }
     },
+    "SupersessionSectionComparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["section", "status", "reason", "prior", "current", "revalidatedAgainstSnapshotId"],
+      "properties": {
+        "section": {"enum": ["setting", "pharmacotherapy", "nextAppointment"]},
+        "status": {"enum": ["changed", "unchanged"]},
+        "reason": {"type": "string", "minLength": 1},
+        "prior": true,
+        "current": true,
+        "revalidatedAgainstSnapshotId": {"$ref": "#/$defs/Uuid"}
+      }
+    },
+    "SupersessionRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion", "priorPrimaryPlanId", "priorFinalPlanId",
+        "successorPrimaryPlanId", "patientId", "priorEncounterId",
+        "encounterId", "snapshotId", "createdAt", "followUpDelta",
+        "sourceSnapshot", "sectionComparisons", "contentHash"
+      ],
+      "properties": {
+        "schemaVersion": {"const": "1.0.0"},
+        "priorPrimaryPlanId": {"$ref": "#/$defs/Uuid"},
+        "priorFinalPlanId": {"$ref": "#/$defs/Uuid"},
+        "successorPrimaryPlanId": {"$ref": "#/$defs/Uuid"},
+        "patientId": {"$ref": "#/$defs/Uuid"},
+        "priorEncounterId": {"$ref": "#/$defs/Uuid"},
+        "encounterId": {"$ref": "#/$defs/Uuid"},
+        "snapshotId": {"$ref": "#/$defs/Uuid"},
+        "createdAt": {"type": "string", "format": "date-time"},
+        "followUpDelta": {"$ref": "../1.0.0/treatment-plan.schema.json#/$defs/FollowUpDelta"},
+        "sourceSnapshot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["snapshotId", "capturedAt", "sources"],
+          "properties": {
+            "snapshotId": {"$ref": "#/$defs/Uuid"},
+            "capturedAt": {"type": "string", "format": "date-time"},
+            "sources": {"type": "array", "minItems": 1, "items": {"type": "object"}}
+          }
+        },
+        "sectionComparisons": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {"$ref": "#/$defs/SupersessionSectionComparison"}
+        },
+        "contentHash": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"}
+      }
+    },
+    "SupersedePlanResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["planView", "supersession"],
+      "properties": {
+        "planView": {"$ref": "#/$defs/PlanView"},
+        "supersession": {"$ref": "#/$defs/SupersessionRecord"}
+      }
+    },
     "EditDraftRequest": {
       "type": "object",
       "additionalProperties": false,

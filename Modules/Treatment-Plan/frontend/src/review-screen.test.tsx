@@ -23,13 +23,34 @@ const planView = {
   edits: [],
   version: 0,
 };
+const followUpDelta = {
+  schemaVersion: "1.0.0" as const,
+  deltaId: "00000000-0000-4000-8000-000000000061",
+  patientId: "00000000-0000-4000-8000-000000000062",
+  priorEncounterId: planView.primaryPlan.encounterId,
+  encounterId: "00000000-0000-4000-8000-000000000063",
+  priorFinalPlanId: "00000000-0000-4000-8000-000000000064",
+  recordedAt: "2026-07-31T02:00:00Z",
+  changes: [{ domain: "severity" as const, summary: "Severity changed.", sourceResourceId: "severity-2" }],
+};
 
 describe("psychiatrist review screen", () => {
   beforeEach(() => {
     document.body.innerHTML = '<div id="root"></div>';
-    window.__INSIGHT_TREATMENT_PLAN__ = { planId: planView.primaryPlan.planId, csrfToken: "csrf-token" };
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    window.__INSIGHT_TREATMENT_PLAN__ = { planId: planView.primaryPlan.planId, csrfToken: "csrf-token", followUpDelta };
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+      if (init?.method === "POST") return new Response(JSON.stringify({
+        planView: {
+          ...planView,
+          primaryPlan: { ...planView.primaryPlan, planId: "00000000-0000-4000-8000-000000000065", encounterId: followUpDelta.encounterId },
+        },
+        supersession: { sectionComparisons: [
+          { section: "setting", status: "unchanged", reason: "Fresh severity still supports outpatient care." },
+          { section: "pharmacotherapy", status: "changed", reason: "Fresh severity supports a revised dose." },
+          { section: "nextAppointment", status: "unchanged", reason: "Fresh evidence supports seven days." },
+        ] },
+      }), { status: 201, headers: { "Content-Type": "application/json", ETag: '"successor-etag"' } });
       if (url.endsWith("/provenance")) return new Response("[]", { status: 200, headers: { "Content-Type": "application/json" } });
       return new Response(JSON.stringify(planView), { status: 200, headers: { "Content-Type": "application/json", ETag: '"etag-0"' } });
     }));
@@ -51,5 +72,11 @@ describe("psychiatrist review screen", () => {
     expect(screen.getByText("Edited")).toBeTruthy();
     expect(screen.getByLabelText("Recommended value: 2")).toBeTruthy();
     expect(screen.getByRole("alert", { name: "Urgent suicide-risk review required" }).textContent).toContain("Urgent suicide-risk review required");
+
+    await user.click(screen.getByRole("button", { name: "Create successor workflow" }));
+    expect(await screen.findByText("Successor workflow created.")).toBeTruthy();
+    expect(screen.getByText("Fresh severity supports a revised dose.")).toBeTruthy();
+    expect(screen.getByText("Changed")).toBeTruthy();
+    expect(screen.getAllByText("Unchanged")).toHaveLength(2);
   });
 });

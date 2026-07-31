@@ -60,7 +60,7 @@ class TreatmentPlanContractTests(unittest.TestCase):
                     "discoverTreatmentPlanContract", "getTreatmentPlanOpenApi", "getTreatmentPlanSchema"
                 } else "INS-050" if operation["operationId"] in {
                     "createRecommendationRun", "getRecommendationRun"
-                } else "INS-020"
+                } else "INS-053" if operation["operationId"] == "supersedeTreatmentPlan" else "INS-020"
                 self.assertEqual(expected_issue, operation["x-insight-implementation-issue"])
                 self.assertIn("responses", operation)
         self.assertEqual(len(operation_ids), len(set(operation_ids)))
@@ -110,13 +110,18 @@ class TreatmentPlanContractTests(unittest.TestCase):
 
         draft = self.openapi["paths"]["/api/treatment-plan/v1/plans/{plan_id}/draft"]["patch"]
         finalization = self.openapi["paths"]["/api/treatment-plan/v1/plans/{plan_id}/finalize"]["post"]
+        supersession = self.openapi["paths"]["/api/treatment-plan/v1/plans/{plan_id}/supersede"]["post"]
         self.assertEqual([{"cookieSession": [], "csrfToken": []}], draft["security"])
         self.assertEqual([{"cookieSession": [], "csrfToken": []}], finalization["security"])
+        self.assertEqual([{"cookieSession": [], "csrfToken": []}], supersession["security"])
         draft_parameters = {item["$ref"] for item in draft["parameters"]}
         final_parameters = {item["$ref"] for item in finalization["parameters"]}
         self.assertIn("#/components/parameters/IfMatch", draft_parameters)
         self.assertIn("#/components/parameters/IfMatch", final_parameters)
         self.assertIn("#/components/parameters/IdempotencyKey", final_parameters)
+        supersession_parameters = {item["$ref"] for item in supersession["parameters"]}
+        self.assertIn("#/components/parameters/IdempotencyKey", supersession_parameters)
+        self.assertIn("#/components/parameters/RequestId", supersession_parameters)
         bn_provider = next(
             provider for provider in self.openapi["x-insight-provider-contracts"]
             if provider["provider"] == "bn-manager"
@@ -145,7 +150,7 @@ class TreatmentPlanContractTests(unittest.TestCase):
             if argument.arg == "plan_id" and argument.annotation is not None
         }
         self.assertEqual(
-            {"read_plan", "edit_draft", "finalize_plan", "read_plan_provenance", "read_plan_audit"},
+            {"read_plan", "supersede_plan", "edit_draft", "finalize_plan", "read_plan_provenance", "read_plan_audit"},
             set(annotations),
         )
         self.assertEqual({"UUID"}, set(annotations.values()))
