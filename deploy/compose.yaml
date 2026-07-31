@@ -1,3 +1,7 @@
+# Unified local run. Secrets default to fixed local-dev values so the whole app
+# starts with a single command (`docker compose up --build`). Override any of
+# them via the shell environment or a `.env` file in the repo root (compose loads
+# it automatically). The production path stays strict: compose.release.yaml.
 services:
   insight:
     build:
@@ -9,17 +13,17 @@ services:
     environment:
       NODE_ENV: production
       TP_ENV: production
-      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:?set AUTH_JWT_SECRET}
-      AUTH_ADMIN_PASSWORD: ${AUTH_ADMIN_PASSWORD:?set AUTH_ADMIN_PASSWORD}
-      AUTH_SECURE_COOKIE: ${AUTH_SECURE_COOKIE:-true}
-      ADD_NEW_PATIENT_CSRF_SECRET: ${ADD_NEW_PATIENT_CSRF_SECRET:?set ADD_NEW_PATIENT_CSRF_SECRET}
-      ADD_NEW_PATIENT_CSRF_SECURE: ${ADD_NEW_PATIENT_CSRF_SECURE:-true}
-      DIAGNOSIS_CSRF_SECRET: ${DIAGNOSIS_CSRF_SECRET:?set DIAGNOSIS_CSRF_SECRET}
-      DIAGNOSIS_CSRF_SECURE: ${DIAGNOSIS_CSRF_SECURE:-true}
-      SEVERITY_CSRF_SECRET: ${SEVERITY_CSRF_SECRET:?set SEVERITY_CSRF_SECRET}
-      MEDICAL_HISTORY_CSRF_SECRET: ${MEDICAL_HISTORY_CSRF_SECRET:?set MEDICAL_HISTORY_CSRF_SECRET}
-      DDI_SERVICE_AUTH_SECRET: ${DDI_SERVICE_AUTH_SECRET:?set DDI_SERVICE_AUTH_SECRET}
-      SUICIDE_RISK_CSRF_SECRET: ${SUICIDE_RISK_CSRF_SECRET:?set SUICIDE_RISK_CSRF_SECRET}
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-local-dev-jwt-secret-do-not-use-in-prod}
+      AUTH_ADMIN_PASSWORD: ${AUTH_ADMIN_PASSWORD:-local-admin-change-me}
+      AUTH_SECURE_COOKIE: ${AUTH_SECURE_COOKIE:-false}
+      ADD_NEW_PATIENT_CSRF_SECRET: ${ADD_NEW_PATIENT_CSRF_SECRET:-local-dev-csrf-secret-32chars-min-addnewpatient}
+      ADD_NEW_PATIENT_CSRF_SECURE: ${ADD_NEW_PATIENT_CSRF_SECURE:-false}
+      DIAGNOSIS_CSRF_SECRET: ${DIAGNOSIS_CSRF_SECRET:-local-dev-csrf-secret-32chars-min-diagnosis}
+      DIAGNOSIS_CSRF_SECURE: ${DIAGNOSIS_CSRF_SECURE:-false}
+      SEVERITY_CSRF_SECRET: ${SEVERITY_CSRF_SECRET:-local-dev-csrf-secret-32chars-min-severity}
+      MEDICAL_HISTORY_CSRF_SECRET: ${MEDICAL_HISTORY_CSRF_SECRET:-local-dev-csrf-secret-32chars-min-medhistory}
+      DDI_SERVICE_AUTH_SECRET: ${DDI_SERVICE_AUTH_SECRET:-local-dev-ddi-service-auth-secret-32chars}
+      SUICIDE_RISK_CSRF_SECRET: ${SUICIDE_RISK_CSRF_SECRET:-local-dev-csrf-secret-32chars-min-suiciderisk}
     read_only: true
     cap_drop: [ALL]
     security_opt:

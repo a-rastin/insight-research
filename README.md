@@ -33,7 +33,7 @@ Host OS: Linux (primary), Docker Desktop on Windows/macOS for local unified runs
 
 ## Quick start (unified Docker)
 
-Primary way to run the full app.
+Primary way to run the full app — **one command**, no manual secret setup.
 
 ### 1. Clone and enter repo
 
@@ -41,9 +41,52 @@ Primary way to run the full app.
 cd /path/to/insight-research
 ```
 
-### 2. Export required secrets
+### 2. Build and start (one command)
 
-Generate strong values (do not commit them):
+Option A — run with auto-generated random secrets written to `./.env`
+(gitignored; reused on later runs so your seeded admin login stays stable):
+
+```bash
+sh deploy/run.sh          # foreground: build + up
+sh deploy/run.sh -d       # detached
+```
+
+Option B — plain compose, using built-in local-dev secret defaults (no `.env`
+needed; fine for kicking the tires over plain HTTP; **never use these defaults
+for anything exposed beyond localhost**):
+
+```bash
+docker compose -f deploy/compose.yaml up --build
+```
+
+Gateway: **http://localhost:8080/**
+
+Stop:
+
+```bash
+sh deploy/run.sh down              # via the helper
+docker compose -f deploy/compose.yaml down   # plain
+```
+
+Data lives in named Docker volumes (`authentication-data`, `dashboard-data`, …).
+Remove volumes only if you intend to wipe local data:
+
+```bash
+sh deploy/run.sh down -v
+# or: docker compose -f deploy/compose.yaml down -v
+```
+
+### 3. Use real secrets (optional)
+
+`run.sh` generates fresh random secrets on first run and prints your seeded
+admin password. Override any of them by exporting them before `run.sh`, or by
+editing the generated `./.env`. Force a fresh set with:
+
+```bash
+GEN_SECRETS=1 sh deploy/run.sh
+```
+
+To set them by hand instead (do not commit these):
 
 ```bash
 export AUTH_JWT_SECRET="$(python3 -c 'import secrets; print(secrets.token_urlsafe(64))')"
@@ -56,7 +99,8 @@ export DDI_SERVICE_AUTH_SECRET="$(python3 -c 'import secrets; print(secrets.toke
 export SUICIDE_RISK_CSRF_SECRET="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
 ```
 
-Local HTTP (no TLS on the container port):
+Local HTTP (no TLS on the container port), set the `*_SECURE*` flags to `false`
+(`run.sh` and the local compose defaults already do this):
 
 ```bash
 export AUTH_SECURE_COOKIE=false
@@ -64,7 +108,8 @@ export ADD_NEW_PATIENT_CSRF_SECURE=false
 export DIAGNOSIS_CSRF_SECURE=false
 ```
 
-Behind HTTPS set those `*_SECURE*` flags to `true` (Compose defaults to `true`).
+Behind HTTPS set those `*_SECURE*` flags to `true` (this is what the production
+`compose.release.yaml` enforces).
 
 Optional first-boot admin username (default `Admin`):
 
@@ -75,27 +120,6 @@ export AUTH_ADMIN_USERNAME=Admin
 `AUTH_ADMIN_PASSWORD` seeds the admin **only on first database create**. Changing
 it later does not rotate an existing admin row — use Auth admin APIs or a fresh
 volume.
-
-### 3. Build and start
-
-```bash
-docker compose -f deploy/compose.yaml up --build
-```
-
-Gateway: **http://localhost:8080/**
-
-Stop:
-
-```bash
-docker compose -f deploy/compose.yaml down
-```
-
-Data lives in named Docker volumes (`authentication-data`, `dashboard-data`, …).
-Remove volumes only if you intend to wipe local data:
-
-```bash
-docker compose -f deploy/compose.yaml down -v
-```
 
 ### 4. Health checks
 
@@ -144,7 +168,10 @@ Browser code must use gateway-relative URLs, not hard-coded localhost module por
 
 ## Environment reference (unified compose)
 
-Required by `deploy/compose.yaml`:
+Used by `deploy/compose.yaml`. Each has a built-in local-dev default so the app
+starts with no setup; override any of them via the shell environment or a
+root-level `./.env` file. The production `compose.release.yaml` makes all of
+these mandatory (`:?set …`).
 
 | Variable | Purpose |
 | --- | --- |
@@ -368,7 +395,7 @@ Agent workflow notes: `AGENTS.md`.
 
 | Symptom | Check |
 | --- | --- |
-| Compose exits on start | All required env vars set (`:?set …` errors name the missing one) |
+| Compose exits on start (release) | `compose.release.yaml` makes all secrets required (`:?set …` names the missing one); use `deploy/run.sh` or the local `compose.yaml` defaults for local runs |
 | `/readyz` 503 | `docker compose -f deploy/compose.yaml logs` — which module failed; DDI needs configured service auth + valid active KB under registry |
 | Cannot log in after secret change | Admin password only seeds on empty Auth DB; wipe `authentication-data` volume or use admin password-change flow |
 | Cookie / CSRF failures on HTTP | `AUTH_SECURE_COOKIE=false` and module `*_CSRF_SECURE=false` for local plain HTTP |
