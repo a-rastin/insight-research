@@ -20,6 +20,11 @@
     "completed": "All 30 valid item ratings are present; subscales and total are derived by the server.",
     "skipped": "Assessment was not performed. No item ratings or derived scores are present, and skipped never means absent, normal, or favorable."
   },
+  "evaluationStates": {
+    "incomplete": "The exact missing PANSS item codes are returned; no authoritative score is published.",
+    "passed": "The assessment was explicitly skipped and no scores are inferred.",
+    "completed": "All 30 PANSS items are valid and authoritative scores were recomputed by the server."
+  },
   "legacyPassSemantics": "The v1 passed value means skipped only. V2 never uses passed as a clinical result.",
   "scoring": {
     "positive": "sum(P1..P7)",
@@ -32,7 +37,7 @@
       "general": {"minimum": 16, "maximum": 112},
       "total": {"minimum": 30, "maximum": 210}
     },
-    "clientDerivedScoresAccepted": false
+    "clientDerivedScores": "Optional display projections are compared with the server result and rejected when malformed or mismatched; they are never authoritative."
   },
   "identity": {
     "assessmentId": "UUID",

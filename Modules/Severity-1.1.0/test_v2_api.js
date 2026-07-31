@@ -3,7 +3,7 @@ import { execFile } from "child_process";
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { ITEM_CODES, deriveScores } from "./panss.js";
+import { ITEM_CODES, deriveScores, evaluatePanss } from "./panss.js";
 
 const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "severity-v2-"));
 const port = 40000 + process.pid % 10000;
@@ -20,6 +20,7 @@ const server = execFile("node", ["server.js"], {
 const patientId = "11111111-1111-4111-8111-111111111111";
 const encounterId = "22222222-2222-4222-8222-222222222222";
 const allOnes = Object.fromEntries(ITEM_CODES.map(code => [code, 1]));
+const allSevens = Object.fromEntries(ITEM_CODES.map(code => [code, 7]));
 const headers = {
   "Content-Type": "application/json",
   "X-Schema-Version": "2.0.0"
@@ -44,6 +45,23 @@ try {
   assert.match(publishedContract.legacyPassSemantics, /skipped only/);
 
   assert.deepStrictEqual(deriveScores(allOnes), { positive: 7, negative: 7, general: 16, total: 30 });
+  assert.deepStrictEqual(deriveScores(allSevens), { positive: 49, negative: 49, general: 112, total: 210 });
+  assert.deepStrictEqual(evaluatePanss("completed", allOnes), {
+    valid: true,
+    state: "completed",
+    missingItemCodes: [],
+    scores: { positive: 7, negative: 7, general: 16, total: 30 },
+    scaleVersion: "PANSS-30-1.0.0",
+    ruleVersion: "PANSS-SUM-2.0.0"
+  });
+  const incomplete = evaluatePanss("incomplete", { P1: 4 });
+  assert.strictEqual(incomplete.state, "incomplete");
+  assert.strictEqual(incomplete.scores, null);
+  assert.strictEqual(incomplete.missingItemCodes.length, 29);
+  assert.strictEqual(evaluatePanss("passed", {}).state, "passed");
+  assert.strictEqual(evaluatePanss("completed", { ...allOnes, X1: 2 }).code, "PANSS_UNKNOWN_ITEMS");
+  assert.strictEqual(evaluatePanss("completed", { ...allOnes, P1: 0 }).code, "PANSS_INVALID_ITEM_SCORE");
+  assert.strictEqual(evaluatePanss("completed", allOnes, { positive: 7, negative: 7, general: 16, total: 31 }).code, "PANSS_PROJECTED_SCORES_MISMATCH");
 
   const contract = await fetch(`${baseUrl}/api/severity/v2/contract`);
   assert.strictEqual(contract.status, 200);
@@ -73,6 +91,8 @@ try {
   const assessment = await created.json();
   assert.match(assessment.assessmentId, /^[0-9a-f-]{36}$/);
   assert.deepStrictEqual(assessment.scores, { positive: 7, negative: 7, general: 16, total: 30 });
+  assert.strictEqual(assessment.evaluation.state, "completed");
+  assert.deepStrictEqual(assessment.evaluation.scores, assessment.scores);
   assert.strictEqual(assessment.provenance.scaleVersion, "PANSS-30-1.0.0");
 
   const replay = await fetch(`${baseUrl}/api/severity/v2/assessments`, {
@@ -103,6 +123,44 @@ try {
   });
   assert.strictEqual(clientScores.status, 400);
 
+  const mismatchedScores = await fetch(`${baseUrl}/api/severity/v2/assessments`, {
+    method: "POST",
+    headers: { ...headers, "Idempotency-Key": "score-mismatch-1" },
+    body: JSON.stringify({
+      patientId,
+      encounterId,
+      status: "completed",
+      itemScores: allOnes,
+      scores: { positive: 7, negative: 7, general: 16, total: 31 }
+    })
+  });
+  assert.strictEqual(mismatchedScores.status, 400);
+
+  const matchingScores = await fetch(`${baseUrl}/api/severity/v2/assessments`, {
+    method: "POST",
+    headers: { ...headers, "Idempotency-Key": "score-match-case-1" },
+    body: JSON.stringify({
+      patientId,
+      encounterId,
+      status: "completed",
+      itemScores: allOnes,
+      scores: { positive: 7, negative: 7, general: 16, total: 30 }
+    })
+  });
+  assert.strictEqual(matchingScores.status, 201);
+  assert.deepStrictEqual((await matchingScores.json()).scores, deriveScores(allOnes));
+
+  const inProgress = await fetch(`${baseUrl}/api/severity/v2/assessments`, {
+    method: "POST",
+    headers: { ...headers, "Idempotency-Key": "incomplete-case-1" },
+    body: JSON.stringify({ patientId, encounterId, status: "in-progress", itemScores: { P1: 4 } })
+  });
+  assert.strictEqual(inProgress.status, 201);
+  const inProgressBody = await inProgress.json();
+  assert.strictEqual(inProgressBody.evaluation.state, "incomplete");
+  assert.strictEqual(inProgressBody.evaluation.scores, null);
+  assert.strictEqual(inProgressBody.evaluation.missingItemCodes.length, 29);
+
   const skipped = await fetch(`${baseUrl}/api/severity/v2/assessments/${assessment.assessmentId}`, {
     method: "PUT",
     headers: { ...headers, "If-Match": createdEtag },
@@ -112,6 +170,7 @@ try {
   const skippedBody = await skipped.json();
   assert.strictEqual(skippedBody.scores, null);
   assert.deepStrictEqual(skippedBody.itemScores, {});
+  assert.strictEqual(skippedBody.evaluation.state, "passed");
 
   const replayAfterUpdate = await fetch(`${baseUrl}/api/severity/v2/assessments`, {
     method: "POST",

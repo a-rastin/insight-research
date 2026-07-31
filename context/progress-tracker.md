@@ -8,6 +8,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-025: Implement server-authoritative PANSS evaluation (In progress).
 - INS-024: Connect embedded Diagnosis UI to v2 assessment context (In
   progress).
 - INS-023: Migrate Diagnosis storage and routes to assessment UUIDs (In
@@ -293,6 +294,23 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-025 server-authoritative PANSS evaluation (In progress). Severity now has
+  one pure evaluator for the exact P1-P7, N1-N7, and G1-G16 item set. It returns
+  explicit `incomplete`, `passed`, or `completed` evaluation state, exact missing
+  item codes for incomplete input, server-derived subscales/total for completed
+  input, and scale/rule versions. V2 create/update routes and the retained v1 PUT
+  adapter use the same evaluator; malformed ratings, unknown items, incomplete
+  completion attempts, and malformed or mismatched browser score projections
+  fail validation instead of being persisted. The v2 schema and contract now
+  describe this evaluation envelope and projection-check behavior. Pure minimum
+  and maximum vectors, malformed/incomplete/pass behavior, v2 HTTP behavior, and
+  legacy equivalence passed in the isolated full `npm test` suite. JavaScript
+  syntax, all three contract JSON files, Draft 2020-12 schema checking, common
+  REST profile checks (8/8), root discovery (65/65), and both repository `git
+  diff --check` commands passed. Pre-existing tracked dependency deletions,
+  `graphify-out/`, and unrelated in-flight Severity edits were preserved. The
+  next separate packet is UUID-only Severity UI/consumer migration; production
+  authentication, CSRF, and database persistence remain separately gated.
 - INS-024 embedded Diagnosis UI v2 assessment-context migration (In progress).
   The bounded packet now replaces patient-code state and alias query strings
   with host-provided Patient and Encounter UUID context. The embedded UI reads

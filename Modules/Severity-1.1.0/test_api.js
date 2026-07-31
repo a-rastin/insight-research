@@ -3,6 +3,7 @@ import { execFile } from "child_process";
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { ITEM_CODES } from "./panss.js";
 
 // Simple self-contained API test runner using Node.js native fetch and assert
 async function runTests() {
@@ -56,8 +57,8 @@ async function runTests() {
 
     // 4. Test PUT route for saving completed assessment
     console.log("Testing PUT route (completed assessment)...");
-    const testItems = { "P1": 4, "N1": 2, "G1": 1 };
-    const testScores = { total: 37, positive: 4, negative: 2, general: 1 };
+    const testItems = Object.fromEntries(ITEM_CODES.map(code => [code, 1]));
+    const testScores = { total: 30, positive: 7, negative: 7, general: 16 };
     
     const putRes2 = await fetch(`${baseUrl}/api/severity/${testPatientCode}`, {
       method: "PUT",
@@ -74,6 +75,18 @@ async function runTests() {
     assert.strictEqual(putJson2.data.status, "completed");
     assert.deepStrictEqual(putJson2.data.scores, testScores);
     assert.deepStrictEqual(putJson2.data.items, testItems);
+    assert.strictEqual(putJson2.data.evaluation.state, "completed");
+
+    const mismatch = await fetch(`${baseUrl}/api/severity/${testPatientCode}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        status: "completed",
+        scores: { ...testScores, total: 31 },
+        items: testItems
+      })
+    });
+    assert.strictEqual(mismatch.status, 400, "Legacy totals must match the authoritative evaluator");
 
     // 5. Test GET route again to verify completed assessment is persisted correctly
     console.log("Testing GET route (verify completed)...");

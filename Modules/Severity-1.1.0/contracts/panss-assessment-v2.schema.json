@@ -36,6 +36,27 @@
         "total": {"type": "integer", "minimum": 30, "maximum": 210}
       }
     },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "missingItemCodes", "scores", "scaleVersion", "ruleVersion"],
+      "properties": {
+        "state": {"enum": ["incomplete", "passed", "completed"]},
+        "missingItemCodes": {
+          "type": "array",
+          "items": {"type": "string", "pattern": "^(P[1-7]|N[1-7]|G(?:[1-9]|1[0-6]))$"},
+          "uniqueItems": true
+        },
+        "scores": {
+          "oneOf": [
+            {"$ref": "#/$defs/derivedScores"},
+            {"type": "null"}
+          ]
+        },
+        "scaleVersion": {"const": "PANSS-30-1.0.0"},
+        "ruleVersion": {"const": "PANSS-SUM-2.0.0"}
+      }
+    },
     "provenance": {
       "type": "object",
       "additionalProperties": false,
@@ -58,7 +79,8 @@
         "patientId": {"$ref": "#/$defs/uuid"},
         "encounterId": {"$ref": "#/$defs/uuid"},
         "status": {"enum": ["in-progress", "completed", "skipped"]},
-        "itemScores": {"$ref": "#/$defs/itemScores"}
+        "itemScores": {"$ref": "#/$defs/itemScores"},
+        "scores": {"$ref": "#/$defs/derivedScores"}
       },
       "allOf": [
         {
@@ -67,11 +89,17 @@
         },
         {
           "if": {"properties": {"status": {"const": "in-progress"}}, "required": ["status"]},
-          "then": {"properties": {"itemScores": {"maxProperties": 29}}}
+          "then": {
+            "properties": {"itemScores": {"maxProperties": 29}},
+            "not": {"required": ["scores"]}
+          }
         },
         {
           "if": {"properties": {"status": {"const": "skipped"}}, "required": ["status"]},
-          "then": {"properties": {"itemScores": {"maxProperties": 0}}}
+          "then": {
+            "properties": {"itemScores": {"maxProperties": 0}},
+            "not": {"required": ["scores"]}
+          }
         }
       ]
     },
@@ -81,7 +109,8 @@
       "required": ["status", "itemScores"],
       "properties": {
         "status": {"enum": ["in-progress", "completed", "skipped"]},
-        "itemScores": {"$ref": "#/$defs/itemScores"}
+        "itemScores": {"$ref": "#/$defs/itemScores"},
+        "scores": {"$ref": "#/$defs/derivedScores"}
       },
       "allOf": [
         {
@@ -90,18 +119,24 @@
         },
         {
           "if": {"properties": {"status": {"const": "in-progress"}}, "required": ["status"]},
-          "then": {"properties": {"itemScores": {"maxProperties": 29}}}
+          "then": {
+            "properties": {"itemScores": {"maxProperties": 29}},
+            "not": {"required": ["scores"]}
+          }
         },
         {
           "if": {"properties": {"status": {"const": "skipped"}}, "required": ["status"]},
-          "then": {"properties": {"itemScores": {"maxProperties": 0}}}
+          "then": {
+            "properties": {"itemScores": {"maxProperties": 0}},
+            "not": {"required": ["scores"]}
+          }
         }
       ]
     },
     "assessment": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["interfaceVersion", "schemaVersion", "assessmentId", "patientId", "encounterId", "assessmentType", "status", "itemScores", "scores", "resourceVersion", "provenance"],
+      "required": ["interfaceVersion", "schemaVersion", "assessmentId", "patientId", "encounterId", "assessmentType", "status", "itemScores", "scores", "evaluation", "resourceVersion", "provenance"],
       "properties": {
         "interfaceVersion": {"const": "2.0.0"},
         "schemaVersion": {"const": "2.0.0"},
@@ -117,6 +152,7 @@
             {"type": "null"}
           ]
         },
+        "evaluation": {"$ref": "#/$defs/evaluation"},
         "resourceVersion": {"type": "integer", "minimum": 1},
         "provenance": {"$ref": "#/$defs/provenance"}
       },
@@ -126,7 +162,14 @@
           "then": {
             "properties": {
               "itemScores": {"minProperties": 30, "maxProperties": 30},
-              "scores": {"$ref": "#/$defs/derivedScores"}
+              "scores": {"$ref": "#/$defs/derivedScores"},
+              "evaluation": {
+                "properties": {
+                  "state": {"const": "completed"},
+                  "missingItemCodes": {"maxItems": 0},
+                  "scores": {"$ref": "#/$defs/derivedScores"}
+                }
+              }
             }
           }
         },
@@ -135,7 +178,14 @@
           "then": {
             "properties": {
               "itemScores": {"maxProperties": 29},
-              "scores": {"type": "null"}
+              "scores": {"type": "null"},
+              "evaluation": {
+                "properties": {
+                  "state": {"const": "incomplete"},
+                  "missingItemCodes": {"minItems": 1},
+                  "scores": {"type": "null"}
+                }
+              }
             }
           }
         },
@@ -144,7 +194,14 @@
           "then": {
             "properties": {
               "itemScores": {"maxProperties": 0},
-              "scores": {"type": "null"}
+              "scores": {"type": "null"},
+              "evaluation": {
+                "properties": {
+                  "state": {"const": "passed"},
+                  "missingItemCodes": {"maxItems": 0},
+                  "scores": {"type": "null"}
+                }
+              }
             }
           }
         }
