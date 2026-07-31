@@ -95,6 +95,10 @@ Config:
 | `AUTH_BASE_URL` | Base URL; Dashboard appends `/api/auth/v2/session`. |
 | `DASHBOARD_MOCK_AUTH` | `1` enables standalone mock auth; `0` disables it. |
 | `DASHBOARD_DB_PATH` | SQLite path; defaults to `dashboard.sqlite3`. |
+| `DDI_READINESS_URL` | DDI provider readiness endpoint. |
+| `BN_MANAGER_READINESS_URL` | BN Manager readiness endpoint. |
+| `BN_MANAGER_STATUS_URL` | BN Manager model-status endpoint. |
+| `DASHBOARD_PROVIDER_TIMEOUT_MS` | Provider status timeout; defaults to `2000`. |
 
 When neither `AUTH_SESSION_URL` nor `AUTH_BASE_URL` is set, standalone mock auth is enabled unless `DASHBOARD_MOCK_AUTH=0`.
 
@@ -204,13 +208,17 @@ Response rules:
   `unauthorized` for the currently verified role.
 - Only `available` destinations include a gateway-relative `href`.
 - Responses contain no patient lists, treatment data, drafts, follow-ups, oversight module data, guideline revisions, Bayesian models, backup payloads, or module implementation payloads.
+- Available provider-administration destinations may include `providerStatus`
+  containing only `readiness` and aggregate `clinicalUse` state and reason.
+  Dashboard does not return provider identifiers, versions, hashes, evidence,
+  knowledge records, models, lifecycle history, or mutation controls.
 
 Role button sets:
 
 | Role | Button ids | Button titles |
 | --- | --- | --- |
 | `PSYCHIATRIST` | `add-new-patient`, `patient-follow-up`, `list-of-patients`, `setting` | `Add New Patient`, `Patient Follow-up`, `List of Patients`, `Setting` |
-| `ADMIN` | `add-new-user`, `logs`, `backup`, `list-of-users` | `Add New User`, `Logs`, `Backup`, `List of Users` |
+| `ADMIN` | `add-new-user`, `logs`, `backup`, `list-of-users`, `ddi-knowledge`, `bn-models` | `Add New User`, `Logs`, `Backup`, `List of Users`, `DDI Knowledge`, `BN Models` |
 
 Errors:
 
@@ -235,6 +243,8 @@ Dashboard returns one navigation-only catalog. Current destination support is:
 | `logs` | `ADMIN` | `unavailable` | none |
 | `backup` | `ADMIN` | `unavailable` | none |
 | `list-of-users` | `ADMIN` | `available` | `/modules/auth/accounts` |
+| `ddi-knowledge` | `ADMIN` | `available` | `/modules/ddi/` |
+| `bn-models` | `ADMIN` | `available` | `/modules/bn-manager` |
 
 A destination belonging to the other role has state `unauthorized`. Dashboard
 does not invent routes for unavailable destinations and does not copy any
@@ -266,6 +276,10 @@ Target modules own data, mutations, permissions beyond entry, UI, and workflow
 implementation. Dashboard returns no module payload in destination discovery.
 The account destinations route directly to Authentication's owner-hosted UI;
 Dashboard does not proxy, cache, or persist account data.
+The DDI and BN destinations route directly to their owner-hosted administration
+UIs. Dashboard reads provider status only and cannot edit, activate, cache, or
+persist provider artifacts. Psychiatrist discovery of either destination
+returns `403 module_route_unauthorized`.
 
 Errors:
 

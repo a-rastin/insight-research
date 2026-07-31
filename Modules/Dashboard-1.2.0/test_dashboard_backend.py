@@ -69,9 +69,45 @@ class MockAuthenticationServer:
         self.thread.join(timeout=5)
 
 
+class MockProviderServer:
+    def __enter__(self) -> str:
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self) -> None:
+                responses = {
+                    "/ddi/readyz": (503, {"status": "not-ready", "reason": "production-rest-seam-unavailable"}),
+                    "/bn/ready": (200, {"data": {"status": "ready"}}),
+                    "/bn/models": (200, {"data": {"models": [
+                        {"stable_id": "model-one", "clinical_use_status": "blocked-by-manifest"},
+                        {"stable_id": "model-two", "clinical_use_status": "blocked-by-manifest"},
+                    ]}}),
+                }
+                status, payload = responses.get(self.path, (404, {"error": "not-found"}))
+                body = json.dumps(payload).encode("utf-8")
+                self.send_response(status)
+                self.send_header("content-type", "application/json")
+                self.send_header("content-length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *_: object) -> None:
+                return
+
+        self.port = free_port()
+        self.server = ThreadingHTTPServer(("127.0.0.1", self.port), Handler)
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+        return f"http://127.0.0.1:{self.port}"
+
+    def __exit__(self, *_: object) -> None:
+        self.server.shutdown()
+        self.server.server_close()
+        self.thread.join(timeout=5)
+
+
 class DashboardServer:
-    def __init__(self, auth_session_url: str | None = None) -> None:
+    def __init__(self, auth_session_url: str | None = None, provider_base_url: str | None = None) -> None:
         self.auth_session_url = auth_session_url
+        self.provider_base_url = provider_base_url
 
     def __enter__(self) -> str:
         self.tempdir = tempfile.TemporaryDirectory()
@@ -84,6 +120,12 @@ class DashboardServer:
             os.environ.pop("AUTH_SESSION_URL", None)
             os.environ.pop("DASHBOARD_MOCK_AUTH", None)
         os.environ.pop("AUTH_BASE_URL", None)
+        for name in ("DDI_READINESS_URL", "BN_MANAGER_READINESS_URL", "BN_MANAGER_STATUS_URL"):
+            os.environ.pop(name, None)
+        if self.provider_base_url:
+            os.environ["DDI_READINESS_URL"] = f"{self.provider_base_url}/ddi/readyz"
+            os.environ["BN_MANAGER_READINESS_URL"] = f"{self.provider_base_url}/bn/ready"
+            os.environ["BN_MANAGER_STATUS_URL"] = f"{self.provider_base_url}/bn/models"
         for name in list(sys.modules):
             if name == "dashboard_backend" or name.startswith("dashboard_backend."):
                 del sys.modules[name]
@@ -282,7 +324,7 @@ class DashboardBackendTest(unittest.TestCase):
             )
             self.assertEqual(
                 [button["state"] for button in workspace["workspace"]["buttons"]],
-                ["available", "available", "unavailable", "unavailable"] + ["unauthorized"] * 4,
+                ["available", "available", "unavailable", "unavailable"] + ["unauthorized"] * 6,
             )
             self.assertEqual(workspace["workspace"]["buttons"][1]["href"], "/modules/patient-follow-up")
             self.assertTrue(all("href" not in button for button in workspace["workspace"]["buttons"][2:]))
@@ -313,19 +355,44 @@ class DashboardBackendTest(unittest.TestCase):
             self.assertEqual(workspace["workspace"]["title"], "Workspace")
             self.assertEqual(
                 [button["title"] for button in workspace["workspace"]["buttons"][4:]],
-                ["Add New User", "Logs", "Backup", "List of Users"],
+                ["Add New User", "Logs", "Backup", "List of Users", "DDI Knowledge", "BN Models"],
             )
             self.assertEqual(
                 [button["state"] for button in workspace["workspace"]["buttons"]],
-                ["unauthorized"] * 4 + ["available", "unavailable", "unavailable", "available"],
+                ["unauthorized"] * 4 + ["available", "unavailable", "unavailable", "available", "available", "available"],
             )
             self.assertEqual(workspace["workspace"]["buttons"][4]["href"], "/modules/auth/accounts/new")
             self.assertEqual(workspace["workspace"]["buttons"][7]["href"], "/modules/auth/accounts")
+            self.assertEqual(workspace["workspace"]["buttons"][8]["href"], "/modules/ddi/")
+            self.assertEqual(workspace["workspace"]["buttons"][9]["href"], "/modules/bn-manager")
+            self.assertEqual(workspace["workspace"]["buttons"][8]["providerStatus"]["readiness"]["state"], "unavailable")
             self.assertNotIn("cards", workspace["workspace"])
             self.assertNotIn("oversight", workspace)
             self.assertNotIn("guidelineRevisions", json.dumps(workspace))
             self.assertNotIn("Bayesian", json.dumps(workspace))
             self.assertNotIn("Admin oversight", json.dumps(workspace))
+
+    def test_admin_sees_live_provider_status_without_provider_artifacts(self) -> None:
+        with MockProviderServer() as providers, DashboardServer(provider_base_url=providers) as base:
+            admin = create_session(base, "admin-1")
+            status, workspace = request_json(base, f"/internal/dashboard/workspace?session={admin['sessionId']}")
+
+            self.assertEqual(status, 200)
+            buttons = {button["id"]: button for button in workspace["workspace"]["buttons"]}
+            self.assertEqual(buttons["ddi-knowledge"]["providerStatus"]["readiness"]["state"], "not-ready")
+            self.assertEqual(buttons["ddi-knowledge"]["providerStatus"]["clinicalUse"]["state"], "blocked")
+            self.assertEqual(buttons["bn-models"]["providerStatus"]["readiness"]["state"], "ready")
+            self.assertEqual(buttons["bn-models"]["providerStatus"]["clinicalUse"]["state"], "blocked-by-manifest")
+            serialized = json.dumps(workspace)
+            self.assertNotIn("stable_id", serialized)
+            self.assertNotIn("model-one", serialized)
+
+            psychiatrist = create_session(base, "psy-1")
+            _, psychiatrist_workspace = request_json(base, f"/internal/dashboard/workspace?session={psychiatrist['sessionId']}")
+            psychiatrist_buttons = {button["id"]: button for button in psychiatrist_workspace["workspace"]["buttons"]}
+            self.assertEqual(psychiatrist_buttons["ddi-knowledge"]["state"], "unauthorized")
+            self.assertEqual(psychiatrist_buttons["bn-models"]["state"], "unauthorized")
+            self.assertNotIn("providerStatus", psychiatrist_buttons["ddi-knowledge"])
 
     def test_module_routes_distinguish_available_unavailable_and_unauthorized(self) -> None:
         with DashboardServer() as base:
@@ -340,9 +407,18 @@ class DashboardBackendTest(unittest.TestCase):
             status, route = request_json(base, "/internal/dashboard/module-routes/list-of-users", headers={"x-dashboard-session": admin["sessionId"]})
             self.assertEqual(status, 200)
             self.assertEqual(route["href"], "/modules/auth/accounts")
+            status, route = request_json(base, "/internal/dashboard/module-routes/ddi-knowledge", headers={"x-dashboard-session": admin["sessionId"]})
+            self.assertEqual(status, 200)
+            self.assertEqual(route["href"], "/modules/ddi/")
+            status, route = request_json(base, "/internal/dashboard/module-routes/bn-models", headers={"x-dashboard-session": admin["sessionId"]})
+            self.assertEqual(status, 200)
+            self.assertEqual(route["href"], "/modules/bn-manager")
 
             psychiatrist = create_session(base, "psy-1")
             status, data = request_json(base, "/internal/dashboard/module-routes/logs", headers={"x-dashboard-session": psychiatrist["sessionId"]})
+            self.assertEqual(status, 403)
+            self.assertEqual(data["error"], "module_route_unauthorized")
+            status, data = request_json(base, "/internal/dashboard/module-routes/ddi-knowledge", headers={"x-dashboard-session": psychiatrist["sessionId"]})
             self.assertEqual(status, 403)
             self.assertEqual(data["error"], "module_route_unauthorized")
 
@@ -489,7 +565,7 @@ class DashboardBackendTest(unittest.TestCase):
                 self.assertEqual(workspace["workspace"]["kind"], "ADMIN")
                 self.assertEqual(
                     [button["title"] for button in workspace["workspace"]["buttons"][4:]],
-                    ["Add New User", "Logs", "Backup", "List of Users"],
+                    ["Add New User", "Logs", "Backup", "List of Users", "DDI Knowledge", "BN Models"],
                 )
                 self.assertEqual(workspace["workspace"]["buttons"][4]["href"], "/modules/auth/accounts/new")
                 self.assertEqual(workspace["workspace"]["buttons"][7]["href"], "/modules/auth/accounts")

@@ -15,7 +15,9 @@ function workspaceModel(role) {
         { id: "add-new-user", title: "Add New User", state: psychiatrist ? "unauthorized" : "available", reason: psychiatrist ? "Not authorized for current role." : "Destination available.", ...(!psychiatrist ? { href: "/modules/auth/accounts/new" } : {}) },
         { id: "logs", title: "Logs", state: psychiatrist ? "unauthorized" : "unavailable", reason: psychiatrist ? "Not authorized for current role." : "Destination is not available in this release." },
         { id: "backup", title: "Backup", state: psychiatrist ? "unauthorized" : "unavailable", reason: psychiatrist ? "Not authorized for current role." : "Destination is not available in this release." },
-        { id: "list-of-users", title: "List of Users", state: psychiatrist ? "unauthorized" : "available", reason: psychiatrist ? "Not authorized for current role." : "Destination available.", ...(!psychiatrist ? { href: "/modules/auth/accounts" } : {}) }
+        { id: "list-of-users", title: "List of Users", state: psychiatrist ? "unauthorized" : "available", reason: psychiatrist ? "Not authorized for current role." : "Destination available.", ...(!psychiatrist ? { href: "/modules/auth/accounts" } : {}) },
+        { id: "ddi-knowledge", title: "DDI Knowledge", state: psychiatrist ? "unauthorized" : "available", reason: psychiatrist ? "Not authorized for current role." : "Destination available.", ...(!psychiatrist ? { href: "/modules/ddi/", providerStatus: { readiness: { state: "not-ready", reason: "Production seam unavailable." }, clinicalUse: { state: "blocked", reason: "Production seam unavailable." } } } : {}) },
+        { id: "bn-models", title: "BN Models", state: psychiatrist ? "unauthorized" : "available", reason: psychiatrist ? "Not authorized for current role." : "Destination available.", ...(!psychiatrist ? { href: "/modules/bn-manager", providerStatus: { readiness: { state: "ready", reason: "Provider reports ready." }, clinicalUse: { state: "blocked-by-manifest", reason: "Provider-reported model clinical-use status: blocked-by-manifest." } } } : {}) }
       ]
     },
     ...(psychiatrist ? { requiresDisclaimer: false, disclaimer: { acceptedAt: "2026-07-06T17:00:00Z" } } : {})
@@ -88,12 +90,14 @@ const adminHtml = await renderScenario("ADMIN");
 assert.match(adminHtml, /<h1>Workspace<\/h1>/);
 assert.match(adminHtml, /Ari Morgan/);
 assert.doesNotMatch(adminHtml, /Dr\. Ari Morgan/);
-for (const title of ["Add New User", "Logs", "Backup", "List of Users"]) {
+for (const title of ["Add New User", "Logs", "Backup", "List of Users", "DDI Knowledge", "BN Models"]) {
   assert.match(adminHtml, new RegExp(title));
 }
 assert.match(adminHtml, /Unavailable/);
 assert.match(adminHtml, /Unauthorized/);
 assert.match(adminHtml, /\/modules\/auth\/accounts\/new/);
 assert.match(adminHtml, /\/modules\/auth\/accounts/);
+assert.match(adminHtml, /Readiness:<\/strong> not-ready/);
+assert.match(adminHtml, /Clinical use:<\/strong> blocked-by-manifest/);
 
 

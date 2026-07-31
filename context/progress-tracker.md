@@ -8,6 +8,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-074: Connect Dashboard knowledge and model administration (In progress).
 - INS-073: Connect Dashboard account administration to Authentication (In
   progress).
 - INS-071: Add BN registry review and lifecycle administration (In progress).
@@ -332,6 +333,26 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-074 Dashboard knowledge and model administration connection (In
+  progress). Dashboard now exposes admin-only `DDI Knowledge` and `BN Models`
+  destinations through gateway-relative provider-owned routes. Admin workspace
+  reads live provider readiness plus aggregate clinical-use status through
+  configured, read-only internal endpoints; unavailable and blocked states stay
+  visible, while no knowledge record, model identifier, artifact, lifecycle
+  history, or mutation control enters Dashboard persistence or responses.
+  Psychiatrist workspace and route discovery return explicit unauthorized
+  states, and BN v3 administration API traffic is now gateway-routed to BN
+  Manager. Dashboard backend passed 17/17 and its frontend contract passed;
+  changed Python and JavaScript syntax passed. BN provider contracts passed 8/8;
+  unified-image, administration ownership, and common REST checks passed 20/20;
+  root discovery passed 93 tests with two expected unconfigured live-gateway
+  skips; containerized `nginx -t` and `git diff --check` passed. DDI continues
+  to report `production-rest-seam-unavailable`, so Dashboard correctly displays
+  DDI as not ready and blocked from clinical use. Live authenticated gateway
+  navigation remains unverified without a deployed fixture, so INS-074 stays in
+  progress. Next step is an authenticated deployed admin/psychiatrist navigation
+  rehearsal after the DDI owner production seam is available. No file under
+  `insight-research/doc/` was read or modified.
 - INS-073 Dashboard account administration connection (In progress).
   Dashboard's Add New User and List of Users destinations now resolve through
   gateway-relative routes to an Authentication-owned responsive account

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -12,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from .auth import AuthSessionError, fetch_auth_identity
 from .config import ROOT, settings
 from .db import SQLiteAdapter
+from .providers import bn_status, ddi_status
 from .repository import DashboardRepository, now_iso
 
 repo = DashboardRepository(SQLiteAdapter(settings.db_path))
@@ -28,6 +30,8 @@ DESTINATIONS = [
     {"id": "logs", "title": "Logs", "role": "ADMIN"},
     {"id": "backup", "title": "Backup", "role": "ADMIN"},
     {"id": "list-of-users", "title": "List of Users", "role": "ADMIN", "href": "/modules/auth/accounts"},
+    {"id": "ddi-knowledge", "title": "DDI Knowledge", "role": "ADMIN", "href": "/modules/ddi/", "provider": "ddi"},
+    {"id": "bn-models", "title": "BN Models", "role": "ADMIN", "href": "/modules/bn-manager", "provider": "bn-manager"},
 ]
 
 MOCK_AUTH_USERS = {
@@ -110,7 +114,7 @@ def display_name_for(user: dict[str, Any]) -> str:
     return user["fullName"]
 
 
-def workspace_buttons(role: str) -> list[dict[str, Any]]:
+def workspace_buttons(role: str, provider_statuses: dict[str, dict[str, Any]] | None = None) -> list[dict[str, Any]]:
     buttons = []
     for destination in DESTINATIONS:
         if destination["role"] != role:
@@ -130,6 +134,9 @@ def workspace_buttons(role: str) -> list[dict[str, Any]]:
         }
         if state == "available":
             button["href"] = destination["href"]
+        provider = destination.get("provider")
+        if state == "available" and provider and provider_statuses:
+            button["providerStatus"] = provider_statuses[provider]
         buttons.append(button)
     return buttons
 
@@ -138,7 +145,7 @@ def module_destination(module_id: str) -> dict[str, str] | None:
     return next((destination for destination in DESTINATIONS if destination["id"] == module_id), None)
 
 
-def workspace_for(session: dict[str, Any]) -> dict[str, Any]:
+def workspace_for(session: dict[str, Any], provider_statuses: dict[str, dict[str, Any]] | None = None) -> dict[str, Any]:
     user = session.get("authUser")
     if not user:
         raise json_error(401, "authentication_session_required")
@@ -150,7 +157,7 @@ def workspace_for(session: dict[str, Any]) -> dict[str, Any]:
         "workspace": {
             "kind": user["role"],
             "title": "Workspace",
-            "buttons": workspace_buttons(user["role"]),
+            "buttons": workspace_buttons(user["role"], provider_statuses),
         },
     }
 
@@ -263,7 +270,14 @@ async def delete_dashboard_session(session: dict[str, Any] = Depends(require_ses
 @app.get("/internal/dashboard/workspace")
 @app.get("/internal/dashboard/summary")
 async def workspace(session: dict[str, Any] = Depends(require_session)) -> dict[str, Any]:
-    return workspace_for(session)
+    provider_statuses = None
+    if session["role"] == "ADMIN":
+        ddi, bn = await asyncio.gather(
+            ddi_status(settings.ddi_readiness_url, settings.provider_timeout_seconds),
+            bn_status(settings.bn_readiness_url, settings.bn_status_url, settings.provider_timeout_seconds),
+        )
+        provider_statuses = {"ddi": ddi, "bn-manager": bn}
+    return workspace_for(session, provider_statuses)
 
 
 @app.get("/internal/dashboard/module-routes/{module_id}")

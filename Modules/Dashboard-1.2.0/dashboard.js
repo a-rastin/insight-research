@@ -21,7 +21,9 @@ const ROLE_META = {
       "add-new-user": ["Access", "Create account in Authentication", "Warning"],
       logs: ["Audit", "Review system logs module", "Info"],
       backup: ["Backup", "Open backup module", "Warning"],
-      "list-of-users": ["Users", "Open Authentication account directory", "Normal"]
+      "list-of-users": ["Users", "Open Authentication account directory", "Normal"],
+      "ddi-knowledge": ["Knowledge", "Open DDI knowledge lifecycle administration", "Warning"],
+      "bn-models": ["Models", "Open Bayesian model lifecycle administration", "Warning"]
     }
   }
 };
@@ -388,11 +390,16 @@ function renderModuleRow(button, role, locked) {
         <span class="module-desc">${escapeHtml(description)}</span>
       </th>
       <td>${escapeHtml(kind)}</td>
-      <td>${statusBadge(locked && button.state === "available" ? "unavailable" : button.state)}<span class="state-reason">${escapeHtml(locked && button.state === "available" ? "Accept notice before opening." : button.reason)}</span></td>
+      <td>${statusBadge(locked && button.state === "available" ? "unavailable" : button.state)}<span class="state-reason">${escapeHtml(locked && button.state === "available" ? "Accept notice before opening." : button.reason)}</span>${renderProviderStatus(button.providerStatus)}</td>
       <td><code>${escapeHtml(button.href || "No route")}</code></td>
       <td><button class="table-action" data-module="${escapeHtml(button.id)}" ${enabled ? "" : "disabled"}>Open</button></td>
     </tr>
   `;
+}
+
+function renderProviderStatus(status) {
+  if (!status) return "";
+  return `<span class="state-reason"><strong>Readiness:</strong> ${escapeHtml(status.readiness?.state || "unknown")} - ${escapeHtml(status.readiness?.reason || "No reason reported.")}</span><span class="state-reason"><strong>Clinical use:</strong> ${escapeHtml(status.clinicalUse?.state || "unknown")} - ${escapeHtml(status.clinicalUse?.reason || "No reason reported.")}</span>`;
 }
 
 async function acceptDisclaimer() {

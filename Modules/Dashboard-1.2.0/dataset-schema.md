@@ -53,10 +53,17 @@ Dashboard does not own or store these datasets:
 | dashboard.admin.button.logs | Logs |
 | dashboard.admin.button.backup | Backup |
 | dashboard.admin.button.listUsers | List of Users |
+| dashboard.admin.button.ddiKnowledge | DDI Knowledge |
+| dashboard.admin.button.bnModels | BN Models |
 
 `Add New User` and `List of Users` are navigation metadata only. Their
 gateway-relative routes target Authentication; no account field is added to a
 Dashboard table.
+
+`DDI Knowledge` and `BN Models` are navigation metadata with transient,
+read-only provider readiness and aggregate clinical-use status. No knowledge,
+model, lifecycle, validation, or provider-status field is persisted by
+Dashboard.
 
 ## Module Destinations
 
