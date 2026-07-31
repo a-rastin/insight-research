@@ -1,0 +1,134 @@
+name: Cross-module contract compatibility
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  provider-compatibility:
+    name: Provider - ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - module: Authentication
+            directory: Modules/Auth
+            install: python -m pip install -r requirements.txt jsonschema
+            test: python -B -m unittest discover -s tests -p test_contract.py -v
+          - module: Dashboard
+            directory: Modules/Dashboard-1.2.0
+            install: python -m pip install -r requirements.txt
+            test: python -B -m unittest test_dashboard_backend.DashboardBackendTest -v
+          - module: Patient-Encounter
+            directory: Modules/Add-New-Patient-1.1.0
+            install: python -m pip install -r requirements.txt
+            test: python -B -m unittest test_encounter_v2_contracts.PatientEncounterV2ContractTest -v
+          - module: Diagnosis
+            directory: Modules/Diagnosis-1.2.0
+            install: python -m pip install -r requirements.txt
+            test: python -B -m unittest test_diagnosis_v2_contracts -v
+          - module: Severity
+            directory: Modules/Severity-1.1.0
+            install: npm ci
+            test: node test_v2_api.js
+          - module: Medical-History
+            directory: Modules/Medical-History-1.0.0
+            install: node --version
+            test: node test_v2_api.js
+          - module: Follow-up
+            directory: Modules/Treatment-Plan
+            install: python -m pip install -r requirements.txt
+            test: python -B -m unittest tests.test_tp18_supersession -v
+          - module: DDI
+            directory: .
+            install: python -m pip install jsonschema
+            test: python -B -m unittest tests.test_ddi_v1_contract -v
+          - module: BN
+            directory: Modules/BN-Manager-v.1.1.0/BN-Manager-v.1.1.0
+            install: python -m pip install -e .
+            test: python -B -m unittest tests.test_contract -v
+          - module: Treatment-Plan
+            directory: Modules/Treatment-Plan
+            install: python -m pip install -r requirements.txt
+            test: python -B -m unittest tests.test_tp05_contracts -v
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install provider dependencies
+        working-directory: ${{ matrix.directory }}
+        run: ${{ matrix.install }}
+      - name: Verify provider contract
+        working-directory: ${{ matrix.directory }}
+        run: ${{ matrix.test }}
+
+  consumer-compatibility:
+    name: Consumer - ${{ matrix.module }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - module: Authentication
+            directory: Modules/Dashboard-1.2.0
+            install: python -m pip install -r requirements.txt
+            test: python -B -m unittest test_dashboard_backend.AuthSessionNormalizationTest -v
+          - module: Dashboard
+            directory: Modules/Dashboard-1.2.0
+            install: python -m pip install -r requirements.txt
+            test: python -B -m unittest test_dashboard_backend.DashboardBackendTest.test_psychiatrist_workspace_model_has_exact_buttons_and_route_discovery -v
+          - module: Patient-Encounter
+            directory: Modules/Diagnosis-1.2.0
+            install: python -m pip install -r requirements.txt
+            test: python -B -m unittest test_patient -v
+          - module: Diagnosis
+            directory: Modules/Treatment-Plan
+            install: python -m pip install -r requirements.txt
+            test: python -B -m unittest tests.test_tp08_clinical_context.TP08ContractTests.test_one_canonical_identity_pair_crosses_real_http_only -v
+          - module: Severity
+            directory: Modules/Treatment-Plan
+            install: python -m pip install -r requirements.txt
+            test: python -B -m unittest tests.test_tp08_clinical_context.TP08ContractTests.test_one_canonical_identity_pair_crosses_real_http_only -v
+          - module: Medical-History
+            directory: Modules/Treatment-Plan
+            install: python -m pip install -r requirements.txt
+            test: python -B -m unittest tests.test_tp08_clinical_context.TP08ContractTests.test_one_canonical_identity_pair_crosses_real_http_only -v
+          - module: Follow-up
+            directory: Modules/Treatment-Plan
+            install: python -m pip install -r requirements.txt
+            test: python -B -m unittest tests.test_tp18_supersession.TP18SupersessionTests.test_changed_and_unchanged_sections_are_explained_and_prior_is_immutable -v
+          - module: DDI
+            directory: Modules/Treatment-Plan
+            install: python -m pip install -r requirements.txt
+            test: python -B -m unittest tests.test_tp05_contracts.TreatmentPlanContractTests.test_provider_contract_paths_are_real_and_security_controls_are_published -v
+          - module: BN
+            directory: Modules/Treatment-Plan
+            install: python -m pip install -r requirements.txt
+            test: python -B -m unittest tests.test_tp05_contracts.TreatmentPlanContractTests.test_provider_contract_paths_are_real_and_security_controls_are_published -v
+          - module: Treatment-Plan
+            directory: Modules/Treatment-Plan
+            install: python -m pip install -r requirements.txt
+            test: python -B -m unittest tests.test_tp50_recommendation_runs -v
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install consumer dependencies
+        working-directory: ${{ matrix.directory }}
+        run: ${{ matrix.install }}
+      - name: Verify consumer contract
+        working-directory: ${{ matrix.directory }}
+        run: ${{ matrix.test }}

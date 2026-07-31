@@ -8,6 +8,7 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-057: Add cross-module contract and identity CI (In progress).
 - INS-056: Build the unified multi-process image and internal gateway (In
   progress).
 - INS-055: Implement the approved read-only assistant slice (In progress).
@@ -318,6 +319,23 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-057 cross-module contract and identity CI (In progress). GitHub Actions
+  now has fail-independent provider and consumer matrices for Authentication,
+  Dashboard, Patient/Encounter, Diagnosis, Severity, Medical History, Follow-up,
+  DDI, BN, and Treatment Plan. Jobs install each module's own dependencies and
+  run its existing focused provider or consumer contract checks. Treatment
+  Plan's clinical-context consumer suite now also uses a real loopback HTTP
+  server to retrieve all owner-shaped snapshots and proves that one canonical
+  Patient UUID and Encounter UUID pair survives every accepted response without
+  cross-module imports, database access, or shared files. The focused HTTP test
+  passed 1/1; the full Treatment Plan suite passed 77/77; root discovery passed
+  75/75; Authentication, Dashboard, Patient/Encounter, Diagnosis, Severity,
+  Medical History, Follow-up, DDI, BN, and Treatment Plan matrix selectors all
+  passed locally; changed Python compilation, workflow YAML parsing, and `git
+  diff --check` passed. DDI remains limited to its published static provider
+  contract until its separately scoped production REST seam exists. Hosted
+  GitHub Actions execution remains the next verification, so INS-057 stays in
+  progress. No file under `insight-research/doc/` was read or modified.
 - INS-056 unified multi-process image and internal gateway (In progress). A
   digest-pinned Python 3.13 and Node.js 22 multi-stage image now packages ten
   independently configured module processes and their UIs under non-root UID

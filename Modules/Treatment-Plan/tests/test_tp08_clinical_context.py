@@ -1,7 +1,10 @@
 import asyncio
 import hashlib
+import json
+import threading
 import unittest
 from datetime import datetime, timedelta, timezone
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import httpx
 
@@ -139,6 +142,56 @@ VERSIONS = {Dependency.PATIENT: "2.0.0", Dependency.DIAGNOSIS: "2.0.0", Dependen
             Dependency.MEDICAL_HISTORY: "2.0.0", Dependency.SUICIDE_RISK: "1.0.0"}
 
 
+class IdentityProviderServer:
+    def __init__(self, responses):
+        self.responses = responses
+        self.requests = []
+
+    def __enter__(self):
+        owner = self
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                routes = {
+                    "/api/add-new-patient/": Dependency.PATIENT,
+                    "/api/diagnosis/": Dependency.DIAGNOSIS,
+                    "/api/severity/": Dependency.SEVERITY,
+                    "/api/medical-history/": Dependency.MEDICAL_HISTORY,
+                    "/api/suicide-risk/": Dependency.SUICIDE_RISK,
+                }
+                dependency = next((value for prefix, value in routes.items() if self.path.startswith(prefix)), None)
+                if dependency is None:
+                    self.send_error(404)
+                    return
+                owner.requests.append(self.path)
+                payload = owner.responses[dependency]
+                body = json.dumps(payload, separators=(",", ":")).encode()
+                etag = payload["source"]["etag"] if dependency is Dependency.SUICIDE_RISK else f'"{dependency.value}-v1"'
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(body)))
+                self.send_header("ETag", etag)
+                self.send_header("X-Schema-Version", VERSIONS[dependency])
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *_):
+                return
+
+        self.server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        self.thread = threading.Thread(
+            target=lambda: self.server.serve_forever(poll_interval=0.01), daemon=True
+        )
+        self.thread.start()
+        self.base_url = f"http://127.0.0.1:{self.server.server_port}"
+        return self
+
+    def __exit__(self, *_):
+        self.server.shutdown()
+        self.server.server_close()
+        self.thread.join(timeout=5)
+
+
 def dependency_for_request(request):
     return Dependency(request.url.host.split(".")[0])
 
@@ -185,6 +238,25 @@ class TP08ContractTests(unittest.IsolatedAsyncioTestCase):
         risk_source = next(source for source in context.sources if source.dependency is Dependency.SUICIDE_RISK)
         self.assertEqual(risk_source.provider_content_hash, "sha256:" + "a" * 64)
         self.assertEqual(risk_source.source_versions["policyVersion"], "insight.treatment-plan-safety-policy/1.0.0")
+
+    async def test_one_canonical_identity_pair_crosses_real_http_only(self):
+        expected = payloads()
+        with IdentityProviderServer(expected) as provider:
+            client = httpx.AsyncClient()
+            self.addAsyncCleanup(client.aclose)
+            assembler = ClinicalContextAssembler(
+                {dependency: provider.base_url for dependency in Dependency},
+                client,
+                self.auth(),
+                wall_clock=lambda: NOW,
+            )
+            context = await self.assemble(assembler)
+
+        self.assertTrue(context.complete)
+        self.assertEqual(len(provider.requests), len(Dependency))
+        for source in context.inputs.values():
+            self.assertEqual(source["patientId"], PATIENT)
+            self.assertEqual(source["encounterId"], ENCOUNTER)
 
     async def test_forwards_only_configured_session_trace_and_service_context(self):
         requests = []
