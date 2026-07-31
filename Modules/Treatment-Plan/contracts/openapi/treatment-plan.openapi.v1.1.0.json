@@ -3,7 +3,7 @@
   "info": {
     "title": "INSIGHT Treatment Plan live API",
     "version": "1.1.0",
-    "description": "Contract for the routes implemented by treatment_plan.app. This contract records current runtime behavior; it does not add recommendation-run, schema-serving, contract-discovery, or supersession routes."
+    "description": "Contract for the routes implemented by treatment_plan.app. This contract records current runtime behavior; it does not add recommendation-run or supersession routes."
   },
   "servers": [{"url": "/"}],
   "x-insight-compatibility": {
@@ -16,8 +16,6 @@
       "X-Request-ID is required and UUID-formatted for finalization"
     ],
     "removedUndocumentedRuntimeClaims": [
-      "GET /api/treatment-plan/v1/contract",
-      "GET /api/treatment-plan/v1/schemas/{name}/{version}",
       "POST /api/treatment-plan/v1/recommendation-runs",
       "GET /api/treatment-plan/v1/recommendation-runs/{runId}",
       "POST /api/treatment-plan/v1/plans/{planId}/supersede"
@@ -50,6 +48,72 @@
     {"name": "support"}
   ],
   "paths": {
+    "/api/treatment-plan/v1/contract": {
+      "get": {
+        "operationId": "discoverTreatmentPlanContract",
+        "x-insight-implementation-issue": "INS-049",
+        "tags": ["operations"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Treatment Plan interface and schema discovery",
+            "headers": {
+              "X-Schema-Version": {"$ref": "#/components/headers/PlanViewSchemaVersion"},
+              "X-Request-ID": {"$ref": "#/components/headers/RequestId"},
+              "X-Correlation-ID": {"$ref": "#/components/headers/CorrelationId"}
+            },
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "../../../../contracts/common-rest-profile-v1.schema.json#/$defs/contractDiscovery"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/treatment-plan/v1/openapi.json": {
+      "get": {
+        "operationId": "getTreatmentPlanOpenApi",
+        "x-insight-implementation-issue": "INS-049",
+        "tags": ["operations"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Canonical Treatment Plan OpenAPI 3.1 contract",
+            "headers": {
+              "X-Schema-Version": {"$ref": "#/components/headers/PlanViewSchemaVersion"},
+              "X-Request-ID": {"$ref": "#/components/headers/RequestId"},
+              "X-Correlation-ID": {"$ref": "#/components/headers/CorrelationId"}
+            },
+            "content": {"application/json": {"schema": {"type": "object"}}}
+          }
+        }
+      }
+    },
+    "/api/treatment-plan/v1/schemas/{name}/{version}": {
+      "get": {
+        "operationId": "getTreatmentPlanSchema",
+        "x-insight-implementation-issue": "INS-049",
+        "tags": ["operations"],
+        "security": [],
+        "parameters": [
+          {"$ref": "#/components/parameters/SchemaName"},
+          {"$ref": "#/components/parameters/SchemaArtifactVersion"}
+        ],
+        "responses": {
+          "200": {
+            "description": "Allowlisted Treatment Plan JSON Schema artifact",
+            "headers": {
+              "X-Schema-Version": {"$ref": "#/components/headers/PlanViewSchemaVersion"},
+              "X-Request-ID": {"$ref": "#/components/headers/RequestId"},
+              "X-Correlation-ID": {"$ref": "#/components/headers/CorrelationId"}
+            },
+            "content": {"application/schema+json": {"schema": {"type": "object"}}}
+          },
+          "404": {"$ref": "#/components/responses/RuntimeError"}
+        }
+      }
+    },
     "/health": {
       "get": {
         "operationId": "getTreatmentPlanHealth",
@@ -320,13 +384,27 @@
         "in": "header",
         "required": false,
         "schema": {"type": "string", "format": "uuid"}
+      },
+      "SchemaName": {
+        "name": "name",
+        "in": "path",
+        "required": true,
+        "schema": {"enum": ["audit-event", "runtime-api", "treatment-plan"]}
+      },
+      "SchemaArtifactVersion": {
+        "name": "version",
+        "in": "path",
+        "required": true,
+        "schema": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"}
       }
     },
     "headers": {
       "ETag": {"schema": {"type": "string", "minLength": 1}},
       "PlanViewSchemaVersion": {"schema": {"const": "1.1.0"}},
       "FinalPlanSchemaVersion": {"schema": {"const": "1.0.0"}},
-      "IdempotencyKey": {"schema": {"type": "string", "minLength": 1}}
+      "IdempotencyKey": {"schema": {"type": "string", "minLength": 1}},
+      "RequestId": {"schema": {"type": "string", "format": "uuid"}},
+      "CorrelationId": {"schema": {"type": "string", "format": "uuid"}}
     },
     "responses": {
       "RuntimeError": {

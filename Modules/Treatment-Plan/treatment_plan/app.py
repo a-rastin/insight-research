@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import time
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
@@ -34,6 +34,27 @@ from .sqlite_repository import SQLiteRepository
 from .security import AccessDenied, AuthenticationUnavailable, Capability, HttpAuthenticationAdapter, Security, Session
 
 
+MODULE_VERSION = "0.1.0"
+INTERFACE_VERSION = "1.1.0"
+PROFILE_VERSION = "1.0.0"
+CONTRACT_ROOT = Path(__file__).parents[1] / "contracts"
+OPENAPI_PATH = CONTRACT_ROOT / "openapi" / "treatment-plan.openapi.v1.1.0.json"
+SCHEMA_PATHS = {
+    ("audit-event", "1.0.0"): CONTRACT_ROOT / "schemas" / "1.0.0" / "audit-event.schema.json",
+    ("runtime-api", "1.1.0"): CONTRACT_ROOT / "schemas" / "1.1.0" / "runtime-api.schema.json",
+    ("treatment-plan", "1.0.0"): CONTRACT_ROOT / "schemas" / "1.0.0" / "treatment-plan.schema.json",
+}
+
+
+def _discovery_headers(correlation_id: str) -> dict[str, str]:
+    request_id = str(uuid4())
+    return {
+        "X-Schema-Version": INTERFACE_VERSION,
+        "X-Request-ID": request_id,
+        "X-Correlation-ID": correlation_id,
+    }
+
+
 def create_app(
     settings: Settings | None = None,
     repository: Repository | None = None,
@@ -61,7 +82,9 @@ def create_app(
 
     @app.middleware("http")
     async def correlate(request: Request, call_next):
-        with observability.bind(request.headers.get("x-correlation-id")) as correlation_id:
+        with observability.bind(
+            request.headers.get("x-correlation-id") or request.headers.get("x-request-id")
+        ) as correlation_id:
             started = time.monotonic()
             try:
                 response = await call_next(request)
@@ -113,6 +136,41 @@ def create_app(
             raise HTTPException(503, "repository unavailable")
         mode = "development-stub" if settings.auth_stub_enabled else ("rest" if security else "disabled")
         return {"status": "ready", "authMode": mode}
+
+    @app.get("/api/treatment-plan/v1/contract")
+    def contract_discovery():
+        return JSONResponse(
+            {
+                "moduleId": "treatment-plan",
+                "moduleVersion": MODULE_VERSION,
+                "interfaceVersion": INTERFACE_VERSION,
+                "schemaVersions": ["1.0.0", "1.1.0"],
+                "profileVersion": PROFILE_VERSION,
+                "openapiPath": "/api/treatment-plan/v1/openapi.json",
+                "idempotencyKeyRetentionSeconds": 86400,
+                "time": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            },
+            headers=_discovery_headers(observability.correlation_id),
+        )
+
+    @app.get("/api/treatment-plan/v1/openapi.json", include_in_schema=False)
+    def contract_openapi():
+        return FileResponse(
+            OPENAPI_PATH,
+            media_type="application/json",
+            headers=_discovery_headers(observability.correlation_id),
+        )
+
+    @app.get("/api/treatment-plan/v1/schemas/{name}/{version}")
+    def contract_schema(name: str, version: str):
+        path = SCHEMA_PATHS.get((name, version))
+        if path is None:
+            raise HTTPException(404, "schema not found")
+        return FileResponse(
+            path,
+            media_type="application/schema+json",
+            headers=_discovery_headers(observability.correlation_id),
+        )
 
     @app.get("/api/treatment-plan/v1/session")
     def session(current_actor: str = Depends(actor)):

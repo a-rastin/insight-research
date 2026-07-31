@@ -8,6 +8,8 @@ Update this file after every meaningful implementation change.
 
 ## Current Goal
 
+- INS-049: Implement Treatment Plan contract and schema discovery routes (In
+  progress).
 - INS-048: Replace hypothetical clinical-context URLs with provider contracts
   (In progress).
 - INS-035: Reconcile BN Pharmacotherapy XML semantics and provenance (In
@@ -307,6 +309,27 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- INS-049 Treatment Plan contract and schema discovery (In progress). The
+  unauthenticated `GET /api/treatment-plan/v1/contract` response now conforms
+  to the accepted common REST discovery schema, identifies interface `1.1.0`
+  and schema versions `1.0.0`/`1.1.0`, publishes the canonical OpenAPI path and
+  24-hour idempotency-key retention, emits a UTC `Z` timestamp, and returns
+  per-hop request plus root-preserving correlation UUID headers. The canonical
+  OpenAPI artifact is served at `GET /api/treatment-plan/v1/openapi.json` and
+  only three registered artifacts are available through
+  `GET /api/treatment-plan/v1/schemas/{name}/{version}`; unknown names,
+  versions, and traversal-shaped requests return 404 without filesystem lookup.
+  The release image now includes the unchanged canonical contract directory.
+  Focused discovery and OpenAPI parity checks passed 10/10, the Treatment Plan
+  full suite passed 65/65, common REST profile checks passed 8/8, and root
+  discovery passed 70/70. All discoverable schemas passed Draft 2020-12 schema
+  checking, the OpenAPI artifact passed JSON syntax checking, changed Python
+  files compiled, and `git diff --check` passed. No clinical behavior,
+  persistence, authentication requirement, or schema content changed. No file
+  under `insight-research/doc/` or generated `graphify-out/` was read or
+  modified. Unified gateway routing and a built-container HTTP smoke test remain
+  outside this bounded packet, so INS-049 stays in progress; that deployment
+  verification is the next step.
 - INS-048 clinical-context provider contract migration (In progress). The
   Treatment Plan assembler now calls the published Add New Patient intake v2,
   Diagnosis snapshot v2, Severity assessment v2, Medical History latest v2,

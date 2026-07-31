@@ -56,7 +56,10 @@ class TreatmentPlanContractTests(unittest.TestCase):
                 if method not in HTTP_METHODS:
                     continue
                 operation_ids.append(operation["operationId"])
-                self.assertEqual("INS-020", operation["x-insight-implementation-issue"])
+                expected_issue = "INS-049" if operation["operationId"] in {
+                    "discoverTreatmentPlanContract", "getTreatmentPlanOpenApi", "getTreatmentPlanSchema"
+                } else "INS-020"
+                self.assertEqual(expected_issue, operation["x-insight-implementation-issue"])
                 self.assertIn("responses", operation)
         self.assertEqual(len(operation_ids), len(set(operation_ids)))
 
