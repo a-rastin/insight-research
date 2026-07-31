@@ -40,6 +40,8 @@ class UnifiedImageTests(unittest.TestCase):
             self.assertIn(module["basePath"], nginx, module["id"])
             self.assertNotIn(f'EXPOSE {module["port"]}', dockerfile)
 
+        self.assertIn("location = /modules/add-new-patient { return 308 /modules/add-new-patient/; }", nginx)
+
     def test_image_is_non_root_locked_and_has_distinct_volumes(self):
         dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
         compose = (DEPLOY / "compose.yaml").read_text(encoding="utf-8")
@@ -63,11 +65,22 @@ class UnifiedImageTests(unittest.TestCase):
         self.assertEqual([POLICY["modules"][2]["id"]], payload["unavailableModules"])
         self.assertNotIn("127.0.0.1", json.dumps(payload))
 
-    def test_ddi_readiness_remains_fail_closed_until_rest_seam_exists(self):
+    def test_ddi_runtime_exposes_protected_rest_seam_and_kb_gated_readiness(self):
         source = (DEPLOY / "ddi-static-server.mjs").read_text(encoding="utf-8")
+        supervisor = (DEPLOY / "supervisord.conf").read_text(encoding="utf-8")
         self.assertIn('pathname === "/readyz"', source)
-        self.assertIn("production-rest-seam-unavailable", source)
-        self.assertNotIn('json(response, 200, { status: "ready"', source)
+        self.assertIn('pathname === `${API_PREFIX}/checks`', source)
+        self.assertIn("serviceAuthorized", source)
+        self.assertIn("currentPsychiatrist", source)
+        self.assertIn("validateKnowledgeBase(knowledgeBase, { clinicalActive: true })", source)
+        self.assertIn('status: "ready"', source)
+        self.assertNotIn("production-rest-seam-unavailable", source)
+        for setting in (
+            'TP_DDI_BASE_URL="http://127.0.0.1:8107"',
+            'TP_DDI_SERVICE_AUTH_KEY_ID="tp-ddi-v1"',
+            'TP_DDI_SERVICE_AUTH_SECRET="%(ENV_DDI_SERVICE_AUTH_SECRET)s"',
+        ):
+            self.assertIn(setting, supervisor)
 
     def test_image_contains_module_backup_operations(self):
         dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")

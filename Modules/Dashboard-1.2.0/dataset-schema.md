@@ -14,7 +14,6 @@ Dashboard is a workspace router. It stores only Dashboard-owned session and work
 | auth_session_id | string | Authentication session id used for re-validation |
 | active | boolean | Signed-out sessions become inactive |
 | created_at | datetime | Dashboard session creation time |
-| disclaimer_accepted_at | datetime, nullable | Dashboard-local prototype notice state for this session |
 
 ### workspace_events
 
@@ -47,6 +46,11 @@ Dashboard does not own or store these datasets:
 | dashboard.workspace.title | Workspace |
 | dashboard.psychiatrist.button.add | Add New Patient |
 | dashboard.psychiatrist.button.followUp | Patient Follow-up |
+| dashboard.psychiatrist.button.diagnosis | Diagnosis |
+| dashboard.psychiatrist.button.severity | Severity |
+| dashboard.psychiatrist.button.medicalHistory | Medical History |
+| dashboard.psychiatrist.button.suicideRisk | Suicide Risk |
+| dashboard.psychiatrist.button.treatmentPlan | Treatment Plan |
 | dashboard.psychiatrist.button.list | List of Patients |
 | dashboard.psychiatrist.button.setting | Setting |
 | dashboard.admin.button.addUser | Add New User |
@@ -75,7 +79,7 @@ Each workspace destination has one explicit state:
   "title": "Add New Patient",
   "state": "available",
   "reason": "Destination available.",
-  "href": "/modules/add-new-patient"
+  "href": "/modules/add-new-patient/"
 }
 ```
 

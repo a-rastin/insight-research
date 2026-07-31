@@ -111,7 +111,7 @@ class AuthRouteTests(AuthTestCase):
 
         accept = user_client.post("/api/auth/disclaimer/accept")
         self.assertEqual(accept.status_code, 200)
-        self.assertEqual(accept.json()["next"], "/dashboard/user")
+        self.assertEqual(accept.json()["next"], "/dashboard/")
 
         session = user_client.get("/api/auth/session")
         self.assertEqual(session.status_code, 200)

@@ -45,8 +45,20 @@ export type AssistantAdvisory = {
   advisory: string;
 };
 
+export async function loadCsrfToken(fetcher: FetchLike = fetch): Promise<string> {
+  const response = await fetcher("/api/auth/csrf", { credentials: "include" });
+  if (!response.ok) throw await responseError(response);
+  const payload = object(await response.json(), "CSRF response");
+  if (payload.ok !== true) throw new Error("Authentication did not issue a CSRF token.");
+  return text(payload.csrf_token, "CSRF token");
+}
+
 type FetchLike = typeof fetch;
 type JsonObject = Record<string, unknown>;
+
+export function planIdFromPath(pathname: string): string {
+  return pathname.match(/^\/modules\/treatment-plan\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\/?$/)?.[1] ?? "";
+}
 
 function object(value: unknown, label: string): JsonObject {
   if (value === null || typeof value !== "object" || Array.isArray(value)) {
@@ -293,4 +305,29 @@ export async function supersedePlan(
     successorPlanId: text(primaryPlan.planId, "successor primaryPlan.planId"),
     comparisons,
   };
+}
+
+export async function finalizePlan(
+  planId: string,
+  etag: string,
+  csrfToken: string,
+  attestation: string,
+  idempotencyKey: string,
+  fetcher: FetchLike = fetch,
+  requestId: string = crypto.randomUUID(),
+): Promise<JsonObject> {
+  const response = await fetcher(`/api/treatment-plan/v1/plans/${encodeURIComponent(planId)}/finalize`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "If-Match": etag,
+      "Idempotency-Key": idempotencyKey,
+      "X-CSRF-Token": csrfToken,
+      "X-Request-ID": requestId,
+    },
+    body: JSON.stringify({ attestation: attestation.trim() }),
+  });
+  if (!response.ok) throw await responseError(response);
+  return object(await response.json(), "Final Plan response");
 }

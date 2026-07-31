@@ -113,6 +113,11 @@ class AuthContractTests(AuthTestCase):
     def test_login_role_contract_and_safe_redirects(self):
         client = self.client()
 
+        login_html = client.get("/").text
+        self.assertIn("window.location.replace('/dashboard/')", login_html)
+        self.assertNotIn("/dashboard/admin", login_html)
+        self.assertNotIn("/dashboard/user", login_html)
+
         invalid_role = client.post(
             "/api/auth/login",
             json={"username": "Admin", "password": "Admin", "role": "clinician"},
@@ -136,7 +141,7 @@ class AuthContractTests(AuthTestCase):
             },
         )
         self.assertEqual(login.status_code, 200)
-        self.assertEqual(login.json()["next"], "/dashboard/admin")
+        self.assertEqual(login.json()["next"], "/dashboard/")
 
     def test_admin_lifecycle_contract_revokes_stale_sessions(self):
         client = self.login_admin()

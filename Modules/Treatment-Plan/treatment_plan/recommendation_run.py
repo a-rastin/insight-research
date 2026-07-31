@@ -266,7 +266,9 @@ class RecommendationStages(Protocol):
     def synthesize(
         self, context: ClinicalContext, bn_result: Any, *, timezone: str
     ) -> Any: ...
-    async def check_ddi(self, context: ClinicalContext, plan: Any) -> Any: ...
+    async def check_ddi(
+        self, context: ClinicalContext, plan: Any, outbound_context: OutboundRequestContext
+    ) -> Any: ...
     def persist(self, context: ClinicalContext, run_id: str, plan: Any, ddi_result: Any) -> str: ...
 
 
@@ -360,9 +362,12 @@ class TreatmentPlanRecommendationStages:
         )
 
     async def check_ddi(
-        self, context: ClinicalContext, result: _PlanStageResult
+        self, context: ClinicalContext, result: _PlanStageResult,
+        outbound_context: OutboundRequestContext,
     ) -> DdiCheckResult:
-        return await self._ddi.check(result.plan, result.inputs.current_medications)
+        return await self._ddi.check(
+            result.plan, result.inputs.current_medications, outbound_context
+        )
 
     def persist(
         self,
@@ -490,7 +495,7 @@ class RecommendationRunWorkflow:
             plan = self._stages.synthesize(
                 context, bn_result, timezone=request.timezone
             )
-            ddi_result = await self._stages.check_ddi(context, plan)
+            ddi_result = await self._stages.check_ddi(context, plan, outbound_context)
             plan_id = self._stages.persist(context, run.run_id, plan, ddi_result)
             UUID(plan_id)
         except Exception as exc:

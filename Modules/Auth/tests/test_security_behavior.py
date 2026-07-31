@@ -31,7 +31,7 @@ class SecurityBehaviorTests(AuthTestCase):
                 json={"username": "Admin", "password": "Admin", "role": "admin"},
             )
             self.assertEqual(recovered.status_code, 200)
-            self.assertEqual(recovered.json()["next"], "/dashboard/admin")
+            self.assertEqual(recovered.json()["next"], "/dashboard/")
         finally:
             security._now = original_now
 

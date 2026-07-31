@@ -42,10 +42,10 @@ python server.py
 
 The API starts at `http://127.0.0.1:8000`. The protected module UI is mounted at `/modules/bn-manager`.
 
-Authentication defaults to `GET /api/auth/session` and can be configured with:
+Authentication defaults to `GET /api/auth/v2/session` and can be configured with:
 
 ```powershell
-$env:BN_MANAGER_AUTH_SESSION_URL = "http://127.0.0.1:8000/api/auth/session"
+$env:BN_MANAGER_AUTH_SESSION_URL = "http://127.0.0.1:8000/api/auth/v2/session"
 $env:BN_MANAGER_AUTH_TIMEOUT_SECONDS = "2.0"
 $env:BN_MANAGER_CSRF_HEADER_NAME = "x-csrf-token"
 ```

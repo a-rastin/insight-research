@@ -301,9 +301,9 @@ def _map_account_management_error(exc: Exception) -> HTTPException:
 def _post_auth_response(user) -> LoginResponse:
     role = security.normalize_role(user["role"])
     if role == "admin":
-        return LoginResponse(ok=True, next="/dashboard/admin")
+        return LoginResponse(ok=True, next="/dashboard/")
     if user["disclaimer_signed"]:
-        return LoginResponse(ok=True, next="/dashboard/user")
+        return LoginResponse(ok=True, next="/dashboard/")
     return LoginResponse(ok=True, next=None, disclaimer_required=True)
 
 
@@ -789,7 +789,7 @@ def accept_disclaimer(request: Request):
         target={"id": int(payload["sub"]), "username": payload.get("username")},
         metadata={"version": security.active_disclaimer_version()},
     )
-    return LoginResponse(ok=True, next="/dashboard/user")
+    return LoginResponse(ok=True, next="/dashboard/")
 
 
 @router.get("/v2/session", response_model=VersionedSessionResponse)

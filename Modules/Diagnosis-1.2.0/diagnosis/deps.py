@@ -18,6 +18,8 @@ from __future__ import annotations
 
 import os
 
+from fastapi import Request
+
 from .auth import Session, require_role
 from . import csrf as _csrf
 from .store import DiagnosisStore
@@ -48,22 +50,35 @@ if os.environ.get("DIAGNOSIS_AUTH_BYPASS") == "1":
         RuntimeWarning,
     )
 
-    def _bypass_dep() -> Session:  # type: ignore[no-redef]
-        return Session(
-            user_id="selfcheck",
-            roles=frozenset({"psychiatrist", "admin"}),
-            session_id=None,
-        )
 
-    require_psychiatrist = _bypass_dep
-    require_psychiatrist_or_admin = _bypass_dep
+_require_psychiatrist = require_role("psychiatrist")
+_require_psychiatrist_or_admin = require_role("psychiatrist", "admin")
 
-    def require_csrf() -> None:  # type: ignore[no-redef]
+
+def _bypass_session() -> Session:
+    return Session(
+        user_id="selfcheck",
+        roles=frozenset({"psychiatrist", "admin"}),
+        session_id=None,
+    )
+
+
+def require_psychiatrist(request: Request) -> Session:
+    if os.environ.get("DIAGNOSIS_AUTH_BYPASS") == "1":
+        return _bypass_session()
+    return _require_psychiatrist(request)
+
+
+def require_psychiatrist_or_admin(request: Request) -> Session:
+    if os.environ.get("DIAGNOSIS_AUTH_BYPASS") == "1":
+        return _bypass_session()
+    return _require_psychiatrist_or_admin(request)
+
+
+def require_csrf(request: Request) -> None:
+    if os.environ.get("DIAGNOSIS_AUTH_BYPASS") == "1":
         return None
-else:
-    require_psychiatrist = require_role("psychiatrist")
-    require_psychiatrist_or_admin = require_role("psychiatrist", "admin")
-    require_csrf = _csrf.require_csrf  # pyright: ignore[reportAssignmentType]
+    return _csrf.require_csrf(request)
 
 
 __all__ = [

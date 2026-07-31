@@ -107,7 +107,7 @@ signed. This is enforced by `GET /api/auth/session`.
 Responses:
 
 ```json
-{ "ok": true, "next": "/dashboard/admin", "disclaimer_required": false }
+{ "ok": true, "next": "/dashboard/", "disclaimer_required": false }
 ```
 
 ```json
@@ -230,7 +230,7 @@ Behavior:
 Response:
 
 ```json
-{ "ok": true, "next": "/dashboard/user", "disclaimer_required": false }
+{ "ok": true, "next": "/dashboard/", "disclaimer_required": false }
 ```
 
 ### `GET /api/auth/session`
@@ -497,7 +497,7 @@ Defaults:
 | `AUTH_SECURE_COOKIE` | `false` | Set `true` behind HTTPS. |
 | `AUTH_ADMIN_USERNAME` | `Admin` | Seeded on first DB creation if absent. |
 | `AUTH_ADMIN_PASSWORD` | `Admin` | Seed password only; changing it later does not update existing admin. |
-| `AUTH_ALLOWED_REDIRECTS` | `/dashboard/admin,/dashboard/user` | Parsed by `_safe_redirect()`, currently unused by login requests. |
+| `AUTH_ALLOWED_REDIRECTS` | `/dashboard/` | Parsed by `_safe_redirect()`, currently unused by login requests. |
 | `AUTH_LOGIN_FAILURE_LIMIT` | `5` | Failed attempts per username/client tuple before lockout. Set `0` only for isolated test fixtures. |
 | `AUTH_LOGIN_FAILURE_WINDOW_SECONDS` | `300` | Rolling window for counting failed login attempts. |
 | `AUTH_LOGIN_LOCKOUT_SECONDS` | `900` | Temporary lockout duration once the failure limit is reached. |

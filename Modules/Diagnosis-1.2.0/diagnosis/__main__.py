@@ -13,15 +13,13 @@ def main():
     # scoped to this process; if the operator wants to assert absence of
     # auth in production they can grep the env table.
     #
-    # Set BEFORE any ``diagnosis.*`` import: importing submodules triggers
-    # ``diagnosis/__init__.py`` -> ``api`` -> ``deps`` which reads this env
-    # once at import time to wire the role / CSRF deps (HANDOFF §10).
+    # Set before imports so startup configuration and the bypass warning see it.
     os.environ.setdefault("DIAGNOSIS_AUTH_BYPASS", "1")
 
     # Bind address defaults come from the settings adapter
     # (``DIAGNOSIS_HOST`` / ``DIAGNOSIS_PORT``); CLI flags still override for
     # ad-hoc dev runs (`--port 8010`). Imported after the bypass env is set so
-    # the settings snapshot + the deps wiring all see the self-check shim.
+    # the settings snapshot sees the self-check shim.
     from .config import settings
     parser = argparse.ArgumentParser(prog="diagnosis", description="Insight diagnosis module")
     parser.add_argument("--host", default=settings.host)

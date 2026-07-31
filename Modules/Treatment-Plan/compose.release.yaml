@@ -21,7 +21,10 @@ services:
       TP_DATABASE_PATH: /data/treatment-plan.db
       TP_AUTHENTICATION_SESSION_URL: ${TP_AUTHENTICATION_SESSION_URL:-}
       TP_AUTHENTICATION_SESSION_URL_FILE: ${TP_AUTHENTICATION_SESSION_URL_FILE:-}
-      TP_TRUSTED_INTERNAL_ORIGINS: ${TP_TRUSTED_INTERNAL_ORIGINS:-}
+      TP_DDI_BASE_URL: ${TP_DDI_BASE_URL:?set DDI v1 origin}
+      TP_DDI_SERVICE_AUTH_KEY_ID: ${TP_DDI_SERVICE_AUTH_KEY_ID:?set DDI service-auth key ID}
+      TP_DDI_SERVICE_AUTH_SECRET: ${TP_DDI_SERVICE_AUTH_SECRET:?set DDI service-auth secret}
+      TP_TRUSTED_INTERNAL_ORIGINS: ${TP_TRUSTED_INTERNAL_ORIGINS:?set trusted Authentication and DDI origins}
     volumes:
       - treatment-plan-data:/data
       - type: bind

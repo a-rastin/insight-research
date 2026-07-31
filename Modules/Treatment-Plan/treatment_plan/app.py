@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from .config import Settings
 from .assistant import AssistantUnavailable, HttpAssistantProvider, InvalidAssistantRequest, ReadOnlyAssistant
 from .clinical_context import OutboundRequestContext
+from .ddi_check import DdiMedicationChecker, HttpDdiPort
 from .edit_ledger import (
     InMemoryPlanEditStore,
     InvalidEdit,
@@ -57,6 +58,33 @@ SCHEMA_PATHS = {
     ("treatment-plan", "1.0.0"): CONTRACT_ROOT / "schemas" / "1.0.0" / "treatment-plan.schema.json",
 }
 
+INTEGRATION_BLOCKERS = {
+    "recommendation": {
+        "code": "TP_RECOMMENDATION_MAPPING_UNAPPROVED",
+        "detail": "No approved contract maps owner snapshots into BN evidence, deterministic safety candidates, safety facts, and source facts.",
+    },
+    "scope": {
+        "code": "TP_SCOPE_UNAPPROVED",
+        "detail": "No patient population is approved for Treatment Plan generation.",
+    },
+    "finalization": {
+        "code": "TP_FINALIZATION_CONTEXT_CONTRACT_MISSING",
+        "detail": "No approved provider contract defines reconstruction of current medications, dose-bound safety candidates, safety facts, and authoritative source versions for finalization.",
+    },
+    "supersession": {
+        "code": "TP_SUCCESSOR_GENERATION_CONTRACT_MISSING",
+        "detail": "No approved mapping defines fresh follow-up snapshots to a revalidated successor Primary Plan and section reasons.",
+    },
+    "ddi-configuration": {
+        "code": "TP_DDI_CONFIGURATION_MISSING",
+        "detail": "DDI v1 REST and service-auth configuration is required.",
+    },
+    "ddi-unavailable": {
+        "code": "TP_DDI_UNAVAILABLE",
+        "detail": "DDI v1 readiness or an active reviewed knowledge revision is unavailable.",
+    },
+}
+
 
 def _discovery_headers(correlation_id: str) -> dict[str, str]:
     request_id = str(uuid4())
@@ -77,6 +105,7 @@ def create_app(
     recommendation_workflow: RecommendationRunWorkflow | None = None,
     plan_superseder: PlanSuperseder | None = None,
     assistant: ReadOnlyAssistant | None = None,
+    ddi_port: Any | None = None,
 ) -> FastAPI:
     settings = settings or Settings.from_env()
     configure_logging(settings.log_level)
@@ -89,6 +118,18 @@ def create_app(
         assistant = ReadOnlyAssistant(
             HttpAssistantProvider(settings.assistant_provider_url, settings.assistant_timeout_seconds)
         )
+    ddi_checker = None
+    if ddi_port is None and all((settings.ddi_base_url, settings.ddi_service_auth_key_id, settings.ddi_service_auth_secret)):
+        ddi_port = HttpDdiPort(
+            settings.ddi_base_url,
+            settings.ddi_service_id,
+            settings.ddi_service_auth_key_id,
+            settings.ddi_service_auth_secret.encode("utf-8"),
+            session_cookie_name=settings.authentication_session_cookie_name,
+            timeout_seconds=settings.ddi_timeout_seconds,
+        )
+    if ddi_port is not None:
+        ddi_checker = DdiMedicationChecker(ddi_port)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -98,6 +139,11 @@ def create_app(
 
     app = FastAPI(title="INSIGHT Treatment Plan", version="0.1.0", lifespan=lifespan)
     app.state.observability = observability
+    app.state.repository = repository
+    app.state.recommendation_workflow = recommendation_workflow
+    app.state.plan_finalizer = plan_finalizer
+    app.state.plan_superseder = plan_superseder
+    app.state.ddi_checker = ddi_checker
 
     @app.middleware("http")
     async def correlate(request: Request, call_next):
@@ -133,7 +179,10 @@ def create_app(
         if security is None:
             raise HTTPException(503, "authentication integration is not configured")
         try:
-            session = security.authorize(request.headers.get("cookie", ""), capability, csrf_token)
+            session = security.authorize(
+                request.headers.get("cookie", ""), capability, csrf_token,
+                request.cookies.get(settings.csrf_cookie_name),
+            )
             if capability == Capability.PLAN_MUTATE and not session.session_id.strip():
                 raise HTTPException(503, "Authentication did not provide a session identifier")
             return session
@@ -149,12 +198,51 @@ def create_app(
     def health():
         return {"status": "ok"}
 
+    def blockers() -> list[dict[str, str]]:
+        values = []
+        if recommendation_workflow is None:
+            values.append(INTEGRATION_BLOCKERS["recommendation"])
+        if settings.environment == "production":
+            values.append(INTEGRATION_BLOCKERS["scope"])
+        if plan_finalizer is None:
+            values.append(INTEGRATION_BLOCKERS["finalization"])
+        if plan_superseder is None:
+            values.append(INTEGRATION_BLOCKERS["supersession"])
+        return values
+
+    def blocked(name: str) -> HTTPException:
+        return HTTPException(503, INTEGRATION_BLOCKERS[name])
+
     @app.get("/ready")
-    def ready():
+    async def ready():
         if not repository.ping():
             raise HTTPException(503, "repository unavailable")
+        if settings.environment == "production":
+            if settings.auth_stub_enabled or not settings.authentication_session_url:
+                raise HTTPException(503, "production Authentication v2 configuration is unavailable")
+            if not isinstance(security, Security) or not security.authentication_configured_for(settings.authentication_session_url):
+                raise HTTPException(503, "production Authentication adapter is not wired")
+            if not isinstance(repository, SQLiteRepository):
+                raise HTTPException(503, "production SQLite repository is not wired")
+            current_blockers = blockers()
+            if ddi_port is None:
+                current_blockers.append(INTEGRATION_BLOCKERS["ddi-configuration"])
+            elif not await ddi_port.ready():
+                current_blockers.append(INTEGRATION_BLOCKERS["ddi-unavailable"])
+            if current_blockers:
+                raise HTTPException(503, {"code": "TP_INTEGRATION_BLOCKED", "blockers": current_blockers})
         mode = "development-stub" if settings.auth_stub_enabled else ("rest" if security else "disabled")
-        return {"status": "ready", "authMode": mode}
+        return {
+            "status": "ready",
+            "authMode": mode,
+            "wiring": {
+                "repository": "sqlite" if isinstance(repository, SQLiteRepository) else "injected",
+                "recommendation": recommendation_workflow is not None,
+                "finalization": plan_finalizer is not None,
+                "supersession": plan_superseder is not None,
+                "ddi": ddi_checker is not None,
+            },
+        }
 
     @app.get("/api/treatment-plan/v1/contract")
     def contract_discovery():
@@ -205,7 +293,7 @@ def create_app(
     ):
         current_session = authorized_session(request, Capability.PLAN_MUTATE, csrf_token)
         if recommendation_workflow is None:
-            raise HTTPException(503, "recommendation generation is not configured")
+            raise blocked("recommendation")
         expected = {"patientId", "encounterId", "severityAssessmentId", "timezone"}
         unknown = sorted(set(body) - expected)
         missing = sorted(expected - set(body))
@@ -222,7 +310,9 @@ def create_app(
             )
         except (TypeError, ValueError) as exc:
             raise HTTPException(422, "clinical identifiers must be canonical UUIDs") from exc
-        session_cookie = request.cookies.get("session") or request.cookies.get("insight_session")
+        session_cookie = request.cookies.get(settings.authentication_session_cookie_name)
+        if settings.environment != "production":
+            session_cookie = session_cookie or request.cookies.get("session")
         if not session_cookie:
             raise HTTPException(401, "configured session cookie is required")
         try:
@@ -253,7 +343,7 @@ def create_app(
     def read_recommendation_run(run_id: UUID, request: Request):
         current_session = authorized_session(request, Capability.PLAN_READ)
         if recommendation_workflow is None:
-            raise HTTPException(503, "recommendation generation is not configured")
+            raise blocked("recommendation")
         try:
             result = recommendation_workflow.read(str(run_id), current_session.user_id)
         except RecommendationRunNotFound as exc:
@@ -321,7 +411,7 @@ def create_app(
         if not idempotency_key.strip() or len(idempotency_key) > 200:
             raise HTTPException(422, "Idempotency-Key must contain 1 to 200 characters")
         if plan_superseder is None:
-            raise HTTPException(503, "follow-up supersession is not configured")
+            raise blocked("supersession")
         try:
             result = await plan_superseder.supersede(plan_id, body)
             successor = plan_ledger.get(result.primary_plan["planId"])
@@ -396,7 +486,7 @@ def create_app(
         plan_id = str(plan_id)
         current_session = authorized_session(request, Capability.PLAN_MUTATE, csrf_token)
         if plan_finalizer is None:
-            raise HTTPException(503, "authoritative finalization is not configured")
+            raise blocked("finalization")
         unknown = sorted(set(body) - {"attestation"})
         if unknown:
             raise HTTPException(422, "unsupported finalization fields: " + ", ".join(unknown))
@@ -477,6 +567,10 @@ def create_app(
 
         @app.get("/modules/treatment-plan", include_in_schema=False)
         def module_shell():
+            return FileResponse(frontend / "index.html")
+
+        @app.get("/modules/treatment-plan/{plan_id}", include_in_schema=False)
+        def module_plan_shell(plan_id: UUID):
             return FileResponse(frontend / "index.html")
     return app
 

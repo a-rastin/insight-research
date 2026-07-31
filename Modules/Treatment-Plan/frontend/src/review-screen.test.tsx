@@ -37,9 +37,11 @@ const followUpDelta = {
 describe("psychiatrist review screen", () => {
   beforeEach(() => {
     document.body.innerHTML = '<div id="root"></div>';
-    window.__INSIGHT_TREATMENT_PLAN__ = { planId: planView.primaryPlan.planId, csrfToken: "csrf-token", followUpDelta };
+    window.history.replaceState({}, "", `/modules/treatment-plan/${planView.primaryPlan.planId}`);
+    window.__INSIGHT_TREATMENT_PLAN__ = { followUpDelta };
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
+      if (url === "/api/auth/csrf") return new Response(JSON.stringify({ ok: true, csrf_token: "csrf-token" }), { status: 200, headers: { "Content-Type": "application/json" } });
       if (init?.method === "POST") return new Response(JSON.stringify({
         planView: {
           ...planView,
@@ -78,5 +80,17 @@ describe("psychiatrist review screen", () => {
     expect(screen.getByText("Fresh severity supports a revised dose.")).toBeTruthy();
     expect(screen.getByText("Changed")).toBeTruthy();
     expect(screen.getAllByText("Unchanged")).toHaveLength(2);
-  });
+
+    await user.type(screen.getByRole("textbox", { name: "Attestation" }), "I reviewed and attest to this exact plan.");
+    await user.click(screen.getByRole("button", { name: "Finalize reviewed plan" }));
+    expect(await screen.findByText("Final Treatment Plan created. This finalized record is immutable.")).toBeTruthy();
+    const calls = vi.mocked(fetch).mock.calls;
+    const finalization = calls.find(([url]) => String(url).endsWith("/finalize"));
+    expect(finalization).toBeTruthy();
+    const headers = new Headers(finalization?.[1]?.headers);
+    expect(headers.get("If-Match")).toBe('"successor-etag"');
+    expect(headers.get("X-CSRF-Token")).toBe("csrf-token");
+    expect(headers.get("Idempotency-Key")).toMatch(/^finalize-/);
+    expect(headers.get("X-Request-ID")).toMatch(/^[0-9a-f-]{36}$/);
+  }, 10000);
 });

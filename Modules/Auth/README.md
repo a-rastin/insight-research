@@ -28,7 +28,7 @@ SQLite, bcrypt, JWT signing, role gating, and the disclaimer gate.
 | POST | `/api/auth/password/change` | `{ ok, next?, disclaimer_required? }` or 401 | Change a temporary password before dashboard access. |
 | GET | `/api/auth/session` | v1 flat integer identity or 401 | Deprecated compatibility adapter. |
 | GET | `/api/auth/disclaimer` | `{ ok, version, title, content_html, acknowledgement, accepted, accepted_version?, accepted_at?, message }` or 401 | Return the current auth-owned disclaimer contract and this psychiatrist's acceptance state. |
-| POST | `/api/auth/disclaimer/accept` | `{ ok, next: "/dashboard/user" }` or 401 | Record acceptance of the active disclaimer version. |
+| POST | `/api/auth/disclaimer/accept` | `{ ok, next: "/dashboard/" }` or 401 | Record acceptance of the active disclaimer version. |
 | POST | `/api/auth/logout` | `{ ok, message: "Signed out." }` | Revoke the current session and expire the session cookie. |
 | POST | `/api/auth/register` | `{ ok, user_id }` (admin-only) | Create a new account. Caller's session must be `role=admin`. |
 | GET | `/api/auth/admin/users` | `{ ok, users }` (admin-only) | List accounts without password hashes. |
@@ -86,7 +86,7 @@ store account records.
 - Role selected at login MUST match the stored role after compatibility normalization.
 - Whitelist-validated redirect target: `next` only accepts paths listed in `AUTH_ALLOWED_REDIRECTS`.
 - Temporary password rotation is enforced server-side before normal session access.
-- Disclaimer gate is enforced server-side: a `psychiatrist` account cannot reach `/dashboard/user` until an acceptance record exists for the active disclaimer version.
+- Disclaimer gate is enforced server-side: a `psychiatrist` account cannot reach `/dashboard/` until an acceptance record exists for the active disclaimer version.
 - Disabled accounts are rejected both at login and during session resolution.
 
 ## Persistence

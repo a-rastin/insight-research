@@ -36,7 +36,8 @@ the `ADD_NEW_PATIENT_DB_PATH` environment variable (defaults to
 `add_new_patient.sqlite3` in the repo root).
 
 Standalone dev keeps `/` as the browser entry point. Embedded Dashboard launch
-uses `/modules/add-new-patient`, which serves the same static shell.
+uses canonical `/modules/add-new-patient/`, which serves the same static shell.
+Gateway requests without the trailing slash redirect before relative assets resolve.
 
 ## Tests
 
@@ -81,7 +82,7 @@ Dashboard route discovery contract:
 {
   "moduleId": "add-new-patient",
   "title": "Add New Patient",
-  "href": "/modules/add-new-patient"
+  "href": "/modules/add-new-patient/"
 }
 ```
 

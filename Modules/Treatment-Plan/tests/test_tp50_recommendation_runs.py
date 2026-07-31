@@ -72,7 +72,7 @@ class Stages:
         self.calls.append("synthesis")
         return {"timezone": timezone, "bn": bn_result}
 
-    async def check_ddi(self, context, plan):
+    async def check_ddi(self, context, plan, outbound_context):
         self.calls.append("ddi")
         if self.fail_at == "ddi":
             raise RuntimeError("DDI unavailable")

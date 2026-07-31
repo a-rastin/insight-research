@@ -17,6 +17,20 @@ The production REST boundary is published under `contracts/`:
 -
 -
 
+## Production REST seam
+
+`deploy/ddi-static-server.mjs` preserves the standalone UI and implements the
+published `POST /api/ddi/v1/checks` contract. The route requires a valid
+Treatment Plan HMAC service assertion and a current authorized psychiatrist
+session from Authentication. It validates exact request/schema and idempotency
+headers, recomputes the canonical medication-set hash, runs the shared engine
+server-side, and returns active knowledge identity and content-hash metadata.
+
+`/readyz` returns `200` only when service authentication is configured,
+Authentication is reachable, and `DDI_REGISTRY_ROOT/active-kb.json` passes
+clinical-active validation with a UUID `knowledgeBaseId` and semantic `version`.
+The bundled draft remains correctly not ready and is not promoted by deployment.
+
 ## Run
 
 Open `index.html` in a browser, or serve the folder with any static server.

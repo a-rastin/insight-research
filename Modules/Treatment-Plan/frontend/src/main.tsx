@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { structuredEdits, updateReviewField, type ReviewField, type ReviewWorkspace } from "./review-workspace";
 import {
   loadReview,
+  loadCsrfToken,
+  finalizePlan,
+  planIdFromPath,
   requestAssistantAdvisory,
   submitDraftEdits,
   supersedePlan,
@@ -13,12 +16,13 @@ import "./styles.css";
 
 declare global {
   interface Window {
-    __INSIGHT_TREATMENT_PLAN__?: { planId?: string; csrfToken?: string; followUpDelta?: FollowUpDelta };
+    __INSIGHT_TREATMENT_PLAN__?: { followUpDelta?: FollowUpDelta };
   }
 }
 
 type LoadState =
   | { kind: "loading" }
+  | { kind: "launch-required" }
   | { kind: "error"; message: string }
   | { kind: "ready"; workspace: ReviewWorkspace; etag: string | null; partialMessages: string[] };
 
@@ -29,10 +33,8 @@ type AssistantState =
   | { kind: "unavailable"; message: string };
 
 function configuredContext() {
-  const root = document.getElementById("root");
   return {
-    planId: window.__INSIGHT_TREATMENT_PLAN__?.planId ?? root?.dataset.planId ?? "",
-    csrfToken: window.__INSIGHT_TREATMENT_PLAN__?.csrfToken ?? document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? "",
+    planId: planIdFromPath(window.location.pathname),
     followUpDelta: window.__INSIGHT_TREATMENT_PLAN__?.followUpDelta,
   };
 }
@@ -60,10 +62,18 @@ function ErrorScreen({ message, retry }: { message: string; retry: () => void })
   </section></main>;
 }
 
+function LaunchContextScreen() {
+  return <main className="workspace-shell"><section className="state-card" role="status">
+    <p className="status-kicker">Launch context required</p>
+    <h1>Select a Treatment Plan before opening review</h1>
+    <p>This root route does not select a plan. Open review from an authenticated plan-history or recommendation result using its canonical Plan UUID.</p>
+  </section></main>;
+}
+
 export function App() {
   const context = configuredContext();
   const [attempt, setAttempt] = useState(0);
-  const [state, setState] = useState<LoadState>({ kind: "loading" });
+  const [state, setState] = useState<LoadState>(context.planId ? { kind: "loading" } : { kind: "launch-required" });
   const [statusMessage, setStatusMessage] = useState("Draft review in progress.");
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
@@ -72,11 +82,26 @@ export function App() {
   const [supersessionComparisons, setSupersessionComparisons] = useState<SupersessionComparison[]>([]);
   const [assistantPrompt, setAssistantPrompt] = useState("");
   const [assistantState, setAssistantState] = useState<AssistantState>({ kind: "idle" });
+  const [csrfToken, setCsrfToken] = useState("");
+  const [attestation, setAttestation] = useState("");
+  const [finalizing, setFinalizing] = useState(false);
+  const [finalized, setFinalized] = useState(false);
+  const finalizationKey = useRef(`finalize-${crypto.randomUUID()}`);
+
+  useEffect(() => {
+    if (!context.planId) return;
+    let active = true;
+    loadCsrfToken().then(
+      (token) => { if (active) setCsrfToken(token); },
+      (error: unknown) => { if (active) setStatusMessage(error instanceof Error ? `Clinical writes unavailable: ${error.message}` : "Clinical writes unavailable: CSRF bootstrap failed."); },
+    );
+    return () => { active = false; };
+  }, [context.planId]);
 
   useEffect(() => {
     const controller = new AbortController();
     if (!context.planId) {
-      setState({ kind: "error", message: "The host did not provide a Treatment Plan UUID." });
+      setState({ kind: "launch-required" });
       return () => controller.abort();
     }
     setState({ kind: "loading" });
@@ -90,6 +115,7 @@ export function App() {
   }, [attempt, context.planId]);
 
   if (state.kind === "loading") return <LoadingScreen />;
+  if (state.kind === "launch-required") return <LaunchContextScreen />;
   if (state.kind === "error") return <ErrorScreen message={state.message} retry={() => setAttempt((value) => value + 1)} />;
 
   const workspace = state.workspace;
@@ -105,11 +131,11 @@ export function App() {
     setStatusMessage("All fields restored to the server recommendation.");
   };
   const save = async () => {
-    if (!state.etag || !context.csrfToken) return;
+    if (!state.etag || !csrfToken) return;
     setSaving(true);
     setStatusMessage("Saving structured edits with concurrency protection.");
     try {
-      const updated = await submitDraftEdits(activePlanId, state.etag, context.csrfToken, structuredEdits(workspace, reason));
+      const updated = await submitDraftEdits(activePlanId, state.etag, csrfToken, structuredEdits(workspace, reason));
       setState({ kind: "ready", ...updated });
       setReason("");
       setStatusMessage("Structured edits saved. The server returned a new ETag.");
@@ -120,11 +146,11 @@ export function App() {
     }
   };
   const supersede = async () => {
-    if (!context.followUpDelta || !context.csrfToken) return;
+    if (!context.followUpDelta || !csrfToken) return;
     setSuperseding(true);
     setStatusMessage("Gathering fresh follow-up snapshots and revalidating each plan section.");
     try {
-      const successor = await supersedePlan(activePlanId, context.followUpDelta, context.csrfToken);
+      const successor = await supersedePlan(activePlanId, context.followUpDelta, csrfToken);
       setActivePlanId(successor.successorPlanId);
       setSupersessionComparisons(successor.comparisons);
       setState({ kind: "ready", workspace: successor.workspace, etag: successor.etag, partialMessages: successor.partialMessages });
@@ -135,7 +161,21 @@ export function App() {
       setSuperseding(false);
     }
   };
-  const editingBlocked = !state.etag || !context.csrfToken;
+  const editingBlocked = !state.etag || !csrfToken || finalized;
+  const finalize = async () => {
+    if (!state.etag || !csrfToken || !attestation.trim()) return;
+    setFinalizing(true);
+    setStatusMessage("Reauthorizing and repeating server-side safety validation before finalization.");
+    try {
+      await finalizePlan(activePlanId, state.etag, csrfToken, attestation, finalizationKey.current);
+      setFinalized(true);
+      setStatusMessage("Final Treatment Plan created. This finalized record is immutable.");
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? `Plan was not finalized: ${error.message}` : "Plan was not finalized.");
+    } finally {
+      setFinalizing(false);
+    }
+  };
   const requestAdvisory = async () => {
     if (!assistantPrompt.trim()) return;
     setAssistantState({ kind: "loading" });
@@ -165,15 +205,15 @@ export function App() {
 
     <main className="workspace-shell">
       {state.partialMessages.length > 0 && <section className="partial-state" role="status" aria-labelledby="partial-title"><p className="status-kicker">Partial plan context</p><h2 id="partial-title">Some review context is unavailable</h2><ul>{state.partialMessages.map((message) => <li key={message}>{message}</li>)}</ul></section>}
-      {editingBlocked && <section className="partial-state" role="alert"><strong>Editing unavailable.</strong> {!state.etag ? "A current ETag is required. " : ""}{!context.csrfToken ? "The host must provide a CSRF token." : ""}</section>}
+      {editingBlocked && !finalized && <section className="partial-state" role="alert"><strong>Editing unavailable.</strong> {!state.etag ? "A current ETag is required. " : ""}{!csrfToken ? "Authentication must issue a CSRF token." : ""}</section>}
       <section className="patient-strip" aria-labelledby="patient-context-title">
         <div><p className="eyebrow">Plan context</p><h2 id="patient-context-title">{workspace.patient.displayId}</h2></div>
         <dl><div><dt>Age band</dt><dd>{workspace.patient.ageBand}</dd></div><div><dt>Encounter</dt><dd>{workspace.patient.encounterLabel}</dd></div><div><dt>Draft status</dt><dd><span className="status-text"><span aria-hidden="true">●</span> Editing</span></dd></div></dl>
       </section>
 
-      {context.followUpDelta && <section className="follow-up-card" aria-labelledby="follow-up-title">
+        {context.followUpDelta && <section className="follow-up-card" aria-labelledby="follow-up-title">
         <div><p className="eyebrow">Follow-up supersession</p><h2 id="follow-up-title">Create a new plan without altering the prior Final Plan</h2><p>The server validates the fresh Follow-up Delta, gathers current owner snapshots, and revalidates every supported plan section.</p></div>
-        {supersessionComparisons.length === 0 ? <button className="primary-button" type="button" onClick={supersede} disabled={superseding || !context.csrfToken}>{superseding ? "Creating successor" : "Create successor workflow"}</button> : <div className="supersession-result" role="status" aria-live="polite"><p><strong>Successor workflow created.</strong> Prior finalized content was preserved.</p><dl>{supersessionComparisons.map((comparison) => <div key={comparison.section}><dt>{comparison.section === "nextAppointment" ? "Next appointment" : comparison.section}</dt><dd><span className={`comparison-status ${comparison.status}`}>{comparison.status === "changed" ? "Changed" : "Unchanged"}</span><span>{comparison.reason}</span></dd></div>)}</dl></div>}
+          {supersessionComparisons.length === 0 ? <button className="primary-button" type="button" onClick={supersede} disabled={superseding || !csrfToken}>{superseding ? "Creating successor" : "Create successor workflow"}</button> : <div className="supersession-result" role="status" aria-live="polite"><p><strong>Successor workflow created.</strong> Prior finalized content was preserved.</p><dl>{supersessionComparisons.map((comparison) => <div key={comparison.section}><dt>{comparison.section === "nextAppointment" ? "Next appointment" : comparison.section}</dt><dd><span className={`comparison-status ${comparison.status}`}>{comparison.status === "changed" ? "Changed" : "Unchanged"}</span><span>{comparison.reason}</span></dd></div>)}</dl></div>}
       </section>}
 
       <div className="content-grid">
@@ -195,6 +235,13 @@ export function App() {
 
           <section className="support-card" aria-labelledby="alternatives-title"><p className="eyebrow">Clinical options</p><h2 id="alternatives-title">Alternatives considered</h2><p>The current plan-read contract does not include alternatives. No alternatives have been inferred by the browser.</p></section>
           <section id="safety-findings" className="support-card" aria-labelledby="safety-title"><p className="eyebrow">Safety review</p><h2 id="safety-title">Open findings</h2>{workspace.safetyFindings.length ? <div className="safety-list">{workspace.safetyFindings.map((finding) => <article className={`safety-item ${finding.level}`} key={finding.id}><span className="section-icon" aria-hidden="true">{finding.level === "urgent" ? "!" : finding.level === "warning" ? "△" : "i"}</span><div><p className="status-kicker">{finding.level === "urgent" ? "Urgent" : finding.level === "warning" ? "Warning" : "Information"} · Open</p><h3>{finding.title}</h3><p>{finding.detail}</p></div></article>)}</div> : <p>No safety findings were included in the current plan response.</p>}</section>
+          <section className="support-card finalization-card" aria-labelledby="finalization-title">
+            <p className="eyebrow">Psychiatrist attestation</p><h2 id="finalization-title">Finalize reviewed plan</h2>
+            <p>Finalization reauthorizes this session, checks the current ETag, and repeats authoritative DDI and safety validation. The resulting Final Plan is immutable.</p>
+            <label htmlFor="finalization-attestation">Attestation</label>
+            <textarea id="finalization-attestation" value={attestation} onChange={(event) => setAttestation(event.target.value)} maxLength={2000} disabled={finalizing || finalized} placeholder="Record your explicit review and attestation." />
+            <button className="primary-button" type="button" onClick={finalize} disabled={finalizing || finalized || editingBlocked || !attestation.trim()}>{finalized ? "Plan finalized" : finalizing ? "Finalizing plan" : "Finalize reviewed plan"}</button>
+          </section>
         </div>
 
         <section className="assistant-rail" aria-labelledby="assistant-title">

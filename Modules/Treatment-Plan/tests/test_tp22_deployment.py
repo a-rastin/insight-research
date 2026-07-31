@@ -5,13 +5,23 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+from fastapi.testclient import TestClient
 
 from scripts.verify_deployment import SECURITY_HEADERS, hardened_run_command
+from treatment_plan.app import create_app
 from treatment_plan.config import ConfigurationError, Settings
 from treatment_plan.deployment import migration_gate, settings_from_environment
 
 
 ROOT = Path(__file__).parents[1]
+
+
+class ReadyDdiPort:
+    async def ready(self):
+        return True
+
+    async def check(self, _request, _context=None):
+        raise AssertionError("readiness must not run a clinical DDI check")
 
 
 class TP22DeploymentTests(unittest.TestCase):
@@ -30,14 +40,17 @@ class TP22DeploymentTests(unittest.TestCase):
     def test_secret_file_mount_is_supported_without_allowing_ambiguous_sources(self):
         with tempfile.TemporaryDirectory() as directory:
             secret = Path(directory) / "auth-url"
-            secret.write_text("https://authentication.internal/session", encoding="utf-8")
+            secret.write_text("https://authentication.internal/api/auth/v2/session", encoding="utf-8")
             environment = {
                 "TP_ENV": "production",
                 "TP_AUTHENTICATION_SESSION_URL_FILE": str(secret),
-                "TP_TRUSTED_INTERNAL_ORIGINS": "https://authentication.internal",
+                "TP_DDI_BASE_URL": "https://ddi.internal",
+                "TP_DDI_SERVICE_AUTH_KEY_ID": "tp-ddi-v1",
+                "TP_DDI_SERVICE_AUTH_SECRET": "x" * 32,
+                "TP_TRUSTED_INTERNAL_ORIGINS": "https://authentication.internal,https://ddi.internal",
             }
             with patch.dict(os.environ, environment, clear=True):
-                self.assertEqual("https://authentication.internal/session", settings_from_environment().authentication_session_url)
+                self.assertEqual("https://authentication.internal/api/auth/v2/session", settings_from_environment().authentication_session_url)
             environment["TP_AUTHENTICATION_SESSION_URL"] = "https://authentication.internal/other"
             with patch.dict(os.environ, environment, clear=True), self.assertRaises(ConfigurationError):
                 settings_from_environment()
@@ -45,15 +58,82 @@ class TP22DeploymentTests(unittest.TestCase):
     def test_production_allows_only_loopback_http_internal_origin(self):
         environment = {
             "TP_ENV": "production",
-            "TP_TRUSTED_INTERNAL_ORIGINS": "http://127.0.0.1:8101",
+            "TP_TRUSTED_INTERNAL_ORIGINS": "http://127.0.0.1:8101,http://127.0.0.1:8107",
             "TP_AUTHENTICATION_SESSION_URL": "http://127.0.0.1:8101/api/auth/v2/session",
+            "TP_DDI_BASE_URL": "http://127.0.0.1:8107",
+            "TP_DDI_SERVICE_AUTH_KEY_ID": "tp-ddi-v1",
+            "TP_DDI_SERVICE_AUTH_SECRET": "x" * 32,
         }
         with patch.dict(os.environ, environment, clear=True):
             self.assertEqual(environment["TP_AUTHENTICATION_SESSION_URL"], Settings.from_env().authentication_session_url)
-        environment["TP_TRUSTED_INTERNAL_ORIGINS"] = "http://authentication.internal:8101"
+        environment["TP_TRUSTED_INTERNAL_ORIGINS"] = "http://authentication.internal:8101,http://127.0.0.1:8107"
         environment["TP_AUTHENTICATION_SESSION_URL"] = "http://authentication.internal:8101/api/auth/v2/session"
         with patch.dict(os.environ, environment, clear=True), self.assertRaises(ConfigurationError):
             Settings.from_env()
+
+    def test_production_app_wires_real_ddi_and_exposes_exact_remaining_blockers(self):
+        with tempfile.TemporaryDirectory() as directory:
+            settings = Settings(
+                environment="production",
+                database_path=Path(directory) / "runtime.db",
+                authentication_session_url="http://127.0.0.1:8101/api/auth/v2/session",
+                trusted_internal_origins=("http://127.0.0.1:8101", "http://127.0.0.1:8107"),
+                ddi_base_url="http://127.0.0.1:8107",
+                ddi_service_auth_key_id="tp-ddi-v1",
+                ddi_service_auth_secret="x" * 32,
+            )
+            app = create_app(settings, ddi_port=ReadyDdiPort())
+            with TestClient(app) as client:
+                response = client.get("/ready")
+            self.assertEqual(503, response.status_code)
+            detail = response.json()["detail"]
+            self.assertEqual("TP_INTEGRATION_BLOCKED", detail["code"])
+            self.assertEqual(
+                {
+                    "TP_RECOMMENDATION_MAPPING_UNAPPROVED",
+                    "TP_SCOPE_UNAPPROVED",
+                    "TP_FINALIZATION_CONTEXT_CONTRACT_MISSING",
+                    "TP_SUCCESSOR_GENERATION_CONTRACT_MISSING",
+                },
+                {item["code"] for item in detail["blockers"]},
+            )
+            self.assertEqual("SQLiteRepository", type(app.state.repository).__name__)
+            self.assertIsNone(app.state.recommendation_workflow)
+            self.assertIsNone(app.state.plan_finalizer)
+            self.assertIsNone(app.state.plan_superseder)
+            self.assertEqual("DdiMedicationChecker", type(app.state.ddi_checker).__name__)
+
+    def test_unapproved_workflow_routes_return_exact_typed_blockers(self):
+        settings = Settings(environment="development", auth_stub_enabled=True)
+        with TestClient(create_app(settings)) as client:
+            recommendation = client.post(
+                "/api/treatment-plan/v1/recommendation-runs",
+                headers={
+                    "X-CSRF-Token": "development-csrf",
+                    "X-Request-ID": "00000000-0000-4000-8000-000000000081",
+                },
+                json={},
+            )
+            finalization = client.post(
+                "/api/treatment-plan/v1/plans/00000000-0000-4000-8000-000000000082/finalize",
+                headers={
+                    "X-CSRF-Token": "development-csrf",
+                    "X-Request-ID": "00000000-0000-4000-8000-000000000083",
+                },
+                json={},
+            )
+            supersession = client.post(
+                "/api/treatment-plan/v1/plans/00000000-0000-4000-8000-000000000082/supersede",
+                headers={
+                    "X-CSRF-Token": "development-csrf",
+                    "X-Request-ID": "00000000-0000-4000-8000-000000000084",
+                    "Idempotency-Key": "supersession-key-0001",
+                },
+                json={},
+            )
+        self.assertEqual("TP_RECOMMENDATION_MAPPING_UNAPPROVED", recommendation.json()["detail"]["code"])
+        self.assertEqual("TP_FINALIZATION_CONTEXT_CONTRACT_MISSING", finalization.json()["detail"]["code"])
+        self.assertEqual("TP_SUCCESSOR_GENERATION_CONTRACT_MISSING", supersession.json()["detail"]["code"])
 
     def test_release_packaging_is_non_root_pinned_loopback_and_resource_bounded(self):
         dockerfile = (ROOT / "Dockerfile.release").read_text(encoding="utf-8")

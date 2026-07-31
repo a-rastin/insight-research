@@ -2,11 +2,12 @@ import os
 import unittest
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
+from io import BytesIO
 from fastapi.testclient import TestClient
 from treatment_plan.app import create_app
 from treatment_plan.config import ConfigurationError, Settings
 from treatment_plan.repository import InMemoryRepository
-from treatment_plan.security import AccessDenied, Capability, InMemoryAuthenticationAdapter, Security, Session
+from treatment_plan.security import AccessDenied, Capability, HttpAuthenticationAdapter, InMemoryAuthenticationAdapter, Security, Session
 
 NOW = datetime(2026, 7, 13, tzinfo=timezone.utc)
 
@@ -85,5 +86,56 @@ class SecurityTests(unittest.TestCase):
                 Settings.from_env()
         with patch.dict(os.environ, {"TP_ENV":"production","TP_AUTH_STUB_ENABLED":"true"}, clear=True):
             with self.assertRaises(ConfigurationError): Settings.from_env()
+        with patch.dict(os.environ, {
+            "TP_ENV": "production",
+            "TP_AUTHENTICATION_SESSION_URL": "http://127.0.0.1:8101/api/auth/v2/session",
+            "TP_TRUSTED_INTERNAL_ORIGINS": "http://127.0.0.1:8101",
+        }, clear=True):
+            with self.assertRaisesRegex(ConfigurationError, "requires DDI REST"):
+                Settings.from_env()
+
+    def test_http_adapter_strictly_accepts_only_authorized_authentication_v2_contract(self):
+        payload = {
+            "authenticated": True,
+            "authorized": True,
+            "interfaceVersion": "2.0.0",
+            "session": {"id": "00000000-0000-4000-8000-000000000071", "active": True, "expiresAt": "2026-08-01T00:00:00Z"},
+            "user": {"id": "00000000-0000-4000-8000-000000000072", "username": "clinician", "role": "psychiatrist"},
+            "gates": {"passwordChangeRequired": False, "disclaimerRequired": False, "disclaimerVersion": "2026-01"},
+            "compatibility": {"legacyUserId": 7, "legacyRole": "user"},
+        }
+        class Response(BytesIO):
+            def __enter__(self): return self
+            def __exit__(self, *_args): return None
+        response = Response(__import__("json").dumps(payload).encode())
+        with patch("treatment_plan.security.urlopen", return_value=response):
+            session = HttpAuthenticationAdapter("https://auth.internal/api/auth/v2/session").verify("insight_session=opaque")
+        self.assertEqual(payload["user"]["id"], session.user_id)
+        self.assertEqual(payload["session"]["id"], session.session_id)
+        self.assertEqual(frozenset({"psychiatrist"}), session.roles)
+
+        for mutate in (
+            lambda value: value.update(authorized=False),
+            lambda value: value["gates"].update(disclaimerRequired=True),
+            lambda value: value["session"].update(active=False),
+            lambda value: value.update(expiresAt="legacy-flat-field"),
+        ):
+            invalid = __import__("copy").deepcopy(payload)
+            mutate(invalid)
+            with self.assertRaises((AccessDenied, ValueError)):
+                HttpAuthenticationAdapter._parse(invalid)
+
+    def test_http_session_uses_auth_csrf_cookie_for_mutation(self):
+        payload = {
+            "authenticated": True, "authorized": True, "interfaceVersion": "2.0.0",
+            "session": {"id": "00000000-0000-4000-8000-000000000071", "active": True, "expiresAt": "2026-08-01T00:00:00Z"},
+            "user": {"id": "00000000-0000-4000-8000-000000000072", "username": "clinician", "role": "psychiatrist"},
+            "gates": {"passwordChangeRequired": False, "disclaimerRequired": False, "disclaimerVersion": "2026-01"},
+            "compatibility": {"legacyUserId": 7, "legacyRole": "user"},
+        }
+        security = Security(type("Adapter", (), {"verify": lambda _self, _cookie: HttpAuthenticationAdapter._parse(payload)})(), now=lambda: NOW)
+        self.assertEqual(payload["user"]["id"], security.authorize("cookie", Capability.PLAN_MUTATE, "signed-token", "signed-token").user_id)
+        with self.assertRaisesRegex(AccessDenied, "CSRF"):
+            security.authorize("cookie", Capability.PLAN_MUTATE, "wrong", "signed-token")
 
 if __name__ == "__main__": unittest.main()

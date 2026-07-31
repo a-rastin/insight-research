@@ -12,7 +12,7 @@ import unittest
 from datetime import UTC, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.error import HTTPError
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener, urlopen
 from uuid import UUID
 
 
@@ -295,7 +295,7 @@ class AddNewPatientBackendTest(unittest.TestCase):
                 {
                     "moduleId": "add-new-patient",
                     "title": "Add New Patient",
-                    "href": "/modules/add-new-patient",
+                    "href": "/modules/add-new-patient/",
                 },
             )
 
@@ -666,6 +666,15 @@ class AddNewPatientBackendTest(unittest.TestCase):
 
     def test_dashboard_embedded_module_path_serves_shell_and_assets(self) -> None:
         with AddNewPatientServer() as base:
+            class NoRedirect(HTTPRedirectHandler):
+                def redirect_request(self, *_: object, **__: object) -> None:
+                    return None
+
+            with self.assertRaises(HTTPError) as redirect:
+                build_opener(NoRedirect).open(f"{base}/modules/add-new-patient", timeout=5)
+            self.assertEqual(redirect.exception.code, 308)
+            self.assertEqual(redirect.exception.headers["Location"], "/modules/add-new-patient/")
+
             status, data = request_json(base, "/modules/add-new-patient")
             self.assertEqual(status, 200)
             self.assertIn('data-module="add-new-patient"', data["_raw"])

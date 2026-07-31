@@ -22,8 +22,18 @@ repo.initialize()
 app = FastAPI(title="Dashboard Backend")
 
 DESTINATIONS = [
-    {"id": "add-new-patient", "title": "Add New Patient", "role": "PSYCHIATRIST", "href": "/modules/add-new-patient"},
+    {"id": "add-new-patient", "title": "Add New Patient", "role": "PSYCHIATRIST", "href": "/modules/add-new-patient/"},
     {"id": "patient-follow-up", "title": "Patient Follow-up", "role": "PSYCHIATRIST", "href": "/modules/patient-follow-up"},
+    {"id": "diagnosis", "title": "Diagnosis", "role": "PSYCHIATRIST", "href": "/modules/diagnosis/"},
+    {"id": "severity", "title": "Severity", "role": "PSYCHIATRIST", "href": "/modules/severity/"},
+    {"id": "medical-history", "title": "Medical History", "role": "PSYCHIATRIST", "href": "/modules/medical-history/"},
+    {"id": "suicide-risk", "title": "Suicide Risk", "role": "PSYCHIATRIST", "href": "/modules/suicide-risk/"},
+    {
+        "id": "treatment-plan",
+        "title": "Treatment Plan",
+        "role": "PSYCHIATRIST",
+        "unavailableReason": "Open a generated plan from its patient workflow.",
+    },
     {"id": "list-of-patients", "title": "List of Patients", "role": "PSYCHIATRIST"},
     {"id": "setting", "title": "Setting", "role": "PSYCHIATRIST"},
     {"id": "add-new-user", "title": "Add New User", "role": "ADMIN", "href": "/modules/auth/accounts/new"},
@@ -85,7 +95,7 @@ async def require_auth_identity(request: Request, session: dict[str, Any] | None
 
 
 async def require_session(request: Request) -> dict[str, Any]:
-    session_id = request.query_params.get("session") or request.headers.get("x-dashboard-session")
+    session_id = request.headers.get("x-dashboard-session")
     session = repo.get_session(session_id)
     if not session:
         raise json_error(401, "dashboard_session_required")
@@ -99,12 +109,8 @@ async def require_session(request: Request) -> dict[str, Any]:
     session["userId"] = user["id"]
     session["role"] = user["role"]
     session["authSessionId"] = identity["authSessionId"]
-    session["authUser"] = with_dashboard_fields(user, session)
+    session["authUser"] = user
     return session
-
-
-def with_dashboard_fields(user: dict[str, Any], session: dict[str, Any]) -> dict[str, Any]:
-    return {**user, "disclaimerAcceptedAt": session.get("disclaimerAcceptedAt")}
 
 
 def display_name_for(user: dict[str, Any]) -> str:
@@ -122,7 +128,7 @@ def workspace_buttons(role: str, provider_statuses: dict[str, dict[str, Any]] | 
             reason = "Not authorized for current role."
         elif "href" not in destination:
             state = "unavailable"
-            reason = "Destination is not available in this release."
+            reason = destination.get("unavailableReason", "Destination is not available in this release.")
         else:
             state = "available"
             reason = "Destination available."
@@ -160,13 +166,6 @@ def workspace_for(session: dict[str, Any], provider_statuses: dict[str, dict[str
             "buttons": workspace_buttons(user["role"], provider_statuses),
         },
     }
-
-    if user["role"] == "PSYCHIATRIST":
-        model["requiresDisclaimer"] = not user.get("disclaimerAcceptedAt")
-        model["disclaimer"] = {
-            "acceptedAt": user.get("disclaimerAcceptedAt"),
-            "text": "This workspace is a research prototype. It is not a substitute for clinical judgment, emergency care, or licensed guideline review.",
-        }
 
     return model
 
@@ -248,13 +247,13 @@ async def create_dashboard_session(request: Request) -> JSONResponse:
     identity = await require_auth_identity(request)
     user = identity["user"]
     session = repo.create_session(str(uuid4()), user["id"], user["role"], identity["authSessionId"])
-    session["authUser"] = with_dashboard_fields(user, session)
+    session["authUser"] = user
     repo.record_event(session, "session_created")
     return JSONResponse(
         status_code=201,
         content={
             "sessionId": session["id"],
-            "dashboardUrl": f"/dashboard/?session={session['id']}",
+            "dashboardUrl": "/dashboard/",
             "user": session["authUser"],
         },
     )
@@ -296,18 +295,6 @@ async def module_route(module_id: str, session: dict[str, Any] = Depends(require
         "state": "available",
         "reason": "Destination available.",
     }
-
-
-@app.post("/internal/dashboard/disclaimer/accept")
-async def accept_disclaimer(session: dict[str, Any] = Depends(require_session)) -> dict[str, Any]:
-    user = session["authUser"]
-    if user["role"] != "PSYCHIATRIST":
-        raise json_error(403, "psychiatrist_only")
-    accepted_at = repo.accept_disclaimer(session["id"])
-    session["disclaimerAcceptedAt"] = accepted_at
-    session["authUser"] = with_dashboard_fields(user, session)
-    repo.record_event(session, "disclaimer_accepted")
-    return workspace_for(session)
 
 
 @app.get("/")

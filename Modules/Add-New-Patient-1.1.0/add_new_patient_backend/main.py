@@ -9,7 +9,7 @@ from uuid import UUID, uuid4, uuid5, NAMESPACE_URL
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 
 from .auth import AuthSessionError, fetch_auth_identity, PSYCHIATRIST_ROLE
 from .config import ROOT, settings
@@ -33,7 +33,7 @@ app = FastAPI(title="Add New Patient Backend")
 
 MODULE_ID = "add-new-patient"
 MODULE_TITLE = "Add New Patient"
-MODULE_HREF = f"/modules/{MODULE_ID}"
+MODULE_HREF = f"/modules/{MODULE_ID}/"
 MODULE_ROUTE = {"moduleId": MODULE_ID, "title": MODULE_TITLE, "href": MODULE_HREF}
 V2_PREFIX = "/api/add-new-patient/v2"
 V2_SCHEMA_VERSION = "2.0.0"
@@ -717,6 +717,10 @@ async def root() -> FileResponse:
 
 
 @app.get("/modules/add-new-patient")
+async def canonical_add_new_patient_path() -> RedirectResponse:
+    return RedirectResponse("/modules/add-new-patient/", status_code=308)
+
+
 @app.get("/modules/add-new-patient/")
 @app.get("/modules/patient-follow-up")
 @app.get("/modules/patient-follow-up/")

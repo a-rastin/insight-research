@@ -13,10 +13,9 @@ Backend: Python FastAPI. Local state: Dashboard sessions plus optional workspace
 5. Dashboard re-validates local session and calls `GET /api/auth/v2/session` again.
 6. Dashboard returns INSIGHT workspace metadata and explicit destination states.
 
-Protected Dashboard endpoints accept Dashboard session id through either:
-
-- query: `?session={dashboardSessionId}`
-- header: `X-Dashboard-Session: {dashboardSessionId}`
+Protected Dashboard endpoints accept Dashboard session id only through
+`X-Dashboard-Session`. Dashboard session ids are never placed in URLs or browser
+history.
 
 ## Auth Verification Contract
 
@@ -125,13 +124,12 @@ Success: `201`
 ```json
 {
   "sessionId": "dashboard-session-uuid",
-  "dashboardUrl": "/dashboard/?session=dashboard-session-uuid",
+  "dashboardUrl": "/dashboard/",
   "user": {
     "id": "f2af6c59-6856-4dcc-bcf6-8569e009d58b",
     "role": "PSYCHIATRIST",
     "fullName": "Mina Rahimi",
-    "title": "Dr.",
-    "disclaimerAcceptedAt": null
+    "title": "Dr."
   }
 }
 ```
@@ -146,13 +144,15 @@ Errors:
 ## INSIGHT Workspace Response
 
 ```http
-GET /internal/dashboard/workspace?session={dashboardSessionId}
+GET /internal/dashboard/workspace
+X-Dashboard-Session: {dashboardSessionId}
 ```
 
 Alias:
 
 ```http
-GET /internal/dashboard/summary?session={dashboardSessionId}
+GET /internal/dashboard/summary
+X-Dashboard-Session: {dashboardSessionId}
 ```
 
 Before returning workspace metadata, Dashboard:
@@ -171,7 +171,6 @@ Common response:
     "role": "PSYCHIATRIST",
     "fullName": "Mina Rahimi",
     "title": "Dr.",
-    "disclaimerAcceptedAt": null,
     "displayName": "Dr. Mina Rahimi"
   },
   "displayName": "Dr. Mina Rahimi",
@@ -185,14 +184,9 @@ Common response:
         "title": "Add New Patient",
         "state": "available",
         "reason": "Destination available.",
-        "href": "/modules/add-new-patient"
+        "href": "/modules/add-new-patient/"
       }
     ]
-  },
-  "requiresDisclaimer": true,
-  "disclaimer": {
-    "acceptedAt": null,
-    "text": "This workspace is a research prototype. It is not a substitute for clinical judgment, emergency care, or licensed guideline review."
   }
 }
 ```
@@ -203,7 +197,7 @@ Response rules:
 - `workspace.kind` is verified role: `PSYCHIATRIST` or `ADMIN`.
 - `displayName` equals `Dr. {fullName}` for `PSYCHIATRIST`.
 - `displayName` equals `{fullName}` for `ADMIN`.
-- Psychiatrist-only responses include `requiresDisclaimer` and `disclaimer`.
+- Authentication owns and enforces disclaimer acceptance before Dashboard activation; Dashboard returns and stores no disclaimer state.
 - Every destination is present with state `available`, `unavailable`, or
   `unauthorized` for the currently verified role.
 - Only `available` destinations include a gateway-relative `href`.
@@ -217,7 +211,7 @@ Role button sets:
 
 | Role | Button ids | Button titles |
 | --- | --- | --- |
-| `PSYCHIATRIST` | `add-new-patient`, `patient-follow-up`, `list-of-patients`, `setting` | `Add New Patient`, `Patient Follow-up`, `List of Patients`, `Setting` |
+| `PSYCHIATRIST` | `add-new-patient`, `patient-follow-up`, `diagnosis`, `severity`, `medical-history`, `suicide-risk`, `treatment-plan`, `list-of-patients`, `setting` | `Add New Patient`, `Patient Follow-up`, `Diagnosis`, `Severity`, `Medical History`, `Suicide Risk`, `Treatment Plan`, `List of Patients`, `Setting` |
 | `ADMIN` | `add-new-user`, `logs`, `backup`, `list-of-users`, `ddi-knowledge`, `bn-models` | `Add New User`, `Logs`, `Backup`, `List of Users`, `DDI Knowledge`, `BN Models` |
 
 Errors:
@@ -235,8 +229,13 @@ Dashboard returns one navigation-only catalog. Current destination support is:
 
 | Destination | Authorized role | State when authorized | Gateway route |
 | --- | --- | --- | --- |
-| `add-new-patient` | `PSYCHIATRIST` | `available` | `/modules/add-new-patient` |
+| `add-new-patient` | `PSYCHIATRIST` | `available` | `/modules/add-new-patient/` |
 | `patient-follow-up` | `PSYCHIATRIST` | `available` | `/modules/patient-follow-up` |
+| `diagnosis` | `PSYCHIATRIST` | `available` | `/modules/diagnosis/` |
+| `severity` | `PSYCHIATRIST` | `available` | `/modules/severity/` |
+| `medical-history` | `PSYCHIATRIST` | `available` | `/modules/medical-history/` |
+| `suicide-risk` | `PSYCHIATRIST` | `available` | `/modules/suicide-risk/` |
+| `treatment-plan` | `PSYCHIATRIST` | `available` | `/modules/treatment-plan` |
 | `list-of-patients` | `PSYCHIATRIST` | `unavailable` | none |
 | `setting` | `PSYCHIATRIST` | `unavailable` | none |
 | `add-new-user` | `ADMIN` | `available` | `/modules/auth/accounts/new` |
@@ -266,7 +265,7 @@ Available success:
 {
   "moduleId": "add-new-patient",
   "title": "Add New Patient",
-  "href": "/modules/add-new-patient",
+  "href": "/modules/add-new-patient/",
   "state": "available",
   "reason": "Destination available."
 }
@@ -293,25 +292,6 @@ Errors:
 | `503` | `module_route_unavailable` | Authorized destination has no supported route. |
 | `502` | `authentication_session_unavailable` | Authentication endpoint unavailable, failed, or misconfigured. |
 
-## Disclaimer Acceptance
-
-```http
-POST /internal/dashboard/disclaimer/accept
-X-Dashboard-Session: {dashboardSessionId}
-```
-
-Allowed for verified `PSYCHIATRIST` sessions only. Returns updated INSIGHT workspace response.
-
-Errors:
-
-| Status | Error | Cause |
-| --- | --- | --- |
-| `401` | `dashboard_session_required` | Dashboard session missing, invalid, inactive, or signed out. |
-| `401` | `authentication_session_required` | Authentication rejected, missing, expired, blocked, or unsupported. |
-| `401` | `authentication_session_mismatch` | Authentication user differs from Dashboard session user. |
-| `403` | `psychiatrist_only` | Verified role is not `PSYCHIATRIST`. |
-| `502` | `authentication_session_unavailable` | Authentication endpoint unavailable, failed, or misconfigured. |
-
 ## Sign Out
 
 ```http
@@ -319,7 +299,10 @@ DELETE /internal/dashboard/session
 X-Dashboard-Session: {dashboardSessionId}
 ```
 
-Dashboard verifies Dashboard session and Authentication, then marks local Dashboard session inactive.
+Dashboard verifies Dashboard session and Authentication, then marks local
+Dashboard session inactive. Browser sign-out also gets a central CSRF token and
+calls `POST /api/auth/logout`; failure is shown rather than reported as a
+successful global sign-out.
 
 Success:
 

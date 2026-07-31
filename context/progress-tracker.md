@@ -333,6 +333,33 @@ Update this file after every meaningful implementation change.
 
 ## In Progress
 
+- Integration defect remediation completed for all code-defined audit findings.
+  Authentication now redirects to `/dashboard/`; Dashboard keeps its local
+  session identifier out of URLs, delegates disclaimer ownership to
+  Authentication, performs central CSRF-protected logout, and exposes the
+  implemented clinical module routes without advertising Treatment Plan as a
+  context-free destination. Add New Patient canonicalizes its trailing-slash
+  module URL so browser assets resolve correctly. BN Manager and Treatment Plan
+  now consume the exact nested Authentication v2 contract. DDI now publishes a
+  protected, HMAC-authenticated `POST /api/ddi/v1/checks` production seam with
+  strict coverage, idempotency, knowledge identity, and readiness validation;
+  Treatment Plan has the matching signed HTTP client. Treatment Plan review now
+  launches only with a canonical plan UUID, bootstraps CSRF safely, and exposes
+  server-authoritative finalization. Diagnosis full discovery is deterministic
+  and no longer depends on test import order. Root contracts passed 93/93 with
+  the two live gateway scenarios skipped because no approved external fixture
+  is configured. Authentication passed 21/21, Dashboard 17/17, Add New Patient
+  56/56 plus six frontend checks, Diagnosis 99/99, DDI 50/50, BN Manager 64/64,
+  and Treatment Plan 84/84 plus ten frontend tests, typecheck, and production
+  build. Severity, Medical History, and Suicide Risk full suites passed;
+  development/release Compose rendering, nginx syntax, JavaScript syntax, and
+  `git diff --check` passed. Clinical release remains fail-closed: the bundled
+  DDI registry fails clinical validation, all runtime BN models and population
+  scope remain unapproved, no approved owner-snapshot recommendation mapping or
+  finalization/successor context contract exists, and no licensed routine
+  suicide-risk instrument/negative state is available. These gates require
+  accountable clinical/model/product decisions and source evidence; code did
+  not fabricate approval or clinical semantics.
 - INS-074 Dashboard knowledge and model administration connection (In
   progress). Dashboard now exposes admin-only `DDI Knowledge` and `BN Models`
   destinations through gateway-relative provider-owned routes. Admin workspace

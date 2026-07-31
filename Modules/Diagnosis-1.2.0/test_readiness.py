@@ -31,11 +31,6 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 
-# Force both bypasses off — readiness is the production gate, it should
-# reflect real wiring, not the self-check shim.
-os.environ.pop("DIAGNOSIS_AUTH_BYPASS", None)
-os.environ.pop("DIAGNOSIS_PATIENT_LOOKUP", None)
-
 from fastapi.testclient import TestClient
 
 from diagnosis import auth as diag_auth
