@@ -27,9 +27,6 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 
-# Force the auth bypass off — we want to exercise the real dependency.
-os.environ.pop("DIAGNOSIS_AUTH_BYPASS", None)
-
 from fastapi.testclient import TestClient
 
 from diagnosis import auth as diag_auth

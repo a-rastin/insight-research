@@ -95,20 +95,23 @@ class RecordingPort:
         count = len(request["medications"])
         return {
             "schemaVersion": "1.0.0",
-            "checkId": f"check-{len(self.requests)}",
+            "checkId": f"00000000-0000-4000-8000-{len(self.requests):012d}",
             "medicationSetHash": request["medicationSetHash"],
-            "knowledgeBaseId": "synthetic-kb",
-            "knowledgeBaseVersion": "2026.07.14",
-            "normalizedMedications": [
-                {"inputIndex": index, "conceptId": f"synthetic:{index}", "display": f"Drug {index}"}
-                for index in range(count)
+            "knowledgeBaseId": "00000000-0000-4000-8000-000000000099",
+            "knowledgeBaseVersion": "1.2.3",
+            "knowledgeBaseContentHash": "sha256:" + "b" * 64,
+            "coverageStatus": "complete",
+            "resolvedMedications": [
+                {"inputIndex": index, "status": "resolved", "originalText": item["originalText"], "conceptId": f"synthetic:{index}", "codeSystem": "synthetic", "display": f"Drug {index}"}
+                for index, item in enumerate(request["medications"])
             ],
             "unresolvedMedications": [],
             "pairsChecked": [
-                {"leftInputIndex": left, "rightInputIndex": right}
+                {"medicationInputIndexes": [left, right]}
                 for left in range(count) for right in range(left + 1, count)
             ],
             "alerts": [],
+            "checkedAt": "2026-07-14T20:00:00Z",
         }
 
 
@@ -182,7 +185,7 @@ class TP16FinalizationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(preview.medication_set_hash, port.requests[1]["medicationSetHash"])
         record = self.ledger.get_finalization(PLAN_ID)
         self.assertEqual(port.requests[1]["medicationSetHash"], record["safetyBinding"]["medicationSetHash"])
-        self.assertEqual("check-2", record["safetyBinding"]["ddiCheckId"])
+        self.assertEqual("00000000-0000-4000-8000-000000000002", record["safetyBinding"]["ddiCheckId"])
         self.assertEqual("finalized", final_plan["status"])
         self.assertTrue(final_plan["contentHash"].startswith("sha256:"))
         with self.assertRaises(PlanFinalized):

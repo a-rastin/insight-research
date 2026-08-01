@@ -1,6 +1,4 @@
 const app = document.querySelector("#app");
-const params = new URLSearchParams(location.search);
-
 const ROLE_META = {
   PSYCHIATRIST: {
     label: "Psychiatrist",
@@ -9,6 +7,11 @@ const ROLE_META = {
     modules: {
       "add-new-patient": ["Intake", "Register patient shell", "Info"],
       "patient-follow-up": ["Follow-up", "Review queued follow-up work", "Follow-up"],
+      diagnosis: ["Assessment", "Open diagnostic assessment", "Info"],
+      severity: ["PANSS", "Open severity assessment", "Info"],
+      "medical-history": ["History", "Open medical history", "Info"],
+      "suicide-risk": ["Risk", "Open suicide risk assessment", "Warning"],
+      "treatment-plan": ["Plan", "Open treatment plan review", "Info"],
       "list-of-patients": ["Registry", "Open patient directory module", "Normal"],
       setting: ["Settings", "Workspace preferences", "Info"]
     }
@@ -21,7 +24,9 @@ const ROLE_META = {
       "add-new-user": ["Access", "Create account in Authentication", "Warning"],
       logs: ["Audit", "Review system logs module", "Info"],
       backup: ["Backup", "Open backup module", "Warning"],
-      "list-of-users": ["Users", "Open Authentication account directory", "Normal"]
+      "list-of-users": ["Users", "Open Authentication account directory", "Normal"],
+      "ddi-knowledge": ["Knowledge", "Open DDI knowledge lifecycle administration", "Warning"],
+      "bn-models": ["Models", "Open Bayesian model lifecycle administration", "Warning"]
     }
   }
 };
@@ -33,12 +38,12 @@ const STATUS_META = {
 };
 
 let state = {
-  sessionId: params.get("session"),
+  sessionId: null,
   model: null,
   view: "loading",
   error: null,
   devRole: null,
-  signedOut: params.get("signedOut") === "1"
+  signedOut: false
 };
 
 const api = {
@@ -51,16 +56,27 @@ const api = {
     });
   },
   workspace() {
-    return request(`/internal/dashboard/workspace?session=${encodeURIComponent(state.sessionId)}`);
-  },
-  acceptDisclaimer() {
-    return request("/internal/dashboard/disclaimer/accept", { method: "POST" });
+    return request("/internal/dashboard/workspace");
   },
   moduleRoute(discoveryUrl) {
     return request(discoveryUrl);
   },
-  signOut() {
-    return request("/internal/dashboard/session", { method: "DELETE" });
+  async signOut() {
+    try {
+      await request("/internal/dashboard/session", { method: "DELETE" });
+    } catch {
+      // Central logout still revokes Authentication when local cleanup fails.
+    }
+    if (state.devRole) return;
+    const csrfResponse = await fetch("/api/auth/csrf", { credentials: "same-origin" });
+    const csrf = await csrfResponse.json().catch(() => ({}));
+    if (!csrfResponse.ok || !csrf.csrf_token) throw new Error("Central sign-out could not be started.");
+    const logoutResponse = await fetch("/api/auth/logout", {
+      method: "POST",
+      headers: { "x-csrf-token": csrf.csrf_token },
+      credentials: "same-origin"
+    });
+    if (!logoutResponse.ok) throw new Error("Central sign-out failed.");
   }
 };
 
@@ -73,6 +89,7 @@ async function request(url, options = {}) {
   const response = await fetch(url, {
     method: options.method || "GET",
     headers,
+    credentials: "same-origin",
     body: options.body ? JSON.stringify(options.body) : undefined
   });
   const data = await response.json().catch(() => ({}));
@@ -121,10 +138,6 @@ function statusBadge(status) {
   return `<span class="status ${className}"><span aria-hidden="true">${label[0]}</span>${escapeHtml(label)}</span>`;
 }
 
-function setUrlToSession(url) {
-  history.replaceState(null, "", url || `/dashboard/?session=${encodeURIComponent(state.sessionId)}`);
-}
-
 function clearUrl(extra = "") {
   history.replaceState(null, "", `/dashboard/${extra}`);
 }
@@ -141,7 +154,7 @@ async function load() {
     try {
       const result = await api.activate();
       state.sessionId = result.sessionId;
-      setUrlToSession(result.dashboardUrl);
+      clearUrl();
     } catch (error) {
       state.error = error;
       renderAccess({ error });
@@ -235,7 +248,7 @@ async function activateDevRole(role) {
     state.sessionId = result.sessionId;
     state.devRole = role;
     state.signedOut = false;
-    setUrlToSession(result.dashboardUrl);
+    clearUrl();
     state.model = await api.workspace();
     renderWorkspace();
   } catch (error) {
@@ -249,7 +262,6 @@ function renderWorkspace() {
   const workspace = model.workspace;
   const role = workspace.kind;
   const meta = roleMeta(role);
-  const requiresDisclaimer = Boolean(model.requiresDisclaimer);
   const buttons = workspace.buttons || [];
 
   app.innerHTML = `
@@ -287,13 +299,11 @@ function renderWorkspace() {
           </div>
         </header>
 
-        ${requiresDisclaimer ? renderDisclaimer(model.disclaimer) : ""}
-
         <section class="metric-strip" aria-label="Workspace summary">
           ${renderMetric("Role", meta.label, "Verified identity")}
           ${renderMetric("Available", String(buttons.filter((button) => button.state === "available").length).padStart(2, "0"), "Role scoped")}
           ${renderMetric("Destinations", String(buttons.length).padStart(2, "0"), "Explicit states")}
-          ${renderMetric("Status", requiresDisclaimer ? "Review" : "Ready", requiresDisclaimer ? "Accept notice" : "Operational")}
+          ${renderMetric("Status", "Ready", "Operational")}
         </section>
 
         ${state.error ? `<p class="inline-error" role="alert">${escapeHtml(state.error.message)}</p>` : ""}
@@ -318,7 +328,7 @@ function renderWorkspace() {
                   </tr>
                 </thead>
                 <tbody>
-                  ${buttons.map((button) => renderModuleRow(button, role, requiresDisclaimer)).join("")}
+                  ${buttons.map((button) => renderModuleRow(button, role)).join("")}
                 </tbody>
               </table>
             </div>
@@ -339,8 +349,6 @@ function renderWorkspace() {
   `;
 
   app.querySelector("#signOut").addEventListener("click", signOut);
-  const accept = app.querySelector("#acceptDisclaimer");
-  if (accept) accept.addEventListener("click", acceptDisclaimer);
   app.querySelectorAll("[data-module]").forEach((button) => {
     button.addEventListener("click", () => launchModule(button.dataset.module));
   });
@@ -356,18 +364,6 @@ function renderNavButton(button, role, active) {
   `;
 }
 
-function renderDisclaimer(disclaimer = {}) {
-  return `
-    <section class="notice-band warning" role="status">
-      <div>
-        <strong>Research prototype notice</strong>
-        <p>${escapeHtml(disclaimer.text || "Review and accept prototype notice before launching clinical modules.")}</p>
-      </div>
-      <button id="acceptDisclaimer" class="primary">Accept notice</button>
-    </section>
-  `;
-}
-
 function renderMetric(label, value, helper) {
   return `
     <div class="metric">
@@ -378,9 +374,9 @@ function renderMetric(label, value, helper) {
   `;
 }
 
-function renderModuleRow(button, role, locked) {
+function renderModuleRow(button, role) {
   const [kind, description] = buttonMeta(button, role);
-  const enabled = !locked && button.state === "available";
+  const enabled = button.state === "available";
   return `
     <tr>
       <th scope="row">
@@ -388,28 +384,21 @@ function renderModuleRow(button, role, locked) {
         <span class="module-desc">${escapeHtml(description)}</span>
       </th>
       <td>${escapeHtml(kind)}</td>
-      <td>${statusBadge(locked && button.state === "available" ? "unavailable" : button.state)}<span class="state-reason">${escapeHtml(locked && button.state === "available" ? "Accept notice before opening." : button.reason)}</span></td>
+      <td>${statusBadge(button.state)}<span class="state-reason">${escapeHtml(button.reason)}</span>${renderProviderStatus(button.providerStatus)}</td>
       <td><code>${escapeHtml(button.href || "No route")}</code></td>
       <td><button class="table-action" data-module="${escapeHtml(button.id)}" ${enabled ? "" : "disabled"}>Open</button></td>
     </tr>
   `;
 }
 
-async function acceptDisclaimer() {
-  const button = app.querySelector("#acceptDisclaimer");
-  if (button) button.disabled = true;
-  try {
-    state.model = await api.acceptDisclaimer();
-    renderWorkspace();
-  } catch (error) {
-    state.error = error;
-    renderWorkspace();
-  }
+function renderProviderStatus(status) {
+  if (!status) return "";
+  return `<span class="state-reason"><strong>Readiness:</strong> ${escapeHtml(status.readiness?.state || "unknown")} - ${escapeHtml(status.readiness?.reason || "No reason reported.")}</span><span class="state-reason"><strong>Clinical use:</strong> ${escapeHtml(status.clinicalUse?.state || "unknown")} - ${escapeHtml(status.clinicalUse?.reason || "No reason reported.")}</span>`;
 }
 
 async function launchModule(moduleId) {
   const button = state.model.workspace.buttons.find((item) => item.id === moduleId);
-  if (!button || button.state !== "available" || state.model.requiresDisclaimer) return;
+  if (!button || button.state !== "available") return;
   try {
     const route = await api.moduleRoute(`/internal/dashboard/module-routes/${encodeURIComponent(button.id)}`);
     location.assign(route.href);
@@ -423,8 +412,11 @@ async function signOut() {
   if (state.sessionId) {
     try {
       await api.signOut();
-    } catch {
-      // Local reset still ends Dashboard session in this browser.
+    } catch (error) {
+      state = { sessionId: null, model: null, view: "access", error, devRole: null, signedOut: false };
+      clearUrl();
+      renderAccess({ error });
+      return;
     }
   }
   state = { sessionId: null, model: null, view: "access", error: null, devRole: null, signedOut: true };

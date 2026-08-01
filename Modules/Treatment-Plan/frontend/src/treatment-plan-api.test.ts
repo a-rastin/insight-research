@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { loadReview, requestAssistantAdvisory, submitDraftEdits, supersedePlan, type FollowUpDelta } from "./treatment-plan-api";
+import { finalizePlan, loadCsrfToken, loadReview, planIdFromPath, requestAssistantAdvisory, submitDraftEdits, supersedePlan, type FollowUpDelta } from "./treatment-plan-api";
 
 const planId = "00000000-0000-4000-8000-000000000051";
 const planView = {
@@ -32,6 +32,18 @@ const delta: FollowUpDelta = {
 };
 
 describe("Treatment Plan review API", () => {
+  it("accepts only a canonical path Plan UUID and never query launch context", () => {
+    expect(planIdFromPath(`/modules/treatment-plan/${planId}`)).toBe(planId);
+    expect(planIdFromPath("/modules/treatment-plan")).toBe("");
+    expect(planIdFromPath(`/modules/treatment-plan?planId=${planId}`)).toBe("");
+  });
+
+  it("obtains CSRF only from Authentication's supported bootstrap contract", async () => {
+    const fetcher = vi.fn(async () => new Response(JSON.stringify({ ok: true, csrf_token: "signed-token" }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    expect(await loadCsrfToken(fetcher as typeof fetch)).toBe("signed-token");
+    expect(fetcher).toHaveBeenCalledWith("/api/auth/csrf", { credentials: "include" });
+  });
+
   it("loads a credentialed plan and reports unavailable provenance as partial", async () => {
     const fetcher = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => String(input).endsWith("/provenance")
       ? new Response("service unavailable", { status: 503 })
@@ -111,5 +123,18 @@ describe("Treatment Plan review API", () => {
     expect(new Headers(init?.headers).has("X-CSRF-Token")).toBe(false);
     expect(init?.body).toBe(JSON.stringify({ planId, prompt: "Summarize safety." }));
     expect(result.advisory).toContain("clinical decision");
+  });
+
+  it("finalizes with ETag, CSRF, idempotency, request ID, and attestation", async () => {
+    const fetcher = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => new Response(JSON.stringify({ status: "finalized" }), { status: 201, headers: { "Content-Type": "application/json" } }));
+    await finalizePlan(planId, '"etag-0"', "signed-token", " I attest to this reviewed plan. ", "finalize-key-00000001", fetcher as typeof fetch, "00000000-0000-4000-8000-000000000073");
+    const [url, init] = fetcher.mock.calls[0];
+    const headers = new Headers(init?.headers);
+    expect(url).toBe(`/api/treatment-plan/v1/plans/${planId}/finalize`);
+    expect(init).toMatchObject({ method: "POST", credentials: "include", body: JSON.stringify({ attestation: "I attest to this reviewed plan." }) });
+    expect(headers.get("If-Match")).toBe('"etag-0"');
+    expect(headers.get("X-CSRF-Token")).toBe("signed-token");
+    expect(headers.get("Idempotency-Key")).toBe("finalize-key-00000001");
+    expect(headers.get("X-Request-ID")).toBe("00000000-0000-4000-8000-000000000073");
   });
 });

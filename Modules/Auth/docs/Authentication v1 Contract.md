@@ -29,7 +29,7 @@ Authentication v1 owns:
 - session verification for downstream modules.
 
 Authentication v1 does not own dashboard rendering. Dashboard routes belong to
-other modules at `/dashboard/admin` and `/dashboard/user`.
+the Dashboard module at `/dashboard/`.
 
 ## Roles
 
@@ -116,7 +116,7 @@ Success response for an admin:
 ```json
 {
   "ok": true,
-  "next": "/dashboard/admin",
+  "next": "/dashboard/",
   "disclaimer_required": false,
   "password_change_required": false
 }
@@ -127,7 +127,7 @@ Success response for an accepted psychiatrist account:
 ```json
 {
   "ok": true,
-  "next": "/dashboard/user",
+  "next": "/dashboard/",
   "disclaimer_required": false,
   "password_change_required": false
 }
@@ -454,7 +454,7 @@ Rules:
   `POST /api/auth/disclaimer/accept`;
 - pending users do not have an active downstream session;
 - `POST /api/auth/disclaimer/accept` stores `user_id`, timestamp, and the
-  active disclaimer version, then returns `next: "/dashboard/user"`;
+  active disclaimer version, then returns `next: "/dashboard/"`;
 - changing the active disclaimer version makes previously accepted
   psychiatrists pending again until they accept the new version;
 - after acceptance, `/api/auth/session` returns `200` with
@@ -500,15 +500,15 @@ Authentication v1 returns only these product dashboard redirects:
 
 | Condition | Response behavior |
 | --- | --- |
-| Accepted `admin` login | `next: "/dashboard/admin"` |
-| Accepted `psychiatrist` login | `next: "/dashboard/user"` |
+| Accepted `admin` login | `next: "/dashboard/"` |
+| Accepted `psychiatrist` login | `next: "/dashboard/"` |
 | Temporary-password login | `next: null`, `password_change_required: true` |
 | Pending `psychiatrist` login | `next: null`, `disclaimer_required: true` |
-| Disclaimer accepted | `next: "/dashboard/user"` |
+| Disclaimer accepted | `next: "/dashboard/"` |
 
 The standalone sign-in page at `/` calls `/api/auth/session` on load. If the
-session is valid, it redirects `admin` to `/dashboard/admin` and
-`psychiatrist` to `/dashboard/user`. If the session is missing, expired,
+session is valid, it redirects both supported roles to `/dashboard/`. If the
+session is missing, expired,
 invalid, or pending disclaimer, the user remains on the sign-in/disclaimer
 flow.
 

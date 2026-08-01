@@ -7,7 +7,7 @@ from pathlib import Path
 
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8000
-DEFAULT_AUTH_SESSION_URL = "http://127.0.0.1:8000/api/auth/session"
+DEFAULT_AUTH_SESSION_URL = "http://127.0.0.1:8000/api/auth/v2/session"
 
 
 @dataclass(frozen=True, slots=True)

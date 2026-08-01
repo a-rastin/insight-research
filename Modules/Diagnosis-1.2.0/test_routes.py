@@ -29,11 +29,6 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 
-# Force the auth bypass off so the dependency wiring reflects the
-# production path (real role + CSRF deps, not the bypass shim). We never
-# make a real HTTP call here; we only inspect route declarations.
-os.environ.pop("DIAGNOSIS_AUTH_BYPASS", None)
-
 from diagnosis import api as diag_api  # noqa: E402
 from diagnosis import page, dashboard, diagnosis_api, v2  # noqa: E402
 
@@ -223,10 +218,13 @@ def test_each_seam_shares_one_store_and_policy():
     from diagnosis.deps import (require_psychiatrist,
                                 require_psychiatrist_or_admin,
                                 require_csrf)
-    # Under no-bypass each dep is the auth/csrf module's real callable.
-    from diagnosis import auth as diag_auth
-    from diagnosis import csrf as diag_csrf
-    assert diag_csrf.require_csrf is require_csrf
+    assert diagnosis_api.require_psychiatrist is require_psychiatrist
+    assert diagnosis_api.require_psychiatrist_or_admin is require_psychiatrist_or_admin
+    assert diagnosis_api.require_csrf is require_csrf
+    assert dashboard.require_psychiatrist_or_admin is require_psychiatrist_or_admin
+    assert v2.require_psychiatrist is require_psychiatrist
+    assert v2.require_psychiatrist_or_admin is require_psychiatrist_or_admin
+    assert v2.require_csrf is require_csrf
 
 
 def main() -> None:

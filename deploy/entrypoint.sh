@@ -32,7 +32,11 @@ seed_registry /opt/insight/Modules/BN-Manager-v.1.1.0/BN-Manager-v.1.1.0/bn_mana
 
 export TP_DATABASE_PATH="${TP_DATABASE_PATH:-/var/lib/insight/treatment-plan/treatment-plan.db}"
 export TP_AUTHENTICATION_SESSION_URL="${TP_AUTHENTICATION_SESSION_URL:-http://127.0.0.1:8101/api/auth/v2/session}"
-export TP_TRUSTED_INTERNAL_ORIGINS="${TP_TRUSTED_INTERNAL_ORIGINS:-http://127.0.0.1:8101}"
+export TP_DDI_BASE_URL="${TP_DDI_BASE_URL:-http://127.0.0.1:8107}"
+export TP_DDI_SERVICE_AUTH_KEY_ID="${TP_DDI_SERVICE_AUTH_KEY_ID:-tp-ddi-v1}"
+: "${DDI_SERVICE_AUTH_SECRET:?set DDI_SERVICE_AUTH_SECRET}"
+export TP_DDI_SERVICE_AUTH_SECRET="${TP_DDI_SERVICE_AUTH_SECRET:-$DDI_SERVICE_AUTH_SECRET}"
+export TP_TRUSTED_INTERNAL_ORIGINS="${TP_TRUSTED_INTERNAL_ORIGINS:-http://127.0.0.1:8101,http://127.0.0.1:8107}"
 export TP_AUTH_STUB_ENABLED="false"
 
 cd /opt/insight/Modules/Treatment-Plan

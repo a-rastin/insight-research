@@ -8,9 +8,6 @@ from pathlib import Path
 from unittest import mock
 from uuid import UUID, uuid4
 
-os.environ["DIAGNOSIS_AUTH_BYPASS"] = "1"
-os.environ.pop("DIAGNOSIS_PATIENT_LOOKUP", None)
-
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
@@ -27,6 +24,10 @@ PREFIX = "/api/diagnosis/v2"
 
 class DiagnosisV2ContractTest(unittest.TestCase):
     def setUp(self) -> None:
+        self.auth_bypass = os.environ.get("DIAGNOSIS_AUTH_BYPASS")
+        self.patient_lookup = os.environ.get("DIAGNOSIS_PATIENT_LOOKUP")
+        os.environ["DIAGNOSIS_AUTH_BYPASS"] = "1"
+        os.environ.pop("DIAGNOSIS_PATIENT_LOOKUP", None)
         self.temp = tempfile.TemporaryDirectory()
         self.store = DiagnosisStore(str(Path(self.temp.name) / "diagnosis.db"))
         self.patches = [
@@ -47,6 +48,14 @@ class DiagnosisV2ContractTest(unittest.TestCase):
         if self.store._conn is not None:
             self.store._conn.close()
         self.temp.cleanup()
+        if self.auth_bypass is None:
+            os.environ.pop("DIAGNOSIS_AUTH_BYPASS", None)
+        else:
+            os.environ["DIAGNOSIS_AUTH_BYPASS"] = self.auth_bypass
+        if self.patient_lookup is None:
+            os.environ.pop("DIAGNOSIS_PATIENT_LOOKUP", None)
+        else:
+            os.environ["DIAGNOSIS_PATIENT_LOOKUP"] = self.patient_lookup
 
     def create(self, key: str = "diagnosis-v2-key-0001"):
         return self.client.post(

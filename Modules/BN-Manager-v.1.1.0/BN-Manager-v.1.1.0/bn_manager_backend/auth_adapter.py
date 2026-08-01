@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import re
 import secrets
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -9,8 +8,11 @@ from typing import Any, Protocol
 from urllib.error import HTTPError, URLError
 from urllib.request import Request as UrlRequest
 from urllib.request import urlopen
+from uuid import UUID
 
 from fastapi import Request
+
+CANONICAL_ROLES = frozenset({"admin", "psychiatrist"})
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,21 +53,36 @@ class AuthenticationRestAdapter:
         return session_from_payload(payload)
 
 
-def session_from_payload(payload: dict[str, Any]) -> SessionState:
-    session = _unwrap_session_payload(payload)
-    user = _as_dict(session.get("user"))
-    subject = _first_text(session, user, keys=("id", "userId", "sub", "subject", "email"))
-    roles = frozenset(_collect_roles(session, user))
-    csrf_token = _first_text(session, user, keys=("csrfToken", "csrf_token", "xsrfToken", "xsrf_token"))
-    expired = _is_expired(session)
-    blocked_reason = _blocked_reason(session, user)
+def session_from_payload(payload: Any) -> SessionState:
+    if not isinstance(payload, dict):
+        return SessionState(active=False)
+    session = _as_dict(payload.get("session"))
+    user = _as_dict(payload.get("user"))
+    gates = _as_dict(payload.get("gates"))
+    subject = user.get("id") if _is_canonical_uuid(user.get("id")) else None
+    role = user.get("role")
+    roles = frozenset({role}) if isinstance(role, str) and role in CANONICAL_ROLES else frozenset()
+    expires_at = _parse_expiry(session.get("expiresAt"))
+    expired = expires_at is not None and expires_at <= datetime.now(UTC)
+    blocked_reason = _blocked_reason(gates)
 
-    active = _is_active(session) and not expired and blocked_reason is None
+    active = (
+        payload.get("authenticated") is True
+        and payload.get("authorized") is True
+        and payload.get("interfaceVersion") == "2.0.0"
+        and _is_canonical_uuid(session.get("id"))
+        and session.get("active") is True
+        and expires_at is not None
+        and not expired
+        and subject is not None
+        and bool(roles)
+        and gates.get("passwordChangeRequired") is False
+        and gates.get("disclaimerRequired") is False
+    )
     return SessionState(
         active=active,
         subject=subject,
         roles=roles,
-        csrf_token=csrf_token,
         blocked_reason=blocked_reason,
         expired=expired,
     )
@@ -87,95 +104,34 @@ class CsrfError(Exception):
     pass
 
 
-def _unwrap_session_payload(payload: dict[str, Any]) -> dict[str, Any]:
-    data = payload.get("data")
-    if isinstance(data, dict):
-        session = data.get("session")
-        if isinstance(session, dict):
-            return session
-        return data
-    session = payload.get("session")
-    if isinstance(session, dict):
-        return session
-    return payload
-
-
 def _as_dict(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
-def _is_active(session: dict[str, Any]) -> bool:
-    for key in ("authenticated", "isAuthenticated", "active", "valid"):
-        if key in session:
-            return bool(session[key])
-    if session.get("status") in {"expired", "invalid", "anonymous"}:
-        return False
-    return True
+def _parse_expiry(value: Any) -> datetime | None:
+    if not isinstance(value, str):
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return None
+    return parsed.astimezone(UTC)
 
 
-def _is_expired(session: dict[str, Any]) -> bool:
-    if bool(session.get("expired")) or session.get("status") == "expired":
-        return True
-    expires_at = _first_text(session, {}, keys=("expiresAt", "expires_at", "expires"))
-    if not expires_at:
+def _is_canonical_uuid(value: Any) -> bool:
+    if not isinstance(value, str):
         return False
     try:
-        parsed = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+        return str(UUID(value)) == value
     except ValueError:
         return False
-    if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=UTC)
-    return parsed <= datetime.now(UTC)
 
 
-def _blocked_reason(session: dict[str, Any], user: dict[str, Any]) -> str | None:
-    for source in (session, user):
-        if source.get("forcePasswordChange") or source.get("forcedPasswordChange"):
-            return "forced_password_change"
-        if source.get("passwordChangeRequired") or source.get("mustChangePassword"):
-            return "forced_password_change"
-        for key in ("disclaimerAccepted", "acceptedDisclaimer", "clinicalDisclaimerAccepted"):
-            if key in source and not bool(source[key]):
-                return "disclaimer_required"
-    status = str(session.get("status", ""))
-    if status in {"disclaimer_required", "forced_password_change", "password_change_required"}:
-        return status
+def _blocked_reason(gates: dict[str, Any]) -> str | None:
+    if gates.get("passwordChangeRequired") is True:
+        return "forced_password_change"
+    if gates.get("disclaimerRequired") is True:
+        return "disclaimer_required"
     return None
-
-
-def _first_text(*sources: dict[str, Any], keys: tuple[str, ...]) -> str | None:
-    for source in sources:
-        for key in keys:
-            value = source.get(key)
-            if value is not None:
-                text = str(value).strip()
-                if text:
-                    return text
-    return None
-
-
-def _collect_roles(session: dict[str, Any], user: dict[str, Any]) -> set[str]:
-    raw_roles: list[Any] = []
-    for source in (session, user):
-        for key in ("roles", "role", "groups"):
-            value = source.get(key)
-            if isinstance(value, list | tuple | set):
-                raw_roles.extend(value)
-            elif value is not None:
-                raw_roles.append(value)
-    return {_normalize_role(str(role)) for role in raw_roles if str(role).strip()}
-
-
-def _normalize_role(role: str) -> str:
-    compact = re.sub(r"[\s_]+", "-", role.strip().lower())
-    aliases = {
-        "administrator": "admin",
-        "system-admin": "admin",
-        "psychiatry": "psychiatrist",
-        "psychiatrist-clinician": "psychiatrist",
-        "careteam": "care-team",
-        "care-team-member": "care-team",
-        "intakeclinician": "intake-clinician",
-        "modelmanager": "model-manager",
-    }
-    return aliases.get(compact, compact)

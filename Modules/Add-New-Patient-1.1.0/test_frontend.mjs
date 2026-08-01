@@ -14,6 +14,11 @@ test("dashboard view renders with activate control", () => {
   assert.match(html, /id="dashboardTitle"[\s\S]*?>Add New Patient</);
 });
 
+test("embedded assets resolve beneath canonical module path", () => {
+  assert.match(html, /href="\.\/styles\.css"/);
+  assert.match(html, /src="\.\/app\.js"/);
+});
+
 test("form exposes demographics + clinical fields", () => {
   for (const name of [
     "firstName",

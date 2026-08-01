@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -36,6 +37,7 @@ def auth_payload(role: str) -> dict:
 
 class DiagnosisV2SecurityTest(unittest.TestCase):
     def setUp(self) -> None:
+        self.auth_bypass = os.environ.pop("DIAGNOSIS_AUTH_BYPASS", None)
         self.temp = tempfile.TemporaryDirectory()
         self.store = DiagnosisStore(str(Path(self.temp.name) / "diagnosis.db"))
         self.store_patch = mock.patch.object(v2, "store", self.store)
@@ -52,6 +54,8 @@ class DiagnosisV2SecurityTest(unittest.TestCase):
         if self.store._conn is not None:
             self.store._conn.close()
         self.temp.cleanup()
+        if self.auth_bypass is not None:
+            os.environ["DIAGNOSIS_AUTH_BYPASS"] = self.auth_bypass
 
     def create(self):
         token = csrf.mint()

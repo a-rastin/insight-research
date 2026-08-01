@@ -40,12 +40,15 @@ GET /readyz
 - Both roles enter `Workspace`.
 - Workspace responses include `currentDateTime` and `displayName`.
 - Psychiatrist display names use `Dr. {fullName}`.
-- Psychiatrist buttons: `Add New Patient`, `Patient Follow-up`, `List of Patients`, `Setting`.
-- Admin buttons: `Add New User`, `Logs`, `Backup`, `List of Users`.
+- Psychiatrist buttons include patient intake/follow-up plus `Diagnosis`, `Severity`, `Medical History`, `Suicide Risk`, and `Treatment Plan` launch paths.
+- Admin buttons: `Add New User`, `Logs`, `Backup`, `List of Users`, `DDI Knowledge`, `BN Models`.
 - Destinations render `available`, `unavailable`, or `unauthorized` explicitly.
 - Only available destinations expose a real gateway-relative module route.
 - Add New User and List of Users navigate to Authentication's gateway-relative
   account-administration surface. Dashboard stores and proxies no account data.
+- DDI Knowledge and BN Models navigate to provider-owned administration surfaces.
+  Dashboard displays only live readiness and aggregate clinical-use status; it
+  does not store, edit, activate, or return provider artifacts.
 - Dashboard does not implement patient, treatment, admin log, backup, or user-management module logic.
 
 ## Module Interface
@@ -75,6 +78,9 @@ The UI then reads:
 GET /internal/dashboard/workspace
 ```
 
+Protected Dashboard requests carry the local session only in
+`X-Dashboard-Session`; it is never placed in a URL or browser history.
+
 Available buttons may revalidate their destination through:
 
 ```http
@@ -82,6 +88,14 @@ GET /internal/dashboard/module-routes/{moduleId}
 ```
 
 Every protected Dashboard endpoint verifies the local dashboard session and re-checks Authentication through `GET /api/auth/v2/session`, so revocation, disablement, expiry, and role changes take effect immediately.
+
+Authentication owns disclaimer acceptance. Dashboard exposes no disclaimer
+write. Sign-out deactivates the local session and uses Authentication's CSRF
+bootstrap before calling `POST /api/auth/logout`.
+
+Admin provider status uses `DDI_READINESS_URL`, `BN_MANAGER_READINESS_URL`, and
+`BN_MANAGER_STATUS_URL`. `DASHBOARD_PROVIDER_TIMEOUT_MS` defaults to `2000`.
+Missing or failed provider responses remain visibly unavailable.
 
 ## Files
 

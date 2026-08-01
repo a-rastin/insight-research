@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -34,10 +35,26 @@ class AdminSessionAdapter:
         self.session = session_from_payload(
             {
                 "authenticated": True,
-                "user": {"id": "admin-1", "roles": ["Administrator"]},
-                "csrfToken": "csrf-validate",
+                "authorized": True,
+                "interfaceVersion": "2.0.0",
+                "session": {
+                    "id": "11111111-1111-4111-8111-111111111111",
+                    "active": True,
+                    "expiresAt": "2999-01-01T00:00:00Z",
+                },
+                "user": {
+                    "id": "22222222-2222-4222-8222-222222222222",
+                    "username": "admin",
+                    "role": "admin",
+                },
+                "gates": {
+                    "passwordChangeRequired": False,
+                    "disclaimerRequired": False,
+                    "disclaimerVersion": "test-v1",
+                },
             }
         )
+        self.session = replace(self.session, csrf_token="csrf-validate")
 
     def fetch_session(self, request: Request) -> SessionState:
         return self.session

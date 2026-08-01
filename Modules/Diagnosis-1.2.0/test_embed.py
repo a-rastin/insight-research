@@ -13,13 +13,11 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from unittest import mock
 
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
-os.environ["DIAGNOSIS_AUTH_BYPASS"] = "1"
-os.environ.pop("DIAGNOSIS_PATIENT_LOOKUP", None)
-
 from diagnosis import page  # noqa: E402
 from diagnosis.api import _read_page  # noqa: E402
 
@@ -208,7 +206,8 @@ def test_bypass_serve_path_is_byte_clean() -> None:
     from fastapi.testclient import TestClient
     from diagnosis.app import app
 
-    response = TestClient(app).get("/")
+    with mock.patch.dict(os.environ, {"DIAGNOSIS_AUTH_BYPASS": "1"}):
+        response = TestClient(app).get("/")
     assert response.status_code == 200, response.text
     assert response.text == _read_page()
 

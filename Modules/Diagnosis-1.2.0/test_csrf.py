@@ -15,11 +15,16 @@ from diagnosis import csrf
 
 class CsrfTest(unittest.TestCase):
     def setUp(self) -> None:
+        self.auth_bypass = os.environ.get("DIAGNOSIS_AUTH_BYPASS")
         os.environ.pop("DIAGNOSIS_AUTH_BYPASS", None)
         csrf.reset_secret_for_tests(b"csrf-test-secret")
 
     def tearDown(self) -> None:
         csrf.reset_secret_for_tests()
+        if self.auth_bypass is None:
+            os.environ.pop("DIAGNOSIS_AUTH_BYPASS", None)
+        else:
+            os.environ["DIAGNOSIS_AUTH_BYPASS"] = self.auth_bypass
 
     def request(self, cookie: str | None, header: str | None):
         request = mock.Mock()

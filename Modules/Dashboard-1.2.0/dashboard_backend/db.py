@@ -18,8 +18,7 @@ CREATE TABLE IF NOT EXISTS dashboard_sessions (
   role TEXT NOT NULL CHECK (role IN ('ADMIN', 'PSYCHIATRIST')),
   auth_session_id TEXT NOT NULL,
   active INTEGER NOT NULL DEFAULT 1,
-  created_at TEXT NOT NULL,
-  disclaimer_accepted_at TEXT
+  created_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS workspace_events (
@@ -71,9 +70,6 @@ class SQLiteAdapter:
     def initialize(self) -> None:
         with self.connect() as conn:
             conn.executescript(SCHEMA)
-            columns = {row["name"] for row in conn.execute("PRAGMA table_info(dashboard_sessions)").fetchall()}
-            if "disclaimer_accepted_at" not in columns:
-                conn.execute("ALTER TABLE dashboard_sessions ADD COLUMN disclaimer_accepted_at TEXT")
 
     def ping(self) -> bool:
         with self.connect() as conn:

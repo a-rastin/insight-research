@@ -31,7 +31,7 @@ DEFAULTS = {
     "AUTH_SECURE_COOKIE": "false",
     "AUTH_ADMIN_USERNAME": "Admin",
     "AUTH_ADMIN_PASSWORD": "Admin",
-    "AUTH_ALLOWED_REDIRECTS": "/dashboard/admin,/dashboard/user",
+    "AUTH_ALLOWED_REDIRECTS": "/dashboard/",
     "AUTH_LOGIN_FAILURE_LIMIT": "5",
     "AUTH_LOGIN_FAILURE_WINDOW_SECONDS": "300",
     "AUTH_LOGIN_LOCKOUT_SECONDS": "900",

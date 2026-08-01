@@ -15,11 +15,27 @@ from bn_manager_backend.main import create_app
 
 class SessionAdapter:
     def __init__(self, role: str) -> None:
-        self.session = session_from_payload({
+        canonical_role = "admin" if role == "Administrator" else "psychiatrist"
+        self.session = replace(session_from_payload({
             "authenticated": True,
-            "user": {"id": "admin-1" if role == "Administrator" else "psychiatrist-1", "roles": [role]},
-            "csrfToken": "csrf-admin",
-        })
+            "authorized": True,
+            "interfaceVersion": "2.0.0",
+            "session": {
+                "id": "11111111-1111-4111-8111-111111111111",
+                "active": True,
+                "expiresAt": "2999-01-01T00:00:00Z",
+            },
+            "user": {
+                "id": "22222222-2222-4222-8222-222222222222",
+                "username": canonical_role,
+                "role": canonical_role,
+            },
+            "gates": {
+                "passwordChangeRequired": False,
+                "disclaimerRequired": False,
+                "disclaimerVersion": "test-v1",
+            },
+        }), csrf_token="csrf-admin")
 
     def fetch_session(self, request: Request) -> SessionState:
         return self.session
@@ -76,7 +92,7 @@ class RegistryAdministrationTests(unittest.TestCase):
         lifecycle = rollback.json()["data"]["model"]["lifecycle"]
         self.assertEqual(lifecycle["status"], "reviewed")
         self.assertEqual(lifecycle["history"][-1]["action"], "rollback")
-        self.assertEqual(lifecycle["history"][-1]["actor_id"], "admin-1")
+        self.assertEqual(lifecycle["history"][-1]["actor_id"], "22222222-2222-4222-8222-222222222222")
 
         detail = self.client.get(f"/api/bn-manager/v3/admin/models/{stable_id}")
         self.assertEqual(detail.json()["data"]["model"]["lifecycle"]["version"], 3)

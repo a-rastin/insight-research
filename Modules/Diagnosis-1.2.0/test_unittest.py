@@ -40,16 +40,6 @@ from unittest import mock
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 
-# The REST-contract + persistence + auth-shim tests need the bypass ON at
-# ``deps.py`` import time (the module wires the dep callables once, at
-# import, per HANDOFF §10). We set it before any ``diagnosis`` import so
-# the ``_bypass_dep`` shim is bound for the whole suite. The pure-unit
-# tests (criteria, csrf, patient) read their env at call time and don't
-# care; the auth-rejection cases exercise ``auth.require_role`` directly
-# so they're independent of the deps wiring.
-os.environ["DIAGNOSIS_AUTH_BYPASS"] = "1"
-os.environ.pop("DIAGNOSIS_PATIENT_LOOKUP", None)
-
 from fastapi.testclient import TestClient  # noqa: E402
 
 from diagnosis import auth as diag_auth          # noqa: E402
@@ -77,6 +67,26 @@ def _fake_request(*, cookies: dict | None = None, headers: dict | None = None):
         cookies=cookies or {},
         headers=headers or {},
     )
+
+
+def _enable_bypass() -> tuple[str | None, str | None]:
+    saved = (
+        os.environ.get("DIAGNOSIS_AUTH_BYPASS"),
+        os.environ.get("DIAGNOSIS_PATIENT_LOOKUP"),
+    )
+    os.environ["DIAGNOSIS_AUTH_BYPASS"] = "1"
+    os.environ.pop("DIAGNOSIS_PATIENT_LOOKUP", None)
+    return saved
+
+
+def _restore_bypass(saved: tuple[str | None, str | None]) -> None:
+    for name, value in zip(
+        ("DIAGNOSIS_AUTH_BYPASS", "DIAGNOSIS_PATIENT_LOOKUP"), saved
+    ):
+        if value is None:
+            os.environ.pop(name, None)
+        else:
+            os.environ[name] = value
 
 
 # ===========================================================================
@@ -220,12 +230,14 @@ class TestRestContract(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        cls.saved_env = _enable_bypass()
         api_store.reset()
         cls.client = TestClient(app)
 
     @classmethod
     def tearDownClass(cls):
         api_store.reset()
+        _restore_bypass(cls.saved_env)
 
     def test_health_alive(self):
         r = self.client.get("/health")
@@ -420,12 +432,14 @@ class TestAuditSeam(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        cls.saved_env = _enable_bypass()
         api_store.reset()
         cls.client = TestClient(app)
 
     @classmethod
     def tearDownClass(cls):
         api_store.reset()
+        _restore_bypass(cls.saved_env)
 
     def test_put_persists_audit_event(self):
         # A decision-bearing PUT MUST record a local audit event. The audit
@@ -561,12 +575,14 @@ class TestClinicianAuthority(unittest.TestCase):
     # ---------------------------------------------------------- REST contract
     @classmethod
     def setUpClass(cls):
+        cls.saved_env = _enable_bypass()
         api_store.reset()
         cls.client = TestClient(app)
 
     @classmethod
     def tearDownClass(cls):
         api_store.reset()
+        _restore_bypass(cls.saved_env)
 
     def _init(self, code: str):
         r = self.client.post(f"/diagnosis/{code}/init")
@@ -811,9 +827,7 @@ class TestCSRF(unittest.TestCase):
         self.assertFalse(diag_csrf._verify(bad))
 
     def test_require_csrf_missing_both_blocks(self):
-        # Bypass must be off in the env for the dep to enforce — the suite
-        # sets ``DIAGNOSIS_AUTH_BYPASS=1`` at import time, but
-        # ``require_csrf`` reads the env at *call* time, so pop it here.
+        # Bypass must be off in the env for the dependency to enforce.
         saved = os.environ.pop("DIAGNOSIS_AUTH_BYPASS", None)
         try:
             req = _fake_request(cookies={}, headers={})
@@ -880,8 +894,8 @@ class TestCSRF(unittest.TestCase):
                 os.environ["DIAGNOSIS_AUTH_BYPASS"] = saved
 
     def test_bypass_env_skips_csrf(self):
-        # The shim is already on for the suite; assert it short-circuits.
-        self.assertIsNone(diag_csrf.require_csrf(_fake_request()))
+        with mock.patch.dict(os.environ, {"DIAGNOSIS_AUTH_BYPASS": "1"}):
+            self.assertIsNone(diag_csrf.require_csrf(_fake_request()))
 
 
 # ===========================================================================

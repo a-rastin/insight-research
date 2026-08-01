@@ -18,7 +18,6 @@ def session_row(row: Any) -> dict[str, Any]:
         "authSessionId": row["auth_session_id"],
         "active": bool(row["active"]),
         "createdAt": row["created_at"],
-        "disclaimerAcceptedAt": row["disclaimer_accepted_at"],
     }
 
 
@@ -63,12 +62,6 @@ class DashboardRepository:
     def deactivate_session(self, session_id: str) -> None:
         with self.adapter.connect() as conn:
             conn.execute("UPDATE dashboard_sessions SET active = 0 WHERE id = ?", (session_id,))
-
-    def accept_disclaimer(self, session_id: str) -> str:
-        accepted_at = now_iso()
-        with self.adapter.connect() as conn:
-            conn.execute("UPDATE dashboard_sessions SET disclaimer_accepted_at = ? WHERE id = ?", (accepted_at, session_id))
-        return accepted_at
 
     def record_event(self, session: dict[str, Any], event_type: str) -> None:
         with self.adapter.connect() as conn:

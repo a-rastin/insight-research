@@ -2,16 +2,29 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
+import base64
+import re
+import secrets
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any, Mapping, Protocol, Sequence
+from urllib.parse import urlsplit
+from uuid import UUID, uuid4
+
+import httpx
+
+from .clinical_context import OutboundRequestContext
 
 from .primary_plan import PrimaryTreatmentPlan
 from .observability import current_observability
 
 
 SCHEMA_VERSION = "1.0.0"
+_SHA256 = re.compile(r"^sha256:[a-f0-9]{64}$")
+_SEMVER = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
 
 
 @dataclass(frozen=True)
@@ -129,7 +142,110 @@ class DdiCheckResult:
 
 
 class _DdiPort(Protocol):
-    async def check(self, request: Mapping[str, Any]) -> Mapping[str, Any]: ...
+    async def check(
+        self, request: Mapping[str, Any], request_context: OutboundRequestContext | None = None
+    ) -> Mapping[str, Any]: ...
+
+
+class HttpDdiPort:
+    """Authenticated REST adapter for DDI v1 clinical checks."""
+
+    def __init__(
+        self,
+        base_url: str,
+        service_id: str,
+        key_id: str,
+        secret: bytes,
+        *,
+        session_cookie_name: str = "insight_session",
+        timeout_seconds: float = 3.0,
+        client: httpx.AsyncClient | None = None,
+    ) -> None:
+        parsed = urlsplit(base_url)
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.path not in {"", "/"} or parsed.query or parsed.fragment or parsed.username or parsed.password:
+            raise ValueError("DDI base URL must be an HTTP origin")
+        if not service_id or not key_id or not secret or len(secret) < 32:
+            raise ValueError("DDI service authentication configuration is incomplete")
+        if not session_cookie_name or any(character not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-" for character in session_cookie_name):
+            raise ValueError("DDI session cookie name is invalid")
+        if not 0 < timeout_seconds <= 30:
+            raise ValueError("DDI timeout must be greater than zero and at most 30 seconds")
+        self._base_url = base_url.rstrip("/")
+        self._service_id = service_id
+        self._key_id = key_id
+        self._secret = secret
+        self._session_cookie_name = session_cookie_name
+        self._timeout = timeout_seconds
+        self._client = client
+
+    async def check(
+        self, request: Mapping[str, Any], request_context: OutboundRequestContext | None = None
+    ) -> Mapping[str, Any]:
+        if request_context is None:
+            raise ValueError("DDI check requires authenticated outbound request context")
+        path = "/api/ddi/v1/checks"
+        body = json.dumps(request, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
+        request_id = str(uuid4())
+        timestamp = str(int(datetime.now(timezone.utc).timestamp()))
+        nonce = secrets.token_hex(16)
+        content_hash = hashlib.sha256(body).hexdigest()
+        canonical = "\n".join((
+            "INSIGHT-HMAC-V1", self._service_id, self._key_id, timestamp, nonce,
+            "ddi-checker", "POST", path, content_hash, request_id,
+            request_context.correlation_id, request_context.parent_request_id,
+        )).encode("utf-8")
+        signature = base64.urlsafe_b64encode(
+            hmac.new(self._secret, canonical, hashlib.sha256).digest()
+        ).rstrip(b"=").decode("ascii")
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Cookie": f"{self._session_cookie_name}={request_context.session_cookie_value}",
+            "Idempotency-Key": str(request["idempotencyKey"]),
+            "X-Schema-Version": SCHEMA_VERSION,
+            "X-Request-ID": request_id,
+            "X-Correlation-ID": request_context.correlation_id,
+            "X-Causation-ID": request_context.parent_request_id,
+            "X-Insight-Service-ID": self._service_id,
+            "X-Insight-Key-ID": self._key_id,
+            "X-Insight-Timestamp": timestamp,
+            "X-Insight-Nonce": nonce,
+            "X-Insight-Content-SHA256": content_hash,
+            "X-Insight-Signature": f"v1={signature}",
+        }
+        response = await self._request("POST", path, headers=headers, content=body)
+        response.raise_for_status()
+        if response.headers.get("X-Schema-Version") != SCHEMA_VERSION:
+            raise ValueError("DDI response schema header is unsupported")
+        payload = response.json()
+        if not isinstance(payload, dict):
+            raise ValueError("DDI response must be an object")
+        return payload
+
+    async def ready(self) -> bool:
+        try:
+            response = await self._request("GET", "/readyz", headers={"Accept": "application/json"})
+            payload = response.json()
+            return (
+                response.status_code == 200
+                and response.headers.get("X-Schema-Version") == SCHEMA_VERSION
+                and isinstance(payload, dict)
+                and payload.get("status") == "ready"
+                and payload.get("module") == "ddi-checker"
+                and payload.get("schemaVersion") == SCHEMA_VERSION
+                and isinstance(payload.get("knowledgeBaseVersion"), str)
+                and bool(_SEMVER.fullmatch(payload["knowledgeBaseVersion"]))
+                and isinstance(payload.get("knowledgeBaseContentHash"), str)
+                and bool(_SHA256.fullmatch(payload["knowledgeBaseContentHash"]))
+            )
+        except (httpx.HTTPError, ValueError):
+            return False
+
+    async def _request(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
+        if self._client is not None:
+            return await self._client.request(method, self._base_url + path, timeout=self._timeout, **kwargs)
+        async with httpx.AsyncClient() as client:
+            return await client.request(method, self._base_url + path, timeout=self._timeout, **kwargs)
 
 
 class _InvalidDdiResponse(ValueError):
@@ -146,6 +262,7 @@ class DdiMedicationChecker:
         self,
         plan: PrimaryTreatmentPlan | ReviewedMedicationPlan,
         current_medications: Sequence[Medication],
+        request_context: OutboundRequestContext | None = None,
     ) -> DdiCheckResult:
         if not isinstance(plan, (PrimaryTreatmentPlan, ReviewedMedicationPlan)):
             raise TypeError("plan must be a PrimaryTreatmentPlan or ReviewedMedicationPlan")
@@ -174,7 +291,10 @@ class DdiMedicationChecker:
         started = time.monotonic()
         observer = current_observability()
         try:
-            raw = await self._port.check(request)
+            if request_context is None:
+                raw = await self._port.check(request)
+            else:
+                raw = await self._port.check(request, request_context)
             result = self._parse_response(raw, plan.semantic_hash, medication_set_hash, medications, request_medications)
         except Exception as exc:
             observer.metric("tp_dependency_latency_ms", (time.monotonic() - started) * 1000,
@@ -277,14 +397,38 @@ class DdiMedicationChecker:
             "knowledgeBaseVersion",
             raw.get("knowledgeVersion", knowledge_base.get("version")),
         )
-        if not isinstance(kb_id, str) or not kb_id.strip():
-            raise _InvalidDdiResponse("knowledgeBaseId must be a non-empty string")
-        if not isinstance(kb_version, str) or not kb_version.strip():
-            raise _InvalidDdiResponse("knowledgeBaseVersion must be a non-empty string")
-        normalized_raw = self._required_list(raw, "normalizedMedications")
+        try:
+            parsed_kb_id = UUID(str(kb_id))
+        except ValueError as exc:
+            raise _InvalidDdiResponse("knowledgeBaseId must be a UUID") from exc
+        if parsed_kb_id.int == 0 or str(parsed_kb_id) != kb_id:
+            raise _InvalidDdiResponse("knowledgeBaseId must be a canonical non-nil UUID")
+        if not isinstance(kb_version, str) or not _SEMVER.fullmatch(kb_version):
+            raise _InvalidDdiResponse("knowledgeBaseVersion must be semantic version metadata")
+        required_fields = {
+            "schemaVersion", "checkId", "medicationSetHash", "knowledgeBaseId",
+            "knowledgeBaseVersion", "knowledgeBaseContentHash", "coverageStatus",
+            "resolvedMedications", "unresolvedMedications", "pairsChecked", "alerts", "checkedAt",
+        }
+        if set(raw) != required_fields:
+            raise _InvalidDdiResponse("DDI response fields do not match schema 1.0.0")
+        normalized_raw = self._required_list(raw, "resolvedMedications")
         unresolved_raw = self._required_list(raw, "unresolvedMedications")
         pairs = self._required_list(raw, "pairsChecked")
         alerts = self._required_list(raw, "alerts")
+        if raw.get("coverageStatus") != ("incomplete" if unresolved_raw else "complete"):
+            raise _InvalidDdiResponse("DDI coverageStatus conflicts with medication resolution")
+        if not isinstance(raw.get("knowledgeBaseContentHash"), str) or not _SHA256.fullmatch(raw["knowledgeBaseContentHash"]):
+            raise _InvalidDdiResponse("DDI knowledgeBaseContentHash is invalid")
+        try:
+            parsed_check_id = UUID(str(check_id))
+            checked_at = datetime.fromisoformat(str(raw["checkedAt"]).replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise _InvalidDdiResponse("DDI check identity or timestamp is invalid") from exc
+        if parsed_check_id.int == 0 or str(parsed_check_id) != check_id:
+            raise _InvalidDdiResponse("DDI checkId must be a canonical non-nil UUID")
+        if checked_at.tzinfo is None or checked_at.utcoffset() != timezone.utc.utcoffset(checked_at):
+            raise _InvalidDdiResponse("DDI checkedAt must be UTC")
 
         normalized = tuple(
             self._identity(item, medications, request_medications, unresolved=False)
@@ -326,12 +470,36 @@ class DdiMedicationChecker:
         if not isinstance(index, int) or isinstance(index, bool) or not 0 <= index < len(medications):
             raise _InvalidDdiResponse("medication identity inputIndex is invalid")
         concept_id = details.get("conceptId")
+        status = details.get("status")
+        expected_fields = (
+            {"inputIndex", "status", "originalText", "reason", "candidates"}
+            if unresolved else
+            {"inputIndex", "status", "originalText", "conceptId", "codeSystem", "display"}
+        )
+        if set(details) != expected_fields:
+            raise _InvalidDdiResponse("medication identity fields do not match schema 1.0.0")
+        if details.get("originalText") != medications[index].original_text:
+            raise _InvalidDdiResponse("medication identity originalText conflicts with the request")
+        if unresolved and status not in {"ambiguous", "unknown"}:
+            raise _InvalidDdiResponse("unresolved medication status is invalid")
+        if not unresolved and status != "resolved":
+            raise _InvalidDdiResponse("resolved medication status is invalid")
         if not unresolved and (not isinstance(concept_id, str) or not concept_id.strip()):
             raise _InvalidDdiResponse("normalized medication conceptId is required")
+        if not unresolved and any(not isinstance(details.get(field), str) or not details[field].strip() for field in ("codeSystem", "display")):
+            raise _InvalidDdiResponse("resolved medication codeSystem and display are required")
+        if unresolved and (not isinstance(details.get("reason"), str) or not details["reason"].strip()):
+            raise _InvalidDdiResponse("unresolved medication reason is required")
         candidates_raw = details.get("candidates", [])
         if not isinstance(candidates_raw, list):
             raise _InvalidDdiResponse("unresolved medication candidates must be an array")
         candidates = tuple(self._mapping_copy(item, "candidate") for item in candidates_raw)
+        if any(set(item) != {"conceptId", "codeSystem", "display"} for item in candidates):
+            raise _InvalidDdiResponse("unresolved medication candidate is invalid")
+        if any(any(not isinstance(item.get(field), str) or not item[field].strip() for field in ("conceptId", "codeSystem", "display")) for item in candidates):
+            raise _InvalidDdiResponse("unresolved medication candidate fields are required")
+        if unresolved and ((status == "ambiguous" and len(candidates) < 2) or (status == "unknown" and candidates)):
+            raise _InvalidDdiResponse("unresolved medication candidates conflict with status")
         requested = request_medications[index]
         return DdiMedicationIdentity(
             index,
@@ -353,14 +521,12 @@ class DdiMedicationChecker:
     ) -> None:
         actual: set[tuple[int, int]] = set()
         for pair in pairs:
-            if "medicationInputIndexes" in pair:
-                indexes = pair["medicationInputIndexes"]
-                if not isinstance(indexes, list) or len(indexes) != 2:
-                    raise _InvalidDdiResponse("pairsChecked medicationInputIndexes must contain two inputs")
-                left, right = indexes
-            else:
-                left = pair.get("leftInputIndex")
-                right = pair.get("rightInputIndex")
+            if set(pair) != {"medicationInputIndexes"}:
+                raise _InvalidDdiResponse("pairsChecked fields do not match schema 1.0.0")
+            indexes = pair["medicationInputIndexes"]
+            if not isinstance(indexes, list) or len(indexes) != 2:
+                raise _InvalidDdiResponse("pairsChecked medicationInputIndexes must contain two inputs")
+            left, right = indexes
             if (
                 not isinstance(left, int)
                 or isinstance(left, bool)

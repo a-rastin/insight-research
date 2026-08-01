@@ -41,11 +41,7 @@ sys.path.insert(0, str(HERE.parent))
 # The consumer wiring is captured at import time. We import lazily inside
 # helpers AFTER applying the env permutation we want, then restore on exit.
 # The very first import snaps the singleton; later ``reload``s rebuild
-# against the new env. Keep the bypass OFF for these tests — they exercise
-# config defaults, not the auth shim.
-os.environ.pop("DIAGNOSIS_AUTH_BYPASS", None)
-os.environ.pop("DIAGNOSIS_PATIENT_LOOKUP", None)
-
+# against the new env. Each case owns its environment permutation.
 # Knot of env vars the adapter reads — we snapshot + restore every case
 # so the process exits clean for the next test in the same interpreter.
 _ENV_VARS = (

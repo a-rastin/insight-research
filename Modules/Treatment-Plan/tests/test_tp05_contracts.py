@@ -38,7 +38,7 @@ class TreatmentPlanContractTests(unittest.TestCase):
                 if method not in HTTP_METHODS or not decorator.args:
                     continue
                 path = ast.literal_eval(decorator.args[0])
-                if path == "/modules/treatment-plan":
+                if path.startswith("/modules/treatment-plan"):
                     continue
                 live.add((method, path))
         published = {
@@ -152,7 +152,7 @@ class TreatmentPlanContractTests(unittest.TestCase):
             if argument.arg == "plan_id" and argument.annotation is not None
         }
         self.assertEqual(
-            {"read_plan", "supersede_plan", "edit_draft", "finalize_plan", "read_plan_provenance", "read_plan_audit"},
+            {"read_plan", "supersede_plan", "edit_draft", "finalize_plan", "read_plan_provenance", "read_plan_audit", "module_plan_shell"},
             set(annotations),
         )
         self.assertEqual({"UUID"}, set(annotations.values()))

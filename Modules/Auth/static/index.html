@@ -414,7 +414,7 @@
         $('disclaimer-agree').focus();
         return;
       }
-      const target = data.next || '/dashboard/admin';
+      const target = data.next || '/dashboard/';
       window.location.assign(target);
     }
 
@@ -574,7 +574,7 @@
           return;
         }
         const data = await res.json();
-        window.location.assign(data.next || '/dashboard/user');
+        window.location.assign(data.next || '/dashboard/');
       } catch (err) {
         setStatus(status, 'Network error. Try again.', 'error');
         btn.disabled = false;
@@ -614,9 +614,7 @@
         const r = await fetch('/api/auth/session', { credentials: 'same-origin' });
         if (r.ok) {
           const d = await r.json();
-          const role = d.role || d.message;
-          if (role === 'admin') window.location.replace('/dashboard/admin');
-          else if (role === 'psychiatrist' || d.message === 'user') window.location.replace('/dashboard/user');
+          window.location.replace('/dashboard/');
         }
       } catch (_) { /* ignore — stay on login */ }
     })();
