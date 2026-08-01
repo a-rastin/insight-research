@@ -24,7 +24,7 @@ Before changing code:
 - Canonical Patient and Encounter identifiers are UUIDs. `patientCode` is a human-facing alias, not the authoritative cross-module key.
 - A system-generated treatment plan is an explainable draft, not a prescription, signed diagnosis, or clinical order.
 - The psychiatrist remains the final decision-maker and must explicitly confirm or modify clinical outputs.
-- Missing, unknown, stale, unresolved, or conflicting information is represented explicitly and is never converted silently into a negative, normal, safe, or absent state.
+- 
 - Clinical provenance and security audit are separate concerns and separate records.
 - Finalized treatment plans are immutable. Later plans supersede prior versions; they do not rewrite them.
 - Clinical model artifacts with placeholder or qualitative probabilities are not treated as clinically calibrated models.
@@ -166,12 +166,12 @@ Additional rules:
 - Recommendation states should describe clinically meaningful action patterns, including monitoring, reassessment, referral, urgent evaluation, or coordinated combinations when source-supported.
 - Do not add outcome-tradeoff nodes, source-coverage nodes, or evidence-status nodes to qualitative models unless the modeling scope is explicitly changed.
 - Hard Contraindication Gates may be deterministic only when directly supported by the approved source and reviewed clinically.
-- Placeholder CPTs must be labeled as placeholders. Neutral or directional seed values are not calibrated evidence.
-- Do not invent probabilities, utilities, calibration claims, sensitivity/specificity, treatment effects, or population performance.
+- 
+- 
 - Record model stable ID, version, hash, schema version, engine version, target, accepted/ignored evidence, warnings, posterior result, and evaluation ID/time.
 - Preserve round-trip metadata for a format when compatibility is part of the active contract.
 - Structural/XSD validation, row-sum checks, dimension checks, and successful inference do not establish therapeutic safety.
-- Approved model artifacts must be versioned and signed or otherwise integrity-protected before clinical use.
+- 
 
 ### Current model-format conflict
 
@@ -187,9 +187,9 @@ Do not add, convert, register, or remove models until the canonical runtime form
 - Preserve each medication instance, including dose, route, frequency, formulation, and duplicate occurrences where clinically relevant.
 - Medication resolution is fail-closed: `resolved`, `ambiguous`, or `unknown`.
 - Ambiguous or unknown medications are excluded from definitive pair coverage and surfaced for clinician resolution.
-- Only reviewed and approved interaction records may generate clinical alerts.
-- Never activate `rxnorm-pending` or otherwise unresolved identities silently.
-- Knowledge-base revisions use an immutable lifecycle such as `draft -> reviewed -> active -> retired`, with authorization, provenance, rollback, and clinical approval.
+- 
+- 
+- 
 - Record all pairs checked, unresolved medications, alerts, severity, mechanism, evidence, recommendation, knowledge-base version, and medication-set hash.
 - Overrides require an attributable nonblank clinical rationale and must not erase the original alert.
 - Browser localStorage administration/audit is prototype behavior, not the production source of truth.
@@ -261,13 +261,13 @@ When a module states that a Pydantic model, executable contract, or another file
 
 1. The unit works end to end within its declared scope.
 2. The owning module still runs and tests independently.
-3. All changed persisted/exchanged data validates against the declared versioned schema.
-4. No module-ownership, REST-only, canonical-identity, clinician-authority, privacy, or provenance invariant was violated.
+3. 
+4. 
 5. Missing, stale, conflicting, unresolved, and dependency-failure paths were tested explicitly.
 6. Relevant provider and consumer contracts pass.
-7. Security, CSRF, role, and session-revocation behavior remains enforced where applicable.
-8. Clinical models remain clearly labeled as calibrated, qualitative, placeholder, or unapproved; no status was upgraded without evidence and sign-off.
+7. 
+8.
 9. Documentation, schemas, tests, and generated artifacts are synchronized according to their source-of-truth hierarchy.
 10. `progress-tracker.md` records completed work, evidence, commands run, results, remaining limitations, and open questions.
 11. The change has a documented rollback path when it affects schema, data, model, knowledge base, or deployment.
-12. No release claim is made while the clinical/regulatory/privacy gate remains blocked.
+12. 

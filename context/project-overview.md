@@ -103,7 +103,7 @@ INSIGHT is a clinical decision support system for psychiatrists managing patient
 - Administrator and psychiatrist authentication and authorization workflows.
 - Patient and encounter identity, records, assessments, and longitudinal plan history.
 - Clinician-confirmed diagnosis support, PANSS severity assessment, risk and medical-history inputs, medication normalization, DDI checking.
-- Versioned BN Manager support for XML BIF 0.3 models and the candidate Bayesian-network or influence-diagram pathways supplied in the archive, subject to clinical validation before activation.
+- 
 - Explainable Primary Treatment Plans, psychiatrist edits and rationale, safety revalidation, immutable Final Treatment Plans, and follow-up supersession.
 - REST-only module integration, versioned schemas, separate module persistence, provenance, security audit, PHI controls, accessibility, deployment, testing, backup, and operational readiness work.
 - Standalone execution of each module and a unified single-image deployment that preserves process and data boundaries.
@@ -113,7 +113,7 @@ INSIGHT is a clinical decision support system for psychiatrists managing patient
 
 - Autonomous diagnosis, autonomous treatment selection, prescribing, medication ordering, or replacement of psychiatrist judgment.
 - Representing a Primary Treatment Plan as a prescription, signed clinical order, or mandatory course of action.
-- Silently guessing missing clinical facts, resolving ambiguous medications without review, suppressing contradictory data, or interpreting an unavailable dependency as a negative finding.
+- 
 - Direct database access between modules, a shared clinical database, cross-schema joins, shared mutable state, or one module owning another module's domain entities.
 - Allowing the AI assistant to access patient identifiers, alter records, finalize plans, or act as an autonomous clinical decision-maker.
 

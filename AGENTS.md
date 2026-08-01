@@ -38,15 +38,12 @@ Use this precedence order:
 
 - INSIGHT is a psychiatrist-facing clinical decision support system for
   schizophrenia care. It provides advisory, explainable support; it does not
-  replace clinical judgment or issue autonomous diagnoses, prescriptions, or
-  signed clinical orders.
+  replace clinical judgment or issue autonomous diagnoses, prescriptions.
 - Preserve psychiatrist authority. Computed criteria, scores, probabilities,
   priorities, and recommendations must remain distinct from the clinician's
   recorded decision, edits, approval, and attestation.
 - 
-- Model use requires versioning, schema validation, evidence mapping,
-  reproducibility, provenance, clinical review, and the applicable release
-  approvals.
+- 
 
 ## Architecture and Data Boundaries
 
@@ -86,9 +83,7 @@ Use this precedence order:
   CSRF protection on state-changing browser requests. Development bypasses and
   mock identities must be explicit, environment-gated, disabled in production,
   and covered by tests.
-- Keep security audit history separate from clinical provenance. Both must be
-  attributable, append-only where required, and free of unnecessary plaintext
-  patient data.
+- 
 - Scrub patient identifiers before an LLM call, and never send patient names 
 or allow the assistant to modify clinical records directly.
 
@@ -97,21 +92,15 @@ or allow the assistant to modify clinical records directly.
 - Make the smallest coherent change that satisfies the task. Do not merge
   modules, broaden scope, replace established seams, or pay down unrelated
   deferred work without explicit approval.
-- Preserve public contracts and documented invariants. A contract, identifier,
-  schema, clinical rule, role, route, state name, or model-node change requires
-  coordinated versioning, migration, tests, and documentation.
-- Validate clinical calculations and safety rules server-side; do not trust
-  client-computed totals, recommendations, eligibility, or finalization state.
+- 
+- 
 - Keep liveness and readiness distinct. Readiness checks must fail safely,
   avoid leaking paths or secrets, and follow the module's documented dependency
   policy.
 - Preserve standalone execution and the unified deployment path. Only the
   gateway is publicly exposed; internal module ports remain private. SQLite
   databases remain module-local, with PostgreSQL as a controlled upgrade path.
-- Follow `context/ui-context.md` for all interface work. Clinical state must
-  never be communicated by color alone; preserve keyboard support, semantic
-  labels, sufficient contrast, minimum target sizes, and reduced-motion
-  behavior.
+- 
 - Run the affected module's tests plus relevant contract, integration,
   migration, security, accessibility, and clinical-safety checks. Do not claim
   success for checks that were not run or could not be completed.
