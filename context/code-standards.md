@@ -25,17 +25,9 @@
 - Fix root causes rather than layering compatibility workarounds indefinitely.
 - Preserve existing public behavior through explicit, time-bounded compatibility adapters when contracts evolve.
 - Prefer the smallest correct change. Do not introduce speculative dependencies or abstractions without a demonstrated requirement.
-- Never simplify away input validation, authorization, privacy controls, auditability, accessibility, provenance, or clinical-safety checks.
-- Keep clinician judgment explicit. A model result, criteria result, or recommendation is evidence for review, not an automatic clinical decision.
 
-## Source Precedence and Change Control
 
-- For cross-module ownership and coupling, follow the normative context map.
-- For a module's API shape and behavior, follow its declared canonical contract.
-- When two supplied sources conflict, do not choose silently. Document the conflict and resolve it through an approved contract or ADR.
-- Do not duplicate canonical contract definitions across READMEs, frontend code, tests, and schemas. Reference or generate from the canonical source where practical.
-- Update documentation, schemas, tests, diagrams, and migration notes in the same change whenever a contract or controlled field changes.
-- Do not commit PHI, credentials, signing keys, real signatures, clinical secrets, local databases, generated runtime state, or test residue to source control.
+
 
 ## Supported Languages and Runtime Boundaries
 

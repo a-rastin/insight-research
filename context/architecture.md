@@ -36,7 +36,7 @@
 - `Modules/BN Manager` — Sole runtime owner of the four canonical BIF 0.3 XML models, the XSD, registry metadata, model validation, and posterior evaluation. It does not own patients, Dashboard state, treatment plans, or caller filesystems.
 - `Modules/Treatment Plan` — Orchestrates authenticated REST reads from upstream owners; creates immutable Clinical Input Snapshots, Recommendation Runs, Primary Treatment Plans, structured Plan Edits, Safety Findings, Recommendation Evidence, immutable Final Treatment Plans, and supersession links. It must not mutate upstream Patient, Encounter, assessment, DDI knowledge, or BN model records.
 - Follow-up is an orchestration flow across existing owner APIs, not a standalone data-owning module. Add New Patient creates the follow-up Encounter and owns its Follow-up Delta; assessment modules own new encounter-scoped assessments; Treatment Plan owns any superseding plan and its link. Follow-up-specific model assets do not establish another writer or service boundary.
-- `BNs` — Clinical source excerpts, qualitative model specifications, diagrams, XML/NET artifacts, and model documentation. These are evidence/model-development assets. They become runtime-authoritative only when admitted to the owning module's versioned, validated, clinically governed registry.
+- `BNs` — Clinical source excerpts, qualitative model specifications, diagrams, XML/NET artifacts, and model documentation. These are evidence/model-development assets.
 - Root architecture/governance files — Define ubiquitous language, design tokens, context maps, model schemas, clinical safety boundaries, and unification rules. They are governance inputs, not runtime data stores.
 
 ## Storage Model
@@ -70,11 +70,11 @@
 1. **Modules remain independent.** Every module must run and test independently. Cross-module communication is REST-only; cross-module source imports, shared domain implementations, database reads, filesystem access, and shared mutable files are forbidden.
 2. **Every persisted entity has exactly one owner.** The owning module defines the canonical identifier, schema, validation, lifecycle, persistence, migrations, and authoritative REST representation. No code change may silently create a second writer.
 3. **Canonical identity is UUID-based.** Patient, Encounter, assessment, recommendation, plan, session, model evaluation, and other durable entities use stable UUIDs where specified. `patientCode`, names, timestamps, medication display text, and other mutable aliases are never cross-module foreign keys of record.
-4. **Every dataset and interface is versioned and validated.** Persisted and exchanged data declares a schema/interface/module version. Consumers validate responses before use or persistence and fail explicitly on unsupported major versions.
-5. **Cached or copied upstream data is never authoritative.** A snapshot must retain source module, source identifier, schema version, resource version/ETag, retrieval time, and content hash. Upstream changes create a new snapshot and recommendation run; they do not rewrite history.
+4. **Every dataset and interface is versioned and validated.** Persisted and exchanged data declares a schema/interface/module version. 
+
 6. **The psychiatrist is the final clinical authority.** Diagnosis criteria, Bayesian posteriors, DDI alerts, and Primary Treatment Plans are decision support, not signed treatment orders. Clinician confirmation or modification is explicit and attributable.
-7. **Final plans are immutable.** Finalization runs server-side safety revalidation and creates a new immutable Final Treatment Plan. Follow-up or correction creates a successor and preserves the prior plan, provenance, and edit ledger.
-8. **Safety gates outrank probabilistic ranking.** Hard contraindications, severe DDI policy, crisis/emergency rules, allergy rules, and required-data checks cannot be bypassed by a favorable Bayesian posterior. Any policy-approved override requires an explicit rationale and audit/provenance record.
-9. **Missing, stale, conflicting, ambiguous, or unresolved data is never silently guessed.** The system exposes the limitation, blocks or qualifies generation according to policy, and identifies the owning module/action needed to resolve it. An unresolved medication identity must never be reported as “no interaction.”
+7. **Final plans are immutable.** Finalization creates a new immutable Final Treatment Plan. Follow-up or correction creates a successor and preserves the prior plan, provenance, and edit ledger.
+
+
 10. **PHI does not leak across trust boundaries.** PHI is excluded from URLs, query strings, browser storage, logs, analytics, caches, filenames, and unprotected exports. Transport is encrypted; production persistence, backups, and secrets require documented protection and access controls.
 11. **One image is not one process or one codebase.** The unified Docker image contains separately configured module processes, ports/base paths, health/readiness checks, migrations, and writable data directories. Only the gateway is externally bound.

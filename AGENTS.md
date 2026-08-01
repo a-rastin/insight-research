@@ -43,9 +43,7 @@ Use this precedence order:
 - Preserve psychiatrist authority. Computed criteria, scores, probabilities,
   priorities, and recommendations must remain distinct from the clinician's
   recorded decision, edits, approval, and attestation.
-- Never silently convert missing, unknown, stale, conflicting, or invalid data
-  into a negative or favorable clinical finding. Surface the uncertainty and
-  fail closed where safety or eligibility requires it.
+- 
 - Model use requires versioning, schema validation, evidence mapping,
   reproducibility, provenance, clinical review, and the applicable release
   approvals.
@@ -72,8 +70,7 @@ Use this precedence order:
   edits, final plans, findings, and supersession records—not upstream patient,
   encounter, assessment, medication, or model source records.
 - A Primary Treatment Plan is an explainable system-generated draft. A Final
-  Treatment Plan is created only after attributable psychiatrist review and
-  server-side safety revalidation. Final plans are immutable; later plans
+  Treatment Plan is created only after attributable psychiatrist review. Final plans are immutable; later plans
   supersede them instead of modifying or deleting them.
 
 ## Security, Privacy, and Audit Rules
@@ -127,9 +124,7 @@ or allow the assistant to modify clinical records directly.
 - If implementation changes architecture, scope, ownership, a public interface,
   clinical behavior, security policy, UI conventions, or coding standards, update
   the relevant context or contract document before continuing.
-- Do not fabricate missing data or silently reinterpret requirements. Record
-  uncertainty explicitly and ask for clarification when it affects correctness,
-  clinical safety, privacy, or system boundaries.
+- 
 
 ## Sessions preamble
 
